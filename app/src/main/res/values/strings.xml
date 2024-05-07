@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Grocify</string>
+    <string name="client_id">135277017788-uetahclfn3d9h4ojchfk2o9337muih19.apps.googleusercontent.com</string>
+    <string name="title_activity_map2">MapActivity2</string>
+    <string name="location_permission_denied">Permission denied</string>
+    <string name="title_activity_map">MapActivity</string>
+</resources>

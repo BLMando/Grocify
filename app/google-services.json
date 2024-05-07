@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "135277017788",
+    "project_id": "grocify-b90b4",
+    "storage_bucket": "grocify-b90b4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:135277017788:android:731a8f124b6ac23f01eeb9",
+        "android_client_info": {
+          "package_name": "com.example.grocify"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "135277017788-tq7s0tvt00tf7igo6ldad52b2mst2q85.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.grocify",
+            "certificate_hash": "b47d7f65d616d43bc84795068639a1d9aaf9d42e"
+          }
+        },
+        {
+          "client_id": "135277017788-uetahclfn3d9h4ojchfk2o9337muih19.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGA_nKaKXsMJ7x6Yil50o0uV8FMui62Mc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "135277017788-uetahclfn3d9h4ojchfk2o9337muih19.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
