@@ -74,7 +74,8 @@ dependencies {
 
     //ANDROID X COMPOSE LIBRARIES
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -87,10 +88,12 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.databinding.runtime)
+    implementation(libs.androidx.navigation.compose)
 
     //QRCODE LIBRARY
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    implementation(libs.androidx.constraintlayout)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.multidex:multidex:2.0.1")
 
