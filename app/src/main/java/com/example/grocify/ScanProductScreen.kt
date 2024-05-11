@@ -1,7 +1,11 @@
 package com.example.grocify
 
+import CameraScreen
+import android.Manifest
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +29,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -40,10 +47,53 @@ import com.example.grocify.components.ListItems
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalPermissionsApi
 @Composable
-fun ScanProductScreen(){
+fun ScanProductScreen() {
+
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    var analyzerType by remember { mutableStateOf(AnalyzerType.UNDEFINED) }
+
+    /*if (cameraPermissionState.status.isGranted) {
+        if (analyzerType == AnalyzerType.UNDEFINED) {
+            Column {
+
+                FloatingActionButton(
+                    onClick = { analyzerType = AnalyzerType.BARCODE },
+                    containerColor = BlueDark,
+                )
+                {
+                    Image(
+                        painterResource(id = R.drawable.bar_code),
+                        contentDescription = "bar code scanner",
+                        colorFilter = ColorFilter.tint(Color.White),
+                        modifier = Modifier
+                            .size(30.dp)
+                    )
+                }
+
+            }
+        } else {
+            CameraScreen(analyzerType)
+        }
+    } else if (cameraPermissionState.status.shouldShowRationale) {
+        Text("Camera Permission permanently denied")
+    } else {
+        SideEffect {
+            cameraPermissionState.run { launchPermissionRequest() }
+        }
+        Text("No Camera Permission")
+    }*/
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -61,19 +111,33 @@ fun ScanProductScreen(){
         },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {},
-                containerColor = BlueDark,
-            )
-            {
-                Image(
-                    painterResource(id = R.drawable.bar_code),
-                    contentDescription = "bar code scanner",
-                    colorFilter = ColorFilter.tint(Color.White),
-                    modifier = Modifier
-                        .size(30.dp)
-                )
-            } },
+            Box(modifier = Modifier.padding(16.dp)) { // Aggiungi un padding per allineare con il BottomAppBar
+                if (cameraPermissionState.status.isGranted) {
+                    if (analyzerType == AnalyzerType.UNDEFINED) {
+                        FloatingActionButton(
+                            onClick = { analyzerType = AnalyzerType.BARCODE },
+                            containerColor = BlueDark,
+                        ) {
+                            Image(
+                                painterResource(id = R.drawable.bar_code),
+                                contentDescription = "bar code scanner",
+                                colorFilter = ColorFilter.tint(Color.White),
+                                modifier = Modifier.size(30.dp)
+                            )
+                        }
+                    } else {
+                        CameraScreen(analyzerType)
+                    }
+                } else if (cameraPermissionState.status.shouldShowRationale) {
+                    Text("Camera Permission permanently denied")
+                } else {
+                    SideEffect {
+                        cameraPermissionState.run { launchPermissionRequest() }
+                    }
+                    Text("No Camera Permission")
+                }
+            }
+        },
         bottomBar = {
             BottomAppBar(
                 windowInsets = TopAppBarDefaults.windowInsets,
@@ -177,5 +241,5 @@ fun ScanProductScreen(){
             }
         }
     )
-}
+    }
 

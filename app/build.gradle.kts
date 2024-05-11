@@ -65,6 +65,10 @@ android {
 }
 
 dependencies {
+    implementation("com.google.guava:guava:31.0.1-android")
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+
     //FIREBASE LIBRARIES
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-auth")
@@ -91,9 +95,17 @@ dependencies {
     //QRCODE LIBRARY
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.camera.core)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.multidex:multidex:2.0.1")
 
+    //BAR CODE LIBRARY
+    implementation("com.google.zxing:core:3.4.1")
+
+    implementation("androidx.camera:camera-camera2:1.2.2")
+    implementation("androidx.camera:camera-lifecycle:1.2.2")
+    implementation("androidx.camera:camera-view:1.2.2")
+    implementation("com.google.mlkit:barcode-scanning:17.1.0")
     //CHART LIBRARY
     implementation("com.himanshoe:charty:2.0.0-alpha01")
 

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.grocify.ui.theme.GrocifyTheme
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
@@ -33,14 +34,14 @@ class MainActivity : ComponentActivity() {
     private var oneTapClient: SignInClient? = null
     private lateinit var signInRequest: BeginSignInRequest
     private var db = Firebase.firestore
-
+    @ExperimentalPermissionsApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         installSplashScreen()
         setContent {
             GrocifyTheme {
-                SignInScreen()
+                ScanProductScreen()
             }
         }
 
@@ -221,7 +222,7 @@ fun CategoryItemsScreenPreview() {
 @Composable
 fun ScanProductScreenPreview() {
     GrocifyTheme {
-        ScanProductScreen()
+        //ScanProductScreen()
     }
 }
 
