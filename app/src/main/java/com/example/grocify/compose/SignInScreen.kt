@@ -1,6 +1,10 @@
-package com.example.grocify.compose.signIn
+package com.example.grocify.compose
 
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,21 +61,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.ExtraLightGray
 import com.example.grocify.viewmodels.SignInViewModel
+import com.google.android.gms.auth.api.identity.Identity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
 @Composable
 fun SignInScreen(
-    viewModel: SignInViewModel,
+    context: Activity,
     onGoSignUp: () -> Unit,
-    onSignInSuccessful: () -> Unit,
-    onSignInClick: () -> Unit
+    onSignInSuccessful: () -> Unit
 ) {
+
+    val viewModel: SignInViewModel = viewModel(factory = viewModelFactory {
+        addInitializer(SignInViewModel::class) {
+            SignInViewModel(context.application, Identity.getSignInClient(context))
+        }
+    })
 
     val googleUiState = viewModel.googleSignInState.collectAsState()
     val signInUiState = viewModel.signInState.collectAsState()
@@ -83,6 +97,36 @@ fun SignInScreen(
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    //launcher per l'intent di login
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult(),
+        onResult = { result ->
+            if(result.resultCode == Activity.RESULT_OK){
+                //se l'intent di login è andato a buon fine, allora si fa il login
+                CoroutineScope(Dispatchers.Main).launch {
+                    val signInResult = viewModel.signInWithIntent(
+                        intent = result.data ?: return@launch
+                    )
+                    viewModel.onSignInResult(signInResult)
+                }
+
+            }
+        }
+    )
+
+    //DA DECOMMENTARE NON APPENA FINITA LA FUNZIONALITA' DI LOGOUT
+    //il codice viene eseguito ad ogni render del composable
+    /*LaunchedEffect(key1 = Unit) {
+        if(googleAuthClient.getSignedInUser() != null){
+            navController.navigate(Screen.SignUpScreen.route)
+        }
+    }*/
+
+    LaunchedEffect(key1 = googleUiState.value.isSignInSuccessful) {
+        if(googleUiState.value.isSignInSuccessful)
+            onSignInSuccessful()
+    }
 
     LaunchedEffect(key1 = googleUiState.value.signInError) {
         googleUiState.value.signInError?.let { error ->
@@ -273,7 +317,7 @@ fun SignInScreen(
             )
 
             Button(
-                onClick = { viewModel.signIn(email, password) },
+                onClick = { viewModel.signInWithCredentials(email, password) },
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = BlueDark
                 ),
@@ -311,8 +355,17 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.size(15.dp))
 
+
             OutlinedButton(
-                onClick = onSignInClick,
+                onClick = {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val signInIntentSender = viewModel.signInWithGoogle()
+                        launcher.launch(
+                            IntentSenderRequest.Builder(
+                                signInIntentSender ?: return@launch
+                            ).build()
+                        )
+                }},
                 modifier = Modifier
                     .width(325.dp)
             ) {
@@ -332,5 +385,7 @@ fun SignInScreen(
         }
     }
 }
+
+
 
 

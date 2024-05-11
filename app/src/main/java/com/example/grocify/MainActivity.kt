@@ -5,9 +5,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.grocify.compose.GrocifyApp
+import com.example.grocify.compose.homeUser.HomeUserScreen
 import com.example.grocify.ui.theme.GrocifyTheme
 
 class MainActivity : ComponentActivity() {
@@ -77,7 +77,7 @@ fun MapScreenPreview() {
 @Composable
 fun HomeUserScreenPreview() {
     GrocifyTheme {
-        HomeUserScreen()
+        //HomeUserScreen()
     }
 }
 

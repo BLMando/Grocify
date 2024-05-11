@@ -1,11 +1,19 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
+import android.content.Intent
+import android.content.IntentSender
+import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.compose.signIn.GoogleSignInResult
+import com.example.grocify.R
+import com.example.grocify.data.signIn.GoogleSignInResult
 import com.example.grocify.data.signIn.GoogleSignInState
 import com.example.grocify.data.signIn.SignInUiState
+import com.example.grocify.data.signIn.UserData
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -15,9 +23,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CancellationException
 
-class SignInViewModel(application: Application): AndroidViewModel(application) {
+class SignInViewModel(application: Application, private val mOneTapClient: SignInClient): AndroidViewModel(application) {
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
@@ -28,7 +38,7 @@ class SignInViewModel(application: Application): AndroidViewModel(application) {
     private val _signInState = MutableStateFlow(SignInUiState())
     val signInState: StateFlow<SignInUiState> = _signInState.asStateFlow()
 
-    fun signIn(email: String, password: String) {
+    fun signInWithCredentials(email: String, password: String) {
 
         val passwordStatus = verifyPassword(password)
         val emailStatus = verifyEmail(email)
@@ -88,6 +98,47 @@ class SignInViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
+    suspend fun signInWithGoogle(): IntentSender?{
+        val result = try{
+            mOneTapClient.beginSignIn(
+                buildSignInRequest()
+            ).await()
+        }catch (e: Exception){
+            e.printStackTrace()
+            if(e is CancellationException) throw  e else null
+        }
+
+        return result?.pendingIntent?.intentSender
+    }
+
+    suspend fun signInWithIntent(intent: Intent): GoogleSignInResult {
+        val credential = mOneTapClient.getSignInCredentialFromIntent(intent)
+        val idToken = credential.googleIdToken
+        val googleCredential = GoogleAuthProvider.getCredential(idToken,null)
+        return try{
+            val user = auth.signInWithCredential(googleCredential).await().user
+            GoogleSignInResult(
+                data = user?.run {
+                    val username = displayName?.split(" ")
+                    UserData(
+                        name = username?.get(0),
+                        surname = username?.get(1),
+                        email = email,
+                        profilePic = photoUrl?.toString()
+                    )
+                },
+                error = null
+            )
+        }catch(e: Exception){
+            e.printStackTrace()
+            if(e is CancellationException) throw  e
+            GoogleSignInResult(
+                data = null,
+                error = e.message
+            )
+        }
+    }
+
     fun onSignInResult(result: GoogleSignInResult){
         if(result.data != null){
             viewModelScope.launch {
@@ -117,6 +168,7 @@ class SignInViewModel(application: Application): AndroidViewModel(application) {
                             }
                     }
                 }
+                resetGoogleState()
             }
         }else
             _googleSignInState.update { currentState ->
@@ -125,6 +177,30 @@ class SignInViewModel(application: Application): AndroidViewModel(application) {
                     signInError = result.error
                 )
             }
+    }
+
+
+    suspend fun signOut(){
+        try {
+            mOneTapClient.signOut().await()
+            auth.signOut()
+        }catch(e: Exception){
+            e.printStackTrace()
+            if(e is CancellationException) throw  e
+        }
+    }
+
+    private fun buildSignInRequest(): BeginSignInRequest {
+        return BeginSignInRequest.Builder()
+            .setGoogleIdTokenRequestOptions(
+                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true)
+                    .setServerClientId(getString(getApplication(),R.string.client_id))
+                    .setFilterByAuthorizedAccounts(false)
+                    .build()
+            )
+            .setAutoSelectEnabled(true)
+            .build()
     }
 
     private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
@@ -138,6 +214,6 @@ class SignInViewModel(application: Application): AndroidViewModel(application) {
 
     private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
 
-    fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
+    private fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
     private fun resetState() = _signInState.update { SignInUiState() }
 }

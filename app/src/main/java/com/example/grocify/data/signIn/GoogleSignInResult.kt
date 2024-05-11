@@ -1,4 +1,4 @@
-package com.example.grocify.compose.signIn
+package com.example.grocify.data.signIn
 
 data class GoogleSignInResult(
     val data: UserData?,

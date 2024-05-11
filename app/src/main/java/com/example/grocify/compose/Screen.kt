@@ -7,10 +7,9 @@ sealed class Screen (
     val navArguments: List<NavArgument> = emptyList()
 ){
     data object SignInScreen: Screen("login")
-
     data object SignUpScreen: Screen("register")
-
     data object HomeUser: Screen("home_user")
+    data object UserProfile: Screen("user_profile")
 
 
 }
