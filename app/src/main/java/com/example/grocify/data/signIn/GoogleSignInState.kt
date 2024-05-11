@@ -1,4 +1,4 @@
-package com.example.grocify.data
+package com.example.grocify.data.signIn
 
 data class GoogleSignInState(
     val isSignInSuccessful: Boolean = false,

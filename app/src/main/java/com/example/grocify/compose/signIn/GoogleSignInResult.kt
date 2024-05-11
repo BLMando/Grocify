@@ -1,6 +1,4 @@
-package com.example.grocify.compose
-
-
+package com.example.grocify.compose.signIn
 
 data class GoogleSignInResult(
     val data: UserData?,
@@ -8,7 +6,8 @@ data class GoogleSignInResult(
 )
 
 data class UserData(
-    val username: String?,
+    val name: String?,
+    val surname: String?,
     val email: String?,
     val profilePic: String?
 )

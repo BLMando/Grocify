@@ -15,6 +15,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.grocify.HomeUserScreen
+import com.example.grocify.compose.signIn.GoogleAuthUiClient
+import com.example.grocify.compose.signIn.SignInScreen
 import com.example.grocify.viewmodels.SignInViewModel
 import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.CoroutineScope
@@ -74,14 +76,14 @@ fun GrocifyNavHost(navController: NavHostController) {
             LaunchedEffect(key1 = state.value.isSignInSuccessful) {
                 if(state.value.isSignInSuccessful){
                     navController.navigate(Screen.HomeUser.route)
-                    viewModel.resetState()
+                    viewModel.resetGoogleState()
                 }
             }
 
             SignInScreen(
                 viewModel = viewModel,
                 onGoSignUp = { navController.navigate(Screen.SignUpScreen.route) },
-                onSignInSuccessful = { navController.navigate(Screen.SignUpScreen.route) },
+                onSignInSuccessful = { navController.navigate(Screen.HomeUser.route) },
                 onSignInClick = {
                     CoroutineScope(Dispatchers.Main).launch {
                         val signInIntentSender = googleAuthClient.signIn()

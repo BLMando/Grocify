@@ -28,6 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -58,6 +60,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.ExtraLightGray
 import com.example.grocify.viewmodels.SignUpViewModel
 import kotlinx.coroutines.launch
 
@@ -68,7 +71,7 @@ fun SignUpScreen(
     onSignUpSuccess: () -> Unit
 ) {
 
-    val uiState by viewModel.signUpState.collectAsState()
+    val signUpUiState by viewModel.signUpState.collectAsState()
 
     var name by rememberSaveable { mutableStateOf("") }
     var surname by rememberSaveable { mutableStateOf("") }
@@ -82,15 +85,22 @@ fun SignUpScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(key1 = uiState.signUpError){
-        if(uiState.signUpError != "")
+    LaunchedEffect(key1 = signUpUiState.signUpError){
+        signUpUiState.signUpError?.let { error ->
             scope.launch {
                 snackbarHostState
                     .showSnackbar(
-                        message = uiState.signUpError
+                        message = error,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Long
                     )
             }
-        else onSignUpSuccess()
+        }
+    }
+
+    LaunchedEffect(key1 = signUpUiState.isSuccessful) {
+        if(signUpUiState.isSuccessful)
+            onSignUpSuccess()
     }
 
 
@@ -101,13 +111,21 @@ fun SignUpScreen(
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(hostState = snackbarHostState){
+                Snackbar(
+                    snackbarData = it,
+                    containerColor = ExtraLightGray,
+                    contentColor = Color.Black,
+                    actionColor = Color.Black
+                )
+            }
         }
     ) { contentPadding ->
         Column (
             modifier = Modifier
-                .padding(contentPadding)
-                .background(Color.White),
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(contentPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -154,18 +172,18 @@ fun SignUpScreen(
                     textStyle = TextStyle(
                         color = Color.Black
                     ),
-                    isError = !uiState.isNameValid,
+                    isError = !signUpUiState.isNameValid,
                     supportingText = {
-                        if(!uiState.isNameValid)
+                        if(!signUpUiState.isNameValid)
                             Text(
-                                text = uiState.nameError,
+                                text = signUpUiState.nameError,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.Red,
                                 textAlign = TextAlign.Start
                             )
                     },
                     trailingIcon = {
-                        if (!uiState.isNameValid)
+                        if (!signUpUiState.isNameValid)
                             Icon(Icons.Filled.Error,"error", tint = MaterialTheme.colorScheme.error)
                     }
                 )
@@ -189,18 +207,18 @@ fun SignUpScreen(
                     textStyle = TextStyle(
                         color = Color.Black
                     ),
-                    isError = !uiState.isSurnameValid,
+                    isError = !signUpUiState.isSurnameValid,
                     supportingText = {
-                        if(!uiState.isSurnameValid)
+                        if(!signUpUiState.isSurnameValid)
                             Text(
-                                text = uiState.surnameError,
+                                text = signUpUiState.surnameError,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.Red,
                                 textAlign = TextAlign.Start
                             )
                     },
                     trailingIcon = {
-                        if (!uiState.isSurnameValid)
+                        if (!signUpUiState.isSurnameValid)
                             Icon(Icons.Filled.Error,"error", tint = MaterialTheme.colorScheme.error)
                     }
                 )
@@ -225,18 +243,18 @@ fun SignUpScreen(
                 textStyle = TextStyle(
                     color = Color.Black
                 ),
-                isError = !uiState.isEmailValid,
+                isError = !signUpUiState.isEmailValid,
                 supportingText = {
-                    if(!uiState.isEmailValid)
+                    if(!signUpUiState.isEmailValid)
                         Text(
-                            text = uiState.emailError,
+                            text = signUpUiState.emailError,
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Red,
                             textAlign = TextAlign.Start
                         )
                 },
                 trailingIcon = {
-                    if (!uiState.isEmailValid)
+                    if (!signUpUiState.isEmailValid)
                         Icon(Icons.Filled.Error,"error", tint = MaterialTheme.colorScheme.error)
                 }
 
@@ -266,11 +284,11 @@ fun SignUpScreen(
                 textStyle = TextStyle(
                     color = Color.Black
                 ),
-                isError = !uiState.isPasswordValid,
+                isError = !signUpUiState.isPasswordValid,
                 supportingText = {
-                    if(!uiState.isPasswordValid)
+                    if(!signUpUiState.isPasswordValid)
                         Text(
-                            text = uiState.passwordError,
+                            text = signUpUiState.passwordError,
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Red,
                             textAlign = TextAlign.Start
@@ -320,11 +338,11 @@ fun SignUpScreen(
                 textStyle = TextStyle(
                     color = Color.Black
                 ),
-                isError = !uiState.isPasswordValid,
+                isError = !signUpUiState.isConfirmPasswordValid,
                 supportingText = {
-                    if(!uiState.isPasswordValid)
+                    if(!signUpUiState.isConfirmPasswordValid)
                         Text(
-                            text = uiState.passwordError,
+                            text = signUpUiState.confirmPasswordError,
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Red,
                             textAlign = TextAlign.Start
@@ -351,7 +369,6 @@ fun SignUpScreen(
             )
 
             Spacer(modifier = Modifier.size(20.dp))
-
 
             Button(
                 onClick = {

@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.signIn
 
 import android.content.Context
 import android.content.Intent
@@ -31,7 +31,7 @@ class GoogleAuthUiClient(
         return result?.pendingIntent?.intentSender
     }
 
-    suspend fun signInWithIntent(intent: Intent): GoogleSignInResult{
+    suspend fun signInWithIntent(intent: Intent): GoogleSignInResult {
         val credential = oneTapClient.getSignInCredentialFromIntent(intent)
         val idToken = credential.googleIdToken
         val googleCredential = GoogleAuthProvider.getCredential(idToken,null)
@@ -39,8 +39,10 @@ class GoogleAuthUiClient(
             val user = auth.signInWithCredential(googleCredential).await().user
             GoogleSignInResult(
                 data = user?.run {
+                    val username = displayName?.split(" ")
                     UserData(
-                        username = displayName,
+                        name = username?.get(0),
+                        surname = username?.get(1),
                         email = email,
                         profilePic = photoUrl?.toString()
                     )
@@ -68,8 +70,10 @@ class GoogleAuthUiClient(
     }
 
     fun getSignedInUser(): UserData? =  auth.currentUser?.run {
+        val username = displayName?.split(" ")
         UserData(
-            username = displayName,
+            name = username?.get(0),
+            surname = username?.get(1),
             email = email,
             profilePic = photoUrl?.toString()
         )

@@ -1,4 +1,4 @@
-package com.example.grocify.data
+package com.example.grocify.data.signIn
 
 data class SignInUiState(
     val isSuccessful: Boolean = false,
@@ -6,5 +6,5 @@ data class SignInUiState(
     val isEmailValid: Boolean = true,
     val passwordError: String = "",
     val isPasswordValid: Boolean = true,
-    val signInError: String = ""
+    val signInError: String? = null
 )

@@ -1,6 +1,6 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.signIn
 
-import android.widget.Toast
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +25,8 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -43,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.sp
 import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.ExtraLightGray
 import com.example.grocify.viewmodels.SignInViewModel
 import kotlinx.coroutines.launch
 
@@ -74,17 +76,6 @@ fun SignInScreen(
     val googleUiState = viewModel.googleSignInState.collectAsState()
     val signInUiState = viewModel.signInState.collectAsState()
 
-    val context = LocalContext.current
-    LaunchedEffect(key1 = googleUiState.value.signInError) {
-        googleUiState.value.signInError?.let { error ->
-            Toast.makeText(
-                context,
-                error,
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var showPassword by rememberSaveable { mutableStateOf(false) }
@@ -93,22 +84,49 @@ fun SignInScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-
-    LaunchedEffect(key1 = signInUiState.value.signInError){
-        if(signInUiState.value.signInError != "")
+    LaunchedEffect(key1 = googleUiState.value.signInError) {
+        googleUiState.value.signInError?.let { error ->
             scope.launch {
                 snackbarHostState
                     .showSnackbar(
-                        message = signInUiState.value.signInError
+                        message = error,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Long
                     )
             }
-        else onSignInSuccessful()
+        }
     }
 
+    LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
+        if(signInUiState.value.isSuccessful)
+            onSignInSuccessful()
+    }
+
+   LaunchedEffect(key1 = signInUiState.value.signInError){
+        signInUiState.value.signInError?.let { error ->
+            scope.launch {
+                snackbarHostState
+                    .showSnackbar(
+                        message = error,
+                        withDismissAction = true,
+                        duration = SnackbarDuration.Long
+                    )
+            }
+        }
+    }
 
     Scaffold(
         snackbarHost = {
-            SnackbarHost(hostState = snackbarHostState)
+            SnackbarHost(
+                hostState = snackbarHostState
+            ){
+                Snackbar(
+                    snackbarData = it,
+                    containerColor = ExtraLightGray,
+                    contentColor = Color.Black,
+                    actionColor = Color.Black
+                )
+            }
         }
     ) { contentPadding ->
         Column(
@@ -172,6 +190,7 @@ fun SignInScreen(
                 onValueChange = {
                     email = it
                 },
+                singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BlueLight,
@@ -206,6 +225,7 @@ fun SignInScreen(
                 onValueChange = {
                     password = it
                 },
+                singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = BlueLight,
@@ -259,7 +279,7 @@ fun SignInScreen(
                 ),
                 modifier = Modifier
                     .width(325.dp)
-                    .padding(0.dp, 25.dp, 0.dp, 0.dp),
+                    .padding(0.dp, 20.dp, 0.dp, 0.dp),
                 shape = RoundedCornerShape(50)
             ) {
                 Text(
@@ -281,16 +301,20 @@ fun SignInScreen(
                 )
             }
 
+            Text(
+                text = "Oppure",
+                style = TextStyle(
+                    color = Color.Black,
+                    fontSize = 16.sp
+                )
+            )
 
-            Spacer(modifier = Modifier.size(20.dp))
-
-            Text(text = "Oppure")
+            Spacer(modifier = Modifier.size(15.dp))
 
             OutlinedButton(
                 onClick = onSignInClick,
                 modifier = Modifier
                     .width(325.dp)
-                    .padding(0.dp, 30.dp, 0.dp, 0.dp)
             ) {
                 Image(
                     painterResource(id = R.drawable.google_logo),

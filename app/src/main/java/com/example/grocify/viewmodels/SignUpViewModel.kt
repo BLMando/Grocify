@@ -2,10 +2,9 @@ package com.example.grocify.viewmodels
 
 
 import android.app.Application
-import android.util.Log
-import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.grocify.R
 import com.example.grocify.data.SignUpUiState
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -29,11 +28,13 @@ class SignUpViewModel(application: Application): AndroidViewModel(application){
 
     fun signUp(name:String,surname: String,email: String, password: String, confirmPassword: String){
 
-        verifyPassword(password,confirmPassword)
-        Log.d("verify","state=${_signUpState.value.passwordError}")
-        verifyEmail(email)
+        val nameStatus = isNotEmpty(name)
+        val surnameStatus = isNotEmpty(surname)
+        val emailStatus = verifyEmail(email)
+        val passwordStatus = verifyPassword(password)
+        val confirmPasswordStatus = verifyConfirmPassword(password, confirmPassword)
 
-        if(isEmpty(name)){
+        if(!nameStatus){
             _signUpState.update { currentState ->
                 currentState.copy(
                     nameError = "Il nome non può essere vuoto",
@@ -49,23 +50,68 @@ class SignUpViewModel(application: Application): AndroidViewModel(application){
             }
         }
 
-         if (isEmpty(surname)){
+         if (!surnameStatus){
              _signUpState.update { currentState ->
                  currentState.copy(
                      surnameError = "Il cognome non può essere vuoto",
                      isSurnameValid = false
                  )
              }
-         }else{
+         }else
              _signUpState.update { currentState ->
                  currentState.copy(
                      surnameError = "",
                      isSurnameValid = true
                  )
              }
-         }
 
-        if(_signUpState.value.isNameValid && _signUpState.value.isSurnameValid && _signUpState.value.isEmailValid && _signUpState.value.isPasswordValid) {
+        if(!passwordStatus){
+            _signUpState.update { currentState ->
+                currentState.copy(
+                    passwordError = "Inserisci una password valida (almeno sei caratteri)",
+                    isPasswordValid = false
+                )
+            }
+        }else{
+            _signUpState.update { currentState ->
+                currentState.copy(
+                    passwordError = "",
+                    isPasswordValid = true
+                )
+            }
+        }
+
+        if(!confirmPasswordStatus){
+            _signUpState.update { currentState ->
+                currentState.copy(
+                    confirmPasswordError = "Le due password non coincidono",
+                    isConfirmPasswordValid = false
+                )
+            }
+        }else
+            _signUpState.update { currentState ->
+                currentState.copy(
+                    confirmPasswordError = "",
+                    isConfirmPasswordValid = true
+                )
+            }
+
+        if(!emailStatus){
+            _signUpState.update { currentState ->
+                currentState.copy(
+                    emailError = "Inserisci un email valida",
+                    isEmailValid = false
+                )
+            }
+        }else
+            _signUpState.update { currentState ->
+                currentState.copy(
+                    emailError = "",
+                    isEmailValid = true
+                )
+            }
+
+        if(nameStatus && surnameStatus && emailStatus && passwordStatus && confirmPasswordStatus) {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     auth.createUserWithEmailAndPassword(email, password)
@@ -76,113 +122,46 @@ class SignUpViewModel(application: Application): AndroidViewModel(application){
                                     "name" to name,
                                     "surname" to surname,
                                     "email" to email,
-                                    "password" to password
+                                    "password" to password,
+                                    "profilePic" to  getApplication<Application>().resources.getString(R.string.default_user_link),
+                                    "role" to "user"
                                 )
 
                                 db.collection("users")
                                     .add(newUser)
                                     .addOnSuccessListener {
                                         _signUpState.update { currentState ->
-                                            currentState.copy(
-                                                isSuccessful = true,
-                                                signUpError = ""
+                                             currentState.copy(
+                                                isSuccessful = true
                                             )
                                         }
-                                    }
-                                    .addOnFailureListener { e ->
-                                        Log.e("firestore", "Error adding document", e)
                                     }
                             } else {
                                 _signUpState.update { currentState ->
                                     currentState.copy(
-                                        isSuccessful = false,
-                                        signUpError = task.exception?.message.toString()
+                                        signUpError = task.exception?.localizedMessage.toString()
                                     )
                                 }
                             }
                         }
+                    resetState()
                 }
             }
         }
     }
 
-    private fun isEmpty(value:String) : Boolean = value.isEmpty() || value.isBlank()
+    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
 
-    private fun verifyEmail(email: String){
+    private fun verifyEmail(email: String): Boolean = isNotEmpty(email) && isEmailValid(email)
 
-        var error = true
-
-        if(isEmpty(email)){
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    emailError = "L'email non può essere vuota",
-                    isEmailValid = false
-                )
-            }
-        }else
-            error = false
-
-        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    emailError = "L'email ha un formato non valido",
-                    isEmailValid = false
-                )
-            }
-        }else
-            error = false
-
-        if(!error)
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    emailError = "",
-                    isEmailValid = true
-                )
-            }
+    private fun isEmailValid(email: String): Boolean {
+        val emailRegex = Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
+        return emailRegex.matches(email)
     }
 
-    private fun verifyPassword(password: String, confirmPassword: String){
+    private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
 
-        var error = true
+    private fun verifyConfirmPassword(password: String, confirmPassword: String): Boolean = password == confirmPassword && isNotEmpty(confirmPassword)
 
-        if(isEmpty(password) || isEmpty(confirmPassword)){
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    passwordError = "La password non può essere vuota",
-                    isPasswordValid = false
-                )
-            }
-        }else
-            error = false
-
-
-        if(password != confirmPassword){
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    passwordError = "Le password non coincidono",
-                    isPasswordValid = false
-                )
-            }
-        }else
-            error = false
-
-        if(password.length < 6 && confirmPassword.length < 6){
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    passwordError = "La password deve essere lunga almeno 6 caratteri",
-                    isPasswordValid = false
-                )
-            }
-        }else
-            error = false
-
-
-        if(!error)
-            _signUpState.update { currentState ->
-                currentState.copy(
-                    passwordError = "",
-                    isPasswordValid = true
-                )
-            }
-    }
+    private fun resetState() = _signUpState.update { SignUpUiState() }
 }

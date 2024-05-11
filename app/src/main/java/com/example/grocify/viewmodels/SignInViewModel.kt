@@ -1,14 +1,11 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
-import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.compose.GoogleSignInResult
-import com.example.grocify.data.GoogleSignInState
-import com.example.grocify.data.SignInUiState
-import com.example.grocify.data.SignUpUiState
+import com.example.grocify.compose.signIn.GoogleSignInResult
+import com.example.grocify.data.signIn.GoogleSignInState
+import com.example.grocify.data.signIn.SignInUiState
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -20,7 +17,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class SignInViewModel(application: Application): AndroidViewModel(application){
+class SignInViewModel(application: Application): AndroidViewModel(application) {
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
@@ -31,31 +28,61 @@ class SignInViewModel(application: Application): AndroidViewModel(application){
     private val _signInState = MutableStateFlow(SignInUiState())
     val signInState: StateFlow<SignInUiState> = _signInState.asStateFlow()
 
-    fun signIn(email:String, password:String){
+    fun signIn(email: String, password: String) {
 
-        verifyPassword(password)
-        verifyEmail(email)
+        val passwordStatus = verifyPassword(password)
+        val emailStatus = verifyEmail(email)
 
-        if(_signInState.value.isEmailValid && _signInState.value.isPasswordValid){
+        if (!passwordStatus) {
+            _signInState.update { currentState ->
+                currentState.copy(
+                    passwordError = "Inserisci una password valida (almeno sei caratteri)",
+                    isPasswordValid = false
+                )
+            }
+        }else
+            _signInState.update { currentState ->
+                currentState.copy(
+                    passwordError = "",
+                    isPasswordValid = true
+                )
+            }
+
+        if (!emailStatus) {
+            _signInState.update { currentState ->
+                currentState.copy(
+                    emailError = "Inserisci un email valida",
+                    isEmailValid = false
+                )
+            }
+        }else
+            _signInState.update { currentState ->
+                currentState.copy(
+                    emailError = "",
+                    isEmailValid = true
+                )
+            }
+
+        if (passwordStatus && emailStatus) {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
-                    auth.signInWithEmailAndPassword(email,password)
+                    auth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 _signInState.update { currentState ->
                                     currentState.copy(
                                         isSuccessful = true,
-                                        signInError = ""
                                     )
                                 }
-                            }else
+                            } else
                                 _signInState.update { currentState ->
                                     currentState.copy(
                                         isSuccessful = false,
-                                        signInError = task.exception.toString()
+                                        signInError = task.exception?.localizedMessage.toString()
                                     )
                                 }
                         }
+                    resetState()
                 }
             }
         }
@@ -63,17 +90,33 @@ class SignInViewModel(application: Application): AndroidViewModel(application){
 
     fun onSignInResult(result: GoogleSignInResult){
         if(result.data != null){
-            result.data.let {
-                db.collection("users")
-                    .add(it)
-                    .addOnSuccessListener {
-                        _googleSignInState.update { currentState ->
-                            currentState.copy(
-                                isSignInSuccessful = true,
-                                signInError = result.error
-                            )
-                        }
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    result.data.let {
+                        db.collection("users")
+                            .whereEqualTo("email", it.email)
+                            .get()
+                            .addOnSuccessListener { documents ->
+                                if (documents.isEmpty)
+                                    db.collection("users")
+                                        .add(it)
+                                        .addOnFailureListener { error ->
+                                            _googleSignInState.update { currentState ->
+                                                currentState.copy(
+                                                    isSignInSuccessful = false,
+                                                    signInError = error.localizedMessage
+                                                )
+                                            }
+                                        }
+                                _googleSignInState.update { currentState ->
+                                    currentState.copy(
+                                        isSignInSuccessful = true,
+                                        signInError = result.error
+                                    )
+                                }
+                            }
                     }
+                }
             }
         }else
             _googleSignInState.update { currentState ->
@@ -82,80 +125,19 @@ class SignInViewModel(application: Application): AndroidViewModel(application){
                     signInError = result.error
                 )
             }
-
     }
 
-    private fun verifyEmail(email: String){
+    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
 
-        var error = true
+    private fun verifyEmail(email: String): Boolean = isNotEmpty(email) && isEmailValid(email)
 
-        if(isEmpty(email)){
-            _signInState.update { currentState ->
-                currentState.copy(
-                    emailError = "L'email non può essere vuota",
-                    isEmailValid = false
-                )
-            }
-        }else
-            error = false
-
-        if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
-            _signInState.update { currentState ->
-                currentState.copy(
-                    emailError = "L'email ha un formato non valido",
-                    isEmailValid = false
-                )
-            }
-        }else
-            error = false
-
-        if(!error)
-            _signInState.update { currentState ->
-                currentState.copy(
-                    emailError = "",
-                    isEmailValid = true
-                )
-            }
+    private fun isEmailValid(email: String): Boolean {
+        val emailRegex = Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
+        return emailRegex.matches(email)
     }
 
-    private fun isEmpty(value:String) : Boolean = value.isEmpty() || value.isBlank()
+    private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
 
-    private fun verifyPassword(password: String){
-
-        var error = true
-
-        if(isEmpty(password)){
-            _signInState.update { currentState ->
-                currentState.copy(
-                    passwordError = "La password non può essere vuota",
-                    isPasswordValid = false
-                )
-            }
-        }else
-            error = false
-
-
-        if(password.length < 6){
-            _signInState.update { currentState ->
-                currentState.copy(
-                    passwordError = "La password deve essere lunga almeno 6 caratteri",
-                    isPasswordValid = false
-                )
-            }
-        }else
-            error = false
-
-
-        if(!error)
-            _signInState.update { currentState ->
-                currentState.copy(
-                    passwordError = "",
-                    isPasswordValid = true
-                )
-            }
-    }
-
-    fun resetState(){
-        _googleSignInState.update { GoogleSignInState() }
-    }
+    fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
+    private fun resetState() = _signInState.update { SignInUiState() }
 }
