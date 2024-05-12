@@ -1,15 +1,21 @@
-package com.example.grocify.compose.homeUser
+package com.example.grocify.compose
 
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -20,6 +26,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,18 +43,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextGeometricTransform
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.R
+import com.example.grocify.data.Category
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.ui.theme.LightGray
 import com.example.grocify.viewmodels.HomeUserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +84,12 @@ fun HomeUserScreen(
 
     val uiState = viewModel.uiState.collectAsState()
 
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getSignedInUser()
+        viewModel.getCategories()
+    }
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,7 +99,7 @@ fun HomeUserScreen(
                     buildAnnotatedString {
                         withStyle(
                             style = SpanStyle(
-                                fontSize = 26.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight(300),
                                 color = Color.Black,
                             ),
@@ -77,12 +108,12 @@ fun HomeUserScreen(
                         }
                         withStyle(
                             style = SpanStyle(
-                                fontSize = 26.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black,
                             )
                         ) {
-                            append("${uiState.value.currentUserName}")
+                            append("${uiState.value.currentUserName}!")
                         }
                     }
                 ) },
@@ -95,7 +126,8 @@ fun HomeUserScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = {  }) {
+                        onClick = onProfileClick
+                    ) {
                         Icon(
                             imageVector = Icons.Filled.Person,
                             contentDescription = "Profile icon"
@@ -185,16 +217,17 @@ fun HomeUserScreen(
             ){
                 Text(
                     text = "Cerca per categoria",
-                    Modifier.padding(start = 10.dp, top = 30.dp,bottom = 10.dp),
+                    Modifier.padding(start = 10.dp, top = 20.dp,bottom = 10.dp),
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     )
                 )
+
                 Divider(
                     color = Color.LightGray,
                     thickness = 0.6.dp,
-                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
                 )
 
                 LazyVerticalGrid(
@@ -212,7 +245,7 @@ fun HomeUserScreen(
 }
 
 @Composable
-fun CategoryCard(categoryName:String) {
+fun CategoryCard(category:Category) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -230,22 +263,37 @@ fun CategoryCard(categoryName:String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ){
-            Image(
-                painter = painterResource(id = R.drawable.food),
-                contentDescription = "food image",
+            SubcomposeAsyncImage(
+                model = category.image,
+                contentDescription = "Category image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .padding(top = 10.dp, start = 5.dp, end = 5.dp)
                     .width(170.dp)
                     .height(120.dp)
                     .clip(RoundedCornerShape(30.dp))
-            )
+            ){
+                val state = painter.state
+                if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(64.dp),
+                        color = BlueMedium,
+                        strokeCap = StrokeCap.Round
+                    )
+                } else {
+                    SubcomposeAsyncImageContent()
+                }
+            }
+
             Text(
-                text = categoryName,
+                text = category.name,
                 style = TextStyle(
-                    fontSize = 20.sp
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp
                 ),
-                modifier = Modifier.padding(vertical = 10.dp)
+                modifier = Modifier.padding(vertical = 10.dp, horizontal = 5.dp)
             )
         }
     }

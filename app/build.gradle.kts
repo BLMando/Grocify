@@ -100,6 +100,10 @@ dependencies {
     //CHART LIBRARY
     implementation("com.himanshoe:charty:2.0.0-alpha01")
 
+    //COIL FOR IMAGE LOADING
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
+
 
     //TOMTOM MAPS API
     val version = "0.50.6"

@@ -3,14 +3,15 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import android.content.Intent
 import android.content.IntentSender
+import android.util.Log
 import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
-import com.example.grocify.data.signIn.GoogleSignInResult
-import com.example.grocify.data.signIn.GoogleSignInState
-import com.example.grocify.data.signIn.SignInUiState
-import com.example.grocify.data.signIn.UserData
+import com.example.grocify.data.GoogleSignInResult
+import com.example.grocify.data.GoogleSignInState
+import com.example.grocify.data.SignInUiState
+import com.example.grocify.data.UserData
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.GoogleAuthProvider
@@ -124,7 +125,8 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
                         name = username?.get(0),
                         surname = username?.get(1),
                         email = email,
-                        profilePic = photoUrl?.toString()
+                        profilePic = photoUrl?.toString(),
+                        role = "user"
                     )
                 },
                 error = null
@@ -168,7 +170,7 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
                             }
                     }
                 }
-                resetGoogleState()
+
             }
         }else
             _googleSignInState.update { currentState ->
@@ -179,16 +181,7 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
             }
     }
 
-
-    suspend fun signOut(){
-        try {
-            mOneTapClient.signOut().await()
-            auth.signOut()
-        }catch(e: Exception){
-            e.printStackTrace()
-            if(e is CancellationException) throw  e
-        }
-    }
+    fun getSignedInUser(): Boolean = auth.currentUser != null
 
     private fun buildSignInRequest(): BeginSignInRequest {
         return BeginSignInRequest.Builder()
@@ -214,6 +207,6 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
 
     private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
 
-    private fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
+    fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
     private fun resetState() = _signInState.update { SignInUiState() }
 }

@@ -2,6 +2,7 @@ package com.example.grocify.compose
 
 
 import android.app.Activity
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -115,17 +116,16 @@ fun SignInScreen(
         }
     )
 
-    //DA DECOMMENTARE NON APPENA FINITA LA FUNZIONALITA' DI LOGOUT
-    //il codice viene eseguito ad ogni render del composable
-    /*LaunchedEffect(key1 = Unit) {
-        if(googleAuthClient.getSignedInUser() != null){
-            navController.navigate(Screen.SignUpScreen.route)
-        }
-    }*/
+    LaunchedEffect(key1 = Unit) {
+        if(viewModel.getSignedInUser())
+            onSignInSuccessful()
+    }
 
     LaunchedEffect(key1 = googleUiState.value.isSignInSuccessful) {
-        if(googleUiState.value.isSignInSuccessful)
+        if(googleUiState.value.isSignInSuccessful){
             onSignInSuccessful()
+            viewModel.resetGoogleState()
+        }
     }
 
     LaunchedEffect(key1 = googleUiState.value.signInError) {

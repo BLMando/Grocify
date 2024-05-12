@@ -161,7 +161,7 @@ fun SignUpScreen(
                     },
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Black,
+                        focusedBorderColor = BlueLight,
                         unfocusedBorderColor = Color(0, 0, 0, 50)
                     ),
                     modifier = Modifier
@@ -196,7 +196,7 @@ fun SignUpScreen(
                     },
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Black,
+                        focusedBorderColor = BlueLight,
                         unfocusedBorderColor = Color(0, 0, 0, 50)
                     ),
                     modifier = Modifier
@@ -232,7 +232,7 @@ fun SignUpScreen(
                 },
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Black,
+                    focusedBorderColor = BlueLight,
                     unfocusedBorderColor = Color(0, 0, 0, 50)
                 ),
                 modifier = Modifier
@@ -268,7 +268,7 @@ fun SignUpScreen(
                 },
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Black,
+                    focusedBorderColor = BlueLight,
                     unfocusedBorderColor = Color(0, 0, 0, 50)
                 ),
                 modifier = Modifier
@@ -322,7 +322,7 @@ fun SignUpScreen(
                 },
                 shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Black,
+                    focusedBorderColor = BlueLight,
                     unfocusedBorderColor = Color(0, 0, 0, 50)
                 ),
                 modifier = Modifier

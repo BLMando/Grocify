@@ -7,7 +7,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.grocify.compose.homeUser.HomeUserScreen
 
 @Composable
 fun GrocifyApp(){
@@ -41,6 +40,14 @@ fun GrocifyNavHost(navController: NavHostController) {
         composable(route = Screen.HomeUser.route){
             HomeUserScreen(
                 onProfileClick = { navController.navigate(Screen.UserProfile.route) }
+            )
+        }
+
+        composable(route = Screen.UserProfile.route){
+            UserProfileScreen(
+                context = activity,
+                onSignOut = { navController.navigate(Screen.SignInScreen.route) },
+                onBackClick = { navController.popBackStack() }
             )
         }
 
