@@ -10,6 +10,7 @@ import com.example.grocify.compose.GrocifyApp
 import com.example.grocify.compose.homeUser.HomeUserScreen
 import com.example.grocify.ui.theme.GrocifyTheme
 
+
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,7 +94,7 @@ fun CategoryItemsScreenPreview() {
 @Composable
 fun ScanProductScreenPreview() {
     GrocifyTheme {
-        ScanProductScreen()
+        //ScanProductScreen()
     }
 }
 
