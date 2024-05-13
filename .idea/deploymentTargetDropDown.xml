@@ -2,21 +2,14 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
-      <entry key="ScanProductScreen">
-        <State>
-          <runningDeviceTargetSelectedWithDropDown>
-            <Target>
-              <type value="RUNNING_DEVICE_TARGET" />
-              <deviceKey>
-                <Key>
-                  <type value="SERIAL_NUMBER" />
-                  <value value="RZCT30N8KGH" />
-                </Key>
-              </deviceKey>
-            </Target>
-          </runningDeviceTargetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-05-09T10:04:26.749135300Z" />
-        </State>
+      <entry key="CheckoutScreenPreview">
+        <State />
+      </entry>
+      <entry key="MapActivity">
+        <State />
+      </entry>
+      <entry key="SignUpScreenPreview">
+        <State />
       </entry>
       <entry key="app">
         <State>

@@ -1,4 +1,4 @@
-package com.example.grocify
+package com.example.grocify.compose.homeUser
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +29,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,11 +45,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.viewmodels.HomeUserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeUserScreen(){
+fun HomeUserScreen(
+    viewModel: HomeUserViewModel = viewModel(),
+    onProfileClick: () -> Unit
+){
+
+    val uiState = viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -71,7 +82,7 @@ fun HomeUserScreen(){
                                 color = Color.Black,
                             )
                         ) {
-                            append("Mattia!")
+                            append("${uiState.value.currentUserName}")
                         }
                     }
                 ) },
@@ -191,8 +202,8 @@ fun HomeUserScreen(){
                         .fillMaxWidth(),
                     columns = GridCells.Fixed(2),
                 ){
-                    items(6){
-                        CategoryCard()
+                    items(uiState.value.categories.size){
+                        CategoryCard(uiState.value.categories[it])
                     }
                 }
             }
@@ -201,7 +212,7 @@ fun HomeUserScreen(){
 }
 
 @Composable
-fun CategoryCard() {
+fun CategoryCard(categoryName:String) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -224,13 +235,13 @@ fun CategoryCard() {
                 contentDescription = "food image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .padding(top = 10.dp, start = 5.dp,end = 5.dp)
+                    .padding(top = 10.dp, start = 5.dp, end = 5.dp)
                     .width(170.dp)
                     .height(120.dp)
                     .clip(RoundedCornerShape(30.dp))
             )
             Text(
-                text = "Frutta e verdura",
+                text = categoryName,
                 style = TextStyle(
                     fontSize = 20.sp
                 ),
