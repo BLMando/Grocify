@@ -2,7 +2,6 @@ package com.example.grocify.compose
 
 
 import android.app.Activity
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
 import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
@@ -79,7 +79,7 @@ import kotlinx.coroutines.launch
 fun SignInScreen(
     context: Activity,
     onGoSignUp: () -> Unit,
-    onSignInSuccessful: () -> Unit
+    navController: NavController,
 ) {
 
     val viewModel: SignInViewModel = viewModel(factory = viewModelFactory {
@@ -118,12 +118,13 @@ fun SignInScreen(
 
     LaunchedEffect(key1 = Unit) {
         if(viewModel.getSignedInUser())
-            onSignInSuccessful()
+            viewModel.getUserRole()
+            handlePostSignInRoute(signInUiState.value.userRole ?: googleUiState.value.userRole,navController)
     }
 
     LaunchedEffect(key1 = googleUiState.value.isSignInSuccessful) {
         if(googleUiState.value.isSignInSuccessful){
-            onSignInSuccessful()
+            handlePostSignInRoute(googleUiState.value.userRole,navController)
             viewModel.resetGoogleState()
         }
     }
@@ -143,7 +144,7 @@ fun SignInScreen(
 
     LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
         if(signInUiState.value.isSuccessful)
-            onSignInSuccessful()
+            handlePostSignInRoute(signInUiState.value.userRole,navController)
     }
 
    LaunchedEffect(key1 = signInUiState.value.signInError){
@@ -383,6 +384,14 @@ fun SignInScreen(
                 )
             }
         }
+    }
+}
+
+fun handlePostSignInRoute(userRole: String?,navController: NavController) {
+    when(userRole){
+        "user" -> navController.navigate(Screen.HomeUserScreen.route)
+        "admin" -> navController.navigate(Screen.HomeAdminScreen.route)
+        "driver" -> navController.navigate(Screen.HomeDriverScreen.route)
     }
 }
 

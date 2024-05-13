@@ -6,12 +6,14 @@ data class SignInUiState(
     val isEmailValid: Boolean = true,
     val passwordError: String = "",
     val isPasswordValid: Boolean = true,
-    val signInError: String? = null
+    val signInError: String? = null,
+    val userRole: String? = null
 )
 
 data class GoogleSignInState(
     val isSignInSuccessful: Boolean = false,
-    val signInError: String? = null
+    val signInError: String? = null,
+    val userRole: String? = null
 )
 
 data class GoogleSignInResult(

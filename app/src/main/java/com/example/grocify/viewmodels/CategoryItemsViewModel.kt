@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class CategoryItemsViewModel(application: Application):AndroidViewModel(application) {
@@ -47,10 +48,14 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                         _uiState.update {
                             it.copy(
                                 products = products.toList(),
-                                isSuccessful = true
                             )
                         }
-                    }
+                    }else
+                        _uiState.update {
+                            it.copy(
+                                isSuccessful = false
+                            )
+                        }
                 }
         }
     }

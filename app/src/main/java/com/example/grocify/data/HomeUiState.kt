@@ -1,8 +1,5 @@
 package com.example.grocify.data
 
-data class HomeUiState(
-    val userRole: String = ""
-)
 
 data class HomeUserUiState(
     val currentUserName: String? = null,

@@ -3,7 +3,7 @@ package com.example.grocify.data
 data class CategoryItemsUiState(
     val categoryName : String = "",
     val products : List<Product> = emptyList(),
-    val isSuccessful: Boolean = false
+    val isSuccessful: Boolean = true
 )
 
 data class Product(

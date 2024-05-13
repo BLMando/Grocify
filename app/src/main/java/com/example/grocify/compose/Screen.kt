@@ -11,7 +11,9 @@ sealed class Screen(
 
     data object SignInScreen: Screen("login")
     data object SignUpScreen: Screen("register")
-    data object HomeScreen: Screen("home")
+    data object HomeUserScreen: Screen("home_user")
+    data object HomeAdminScreen: Screen("home_admin")
+    data object HomeDriverScreen: Screen("home_driver")
     data object UserProfile: Screen("user_profile")
     data object CategoryItems: Screen(
         route = "category_items/{categoryId}",

@@ -183,6 +183,24 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
 
     fun getSignedInUser(): Boolean = auth.currentUser != null
 
+    fun getUserRole(){
+        viewModelScope.launch {
+            db.collection("users")
+                .whereEqualTo("email",auth.currentUser?.email)
+                .get()
+                .addOnSuccessListener { documents ->
+                    if(_googleSignInState.value.isSignInSuccessful)
+                        _googleSignInState.update {
+                            it.copy(userRole = documents.documents[0].get("role").toString())
+                        }
+                    else
+                        _signInState.update {
+                            it.copy(userRole = documents.documents[0].get("role").toString())
+                        }
+                }
+        }
+    }
+
     private fun buildSignInRequest(): BeginSignInRequest {
         return BeginSignInRequest.Builder()
             .setGoogleIdTokenRequestOptions(
