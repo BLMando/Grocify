@@ -38,7 +38,7 @@ class BarcodeAnalyzer(private val context: Context) : ImageAnalysis.Analyzer {
                         ?.joinToString(",")
                         ?.let { Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
 
-                        trovaProdotto(barcode?.mapNotNull{ it.rawValue }.toString())}
+                        trovaProdotto(barcode.mapNotNull{ it.rawValue }.toString())}
 
 
                 }.addOnCompleteListener {
