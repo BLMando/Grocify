@@ -63,37 +63,6 @@ fun ScanProductScreen() {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     var analyzerType by remember { mutableStateOf(AnalyzerType.UNDEFINED) }
 
-    /*if (cameraPermissionState.status.isGranted) {
-        if (analyzerType == AnalyzerType.UNDEFINED) {
-            Column {
-
-                FloatingActionButton(
-                    onClick = { analyzerType = AnalyzerType.BARCODE },
-                    containerColor = BlueDark,
-                )
-                {
-                    Image(
-                        painterResource(id = R.drawable.bar_code),
-                        contentDescription = "bar code scanner",
-                        colorFilter = ColorFilter.tint(Color.White),
-                        modifier = Modifier
-                            .size(30.dp)
-                    )
-                }
-
-            }
-        } else {
-            CameraScreen(analyzerType)
-        }
-    } else if (cameraPermissionState.status.shouldShowRationale) {
-        Text("Camera Permission permanently denied")
-    } else {
-        SideEffect {
-            cameraPermissionState.run { launchPermissionRequest() }
-        }
-        Text("No Camera Permission")
-    }*/
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -126,6 +95,7 @@ fun ScanProductScreen() {
                             )
                         }
                     } else {
+
                         CameraScreen(analyzerType)
                     }
                 } else if (cameraPermissionState.status.shouldShowRationale) {
