@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -60,7 +59,7 @@ private fun trovaProdotto(stringa: String){
     readDataFromFirestore()
 }
 private fun readDataFromFirestore() {
-    var db = Firebase.firestore
+    val db = Firebase.firestore
     db.collection("prodotti")
         .get()
         .addOnSuccessListener { result ->
