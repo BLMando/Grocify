@@ -48,9 +48,10 @@ class HomeUserViewModel(application: Application): AndroidViewModel(application)
                 .get()
                 .addOnSuccessListener { documents ->
                     for (document in documents) {
+                        val id = document.id
                         val name = document.get("nome").toString().replaceFirstChar { it.uppercase() }
                         val image = document.get("immagine").toString()
-                        categories.add(Category(name,image))
+                        categories.add(Category(id,name,image))
                     }
                     _uiState.update {
                         it.copy(categories = categories.toList())

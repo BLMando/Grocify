@@ -1,9 +1,10 @@
-package com.example.grocify
+package com.example.grocify.compose
 
-import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,13 +31,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -44,11 +48,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import com.example.grocify.data.Product
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.viewmodels.CategoryItemsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryItemsScreen(){
+fun CategoryItemsScreen(
+    viewModel: CategoryItemsViewModel = viewModel(),
+    categoryId: String?,
+    onBackClick: () -> Unit,
+) {
+
+    val uiState = viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getProducts(categoryId)
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -57,7 +79,8 @@ fun CategoryItemsScreen(){
                     .padding(bottom = 20.dp)
                     .shadow(10.dp, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)),
                 title = {
-                    Text(text= "Frutta e verdura",
+                    Text(
+                        text= uiState.value.categoryName,
                         style = TextStyle(
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
@@ -66,7 +89,7 @@ fun CategoryItemsScreen(){
                     ) },
                 navigationIcon = {
                     IconButton(
-                        onClick = { /*TODO*/ }
+                        onClick = onBackClick
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -152,22 +175,38 @@ fun CategoryItemsScreen(){
             )
         },
         content = { innerPadding ->
-                LazyVerticalGrid(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(innerPadding),
-                    columns = GridCells.Fixed(2),
-                ){
-                    items(6){
-                        CategoryItemCard()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ){
+                if(!uiState.value.isSuccessful)
+                    Text(
+                        text = "Nessun prodotto presente in questa categoria",
+                        style = TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                            textAlign = TextAlign.Center
+                        )
+                    )
+                else
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                    ){
+                        items(uiState.value.products.size){
+                            CategoryItemCard(uiState.value.products[it],viewModel)
+                        }
                     }
-                }
+            }
         }
     )
 }
 
 @Composable
-fun CategoryItemCard() {
+fun CategoryItemCard(product: Product,viewModel: CategoryItemsViewModel) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -185,8 +224,8 @@ fun CategoryItemCard() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ){
-            Image(
-                painter = painterResource(id = R.drawable.food),
+            SubcomposeAsyncImage(
+                model = product.image,
                 contentDescription = "food image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -194,13 +233,24 @@ fun CategoryItemCard() {
                     .width(170.dp)
                     .height(120.dp)
                     .clip(RoundedCornerShape(30.dp))
-            )
+            ){
+                val state = painter.state
+                if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(64.dp),
+                        color = BlueMedium,
+                        strokeCap = StrokeCap.Round
+                    )
+                } else {
+                    SubcomposeAsyncImageContent()
+                }
+            }
             Column (
                 Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start
             ){
                 Text(
-                    text = "Apples",
+                    text = product.name,
                     style = TextStyle(
                         fontSize = 15.sp,
                         color = Color(0xFF3f4145)
@@ -216,7 +266,7 @@ fun CategoryItemCard() {
                                 color = Color.Black,
                             ),
                         ) {
-                            append("$0.99 ")
+                            append("${product.price}€")
                         }
                         withStyle(
                             style = SpanStyle(
@@ -225,7 +275,7 @@ fun CategoryItemCard() {
                                 fontWeight = FontWeight.Bold
                             )
                         ) {
-                            append("/100g")
+                            append("/${product.quantity}")
                         }
                     },
                     modifier = Modifier.padding(start = 18.dp)
@@ -234,7 +284,7 @@ fun CategoryItemCard() {
 
 
             Button(
-                onClick = { /*TODO*/ },
+                onClick = { viewModel.addToCart(product) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp)
