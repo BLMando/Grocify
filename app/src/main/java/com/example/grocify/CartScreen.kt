@@ -282,7 +282,7 @@ fun CartItems() {
 
                     )
                 }
-                ItemsQuantitySelector()
+                ItemsQuantitySelector(1)
             }
         }
     }

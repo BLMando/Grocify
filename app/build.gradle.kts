@@ -4,7 +4,6 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-
 val tomtomApiKey: String by project
 
 android {
@@ -95,6 +94,28 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    //BARCODE E QRCODE LIBRARY
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+
+    // Coroutine Lifecycle Scopes
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+
+
+    //bar code scanner
+    implementation("com.google.android.gms:play-services-code-scanner:16.0.0")
+
+
+
+
+
+
+    //IMAGE LOAD FROM LINK LIBRARY
+    implementation("io.coil-kt:coil-compose:1.4.0")
 
     //QRCODE LIBRARY
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")

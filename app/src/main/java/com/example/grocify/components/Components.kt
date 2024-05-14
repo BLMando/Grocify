@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -23,30 +22,36 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import coil.compose.rememberImagePainter
 import com.example.grocify.R
 import com.example.grocify.ui.theme.LightGray
 
 
 @Composable
-fun ListItems(image:String, name:String, quantity:String, content: @Composable() () -> Unit ){
-    val painter: Painter = painterResource(id = getResourceId(image))
+fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composable() () -> Unit ){
 
+    val painter = rememberImagePainter(
+        data = image,
+        builder = {
+            // You can customize image loading parameters here if needed
+        }
+    )
     Row (
         Modifier
             .fillMaxWidth()
@@ -71,7 +76,7 @@ fun ListItems(image:String, name:String, quantity:String, content: @Composable()
             )
             Column (Modifier.padding(start = 10.dp)) {
                 Text(
-                    text = name,
+                    text = name.toString(),
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp
@@ -159,7 +164,8 @@ fun Dialog(
 }
 
 @Composable
-fun ItemsQuantitySelector(){
+fun ItemsQuantitySelector(units: Int){
+    val state: MutableState<Int> = remember { mutableStateOf(units) }
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -176,7 +182,7 @@ fun ItemsQuantitySelector(){
             verticalAlignment = Alignment.CenterVertically,
         ){
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { state.value -= 1 },
                 Modifier.padding(5.dp).size(18.dp)
             ) {
                 Icon(
@@ -185,14 +191,14 @@ fun ItemsQuantitySelector(){
                 )
             }
             Text(
-                text = "1",
+                text = state.value.toString(),
                 style = TextStyle(
                     fontSize = 15.sp
                 ),
                 modifier = Modifier.padding(5.dp)
             )
             IconButton(
-                onClick = { /*TODO*/ },
+                onClick = { state.value += 1 },
                 Modifier.padding(5.dp).size(18.dp)
             ) {
                 Icon(
