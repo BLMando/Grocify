@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens
 
 
 import androidx.compose.foundation.clickable
@@ -53,7 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
-import com.example.grocify.data.Product
+import com.example.grocify.model.Product
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.CategoryItemsViewModel
@@ -65,7 +65,9 @@ fun CategoryItemsScreen(
     categoryId: String?,
     onBackClick: () -> Unit,
     onCatalogClick: () -> Unit,
-    onGiftClick: () -> Unit
+    onGiftClick: () -> Unit,
+    onCartClick: () -> Unit,
+    onScanClick: () -> Unit
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
@@ -135,6 +137,7 @@ fun CategoryItemsScreen(
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable { onScanClick() }
                         ){
                             Icon(
                                 Icons.AutoMirrored.Filled.List,
@@ -168,6 +171,7 @@ fun CategoryItemsScreen(
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable { onCartClick() }
                         ){
                             Icon(Icons.Filled.ShoppingCart, contentDescription = "Localized description")
                             Text(
@@ -214,7 +218,7 @@ fun CategoryItemsScreen(
 }
 
 @Composable
-fun CategoryItemCard(product: Product,viewModel: CategoryItemsViewModel) {
+fun CategoryItemCard(product: Product, viewModel: CategoryItemsViewModel) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White

@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -50,12 +50,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.R
-import com.example.grocify.data.Category
+import com.example.grocify.model.Category
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.HomeUserViewModel
@@ -65,13 +64,16 @@ import com.example.grocify.viewmodels.HomeUserViewModel
 fun HomeUserScreen(
     viewModel: HomeUserViewModel = viewModel(),
     onProfileClick: () -> Unit,
-    onCategoryClick: (catergoryId:String) -> Unit
+    onCategoryClick: (categoryId: String) -> Unit,
+    onGiftClick: () -> Unit,
+    onCartClick: () -> Unit,
+    onScanClick: () -> Unit
 ){
 
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.getSignedInUser()
+        viewModel.getSignedInUserName()
         viewModel.getCategories()
     }
 
@@ -154,7 +156,7 @@ fun HomeUserScreen(
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.clickable {
-
+                                onScanClick()
                             }
                         ){
                             Icon(
@@ -173,7 +175,7 @@ fun HomeUserScreen(
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.clickable {
-
+                                onGiftClick()
                             }
                         ){
                             Icon(
@@ -191,6 +193,9 @@ fun HomeUserScreen(
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onCartClick()
+                            }
                         ){
                             Icon(Icons.Filled.ShoppingCart, contentDescription = "Localized description")
                             Text(

@@ -1,7 +1,6 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +23,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -44,11 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
-import coil.compose.SubcomposeAsyncImageContent
-import com.example.grocify.data.UserData
+import com.example.grocify.model.User
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.viewmodels.UserProfileViewModel
@@ -133,7 +128,7 @@ fun UserProfileScreen(
 }
 
 @Composable
-fun UserInfo(userData: UserData) {
+fun UserInfo(userData: User) {
     Column(
         Modifier
             .fillMaxWidth()

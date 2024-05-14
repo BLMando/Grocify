@@ -26,6 +26,8 @@ sealed class Screen(
         fun createRoute(categoryId: String) = "category_items/${categoryId}"
     }
 
+    data object ScanScreen: Screen("scan")
+    data object CartScreen: Screen("cart")
     data object GiftScreen : Screen("gift")
 
 

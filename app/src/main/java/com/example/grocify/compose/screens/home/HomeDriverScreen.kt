@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +35,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.grocify.ui.theme.BlueDark
 
 @OptIn(ExperimentalMaterial3Api::class)

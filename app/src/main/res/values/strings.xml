@@ -4,4 +4,5 @@
     <string name="location_permission_denied">Permission denied</string>
     <string name="title_activity_map">MapActivity</string>
     <string name="default_user_link">https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png</string>
+    <string name="default_user_role">user</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens
 
 
 import android.app.Activity
@@ -117,17 +117,27 @@ fun SignInScreen(
     )
 
     LaunchedEffect(key1 = Unit) {
-        if(viewModel.getSignedInUser())
-            viewModel.getUserRole()
-            handlePostSignInRoute(signInUiState.value.userRole ?: googleUiState.value.userRole,navController)
+        if(viewModel.getSignedInUser()){
+            val role = viewModel.getUserRole()
+            handlePostSignInRoute(role,navController)
+        }
     }
 
     LaunchedEffect(key1 = googleUiState.value.isSignInSuccessful) {
         if(googleUiState.value.isSignInSuccessful){
-            handlePostSignInRoute(googleUiState.value.userRole,navController)
+            val role = viewModel.getUserRole()
+            handlePostSignInRoute(role,navController)
             viewModel.resetGoogleState()
         }
     }
+
+    LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
+        if(signInUiState.value.isSuccessful){
+            val role = viewModel.getUserRole()
+            handlePostSignInRoute(role,navController)
+        }
+    }
+
 
     LaunchedEffect(key1 = googleUiState.value.signInError) {
         googleUiState.value.signInError?.let { error ->
@@ -142,10 +152,6 @@ fun SignInScreen(
         }
     }
 
-    LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
-        if(signInUiState.value.isSuccessful)
-            handlePostSignInRoute(signInUiState.value.userRole,navController)
-    }
 
    LaunchedEffect(key1 = signInUiState.value.signInError){
         signInUiState.value.signInError?.let { error ->
@@ -389,9 +395,9 @@ fun SignInScreen(
 
 fun handlePostSignInRoute(userRole: String?,navController: NavController) {
     when(userRole){
-        "user" -> navController.navigate(Screen.HomeUserScreen.route)
-        "admin" -> navController.navigate(Screen.HomeAdminScreen.route)
-        "driver" -> navController.navigate(Screen.HomeDriverScreen.route)
+        "user" -> navController.navigate("user")
+        "admin" -> navController.navigate("admin")
+        "driver" -> navController.navigate("driver")
     }
 }
 

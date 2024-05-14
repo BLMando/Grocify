@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement

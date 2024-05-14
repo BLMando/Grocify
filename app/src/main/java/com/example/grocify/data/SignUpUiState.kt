@@ -14,3 +14,4 @@ data class SignUpUiState(
     val isSurnameValid: Boolean = true,
     val signUpError: String? = null
 )
+

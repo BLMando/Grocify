@@ -8,6 +8,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navigation
+import com.example.grocify.compose.screens.CartScreen
+import com.example.grocify.compose.screens.home.HomeAdminScreen
+import com.example.grocify.compose.screens.home.HomeDriverScreen
+import com.example.grocify.compose.screens.home.HomeUserScreen
+import com.example.grocify.compose.screens.CategoryItemsScreen
+import com.example.grocify.compose.screens.GiftProductScreen
+import com.example.grocify.compose.screens.ScanProductScreen
+import com.example.grocify.compose.screens.SignInScreen
+import com.example.grocify.compose.screens.SignUpScreen
+import com.example.grocify.compose.screens.UserProfileScreen
 
 
 @Composable
@@ -46,10 +56,22 @@ fun GrocifyNavHost(navController: NavHostController) {
             route = "user",
             startDestination = Screen.HomeUserScreen.route
         ){
+            //Bottom navigation route
+            val onCatalogClick = { navController.navigate(Screen.HomeUserScreen.route) }
+            val onGiftClick = { navController.navigate(Screen.GiftScreen.route) }
+            val onCartClick = { navController.navigate(Screen.CartScreen.route) }
+            val onScanClick = { navController.navigate(Screen.ScanScreen.route) }
+
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
                     onProfileClick = { navController.navigate(Screen.UserProfile.route) },
-                    onCategoryClick = { navController.navigate(Screen.CategoryItems.route) },
+                    onCategoryClick = {
+                        navController.navigate(Screen.CategoryItems.createRoute(
+                            categoryId = it
+                        ))},
+                    onGiftClick = onGiftClick,
+                    onCartClick = onCartClick,
+                    onScanClick = onScanClick,
                 )
             }
 
@@ -61,8 +83,10 @@ fun GrocifyNavHost(navController: NavHostController) {
                 CategoryItemsScreen(
                     categoryId = url,
                     onBackClick = { navController.popBackStack() },
-                    onCatalogClick = { navController.navigate(Screen.HomeUserScreen.route) },
-                    onGiftClick = { navController.navigate(Screen.GiftScreen.route) }
+                    onCatalogClick = onCatalogClick,
+                    onGiftClick = onGiftClick,
+                    onCartClick = onCartClick,
+                    onScanClick = onScanClick,
                 )
             }
 
@@ -74,8 +98,28 @@ fun GrocifyNavHost(navController: NavHostController) {
                 )
             }
 
+            composable(route = Screen.ScanScreen.route){
+                ScanProductScreen(
+                    onCatalogClick = onCatalogClick,
+                    onGiftClick = onGiftClick,
+                    onCartClick = onCartClick
+                )
+            }
+
+            composable(route = Screen.CartScreen.route){
+                CartScreen(
+                    onCatalogClick = onCatalogClick,
+                    onGiftClick = onGiftClick,
+                    onScanClick = onScanClick,
+                )
+            }
+
             composable(route = Screen.GiftScreen.route) {
-                GiftProductScreen()
+                GiftProductScreen(
+                    onCatalogClick = onCatalogClick,
+                    onCartClick = onCartClick,
+                    onScanClick = onScanClick,
+                )
             }
         }
         //END USER SCREEN

@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens
 
 
 import androidx.compose.foundation.background

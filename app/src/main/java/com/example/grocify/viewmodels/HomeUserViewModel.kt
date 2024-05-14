@@ -4,8 +4,8 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.Category
 import com.example.grocify.data.HomeUserUiState
+import com.example.grocify.model.Category
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -23,11 +23,11 @@ class HomeUserViewModel(application: Application): AndroidViewModel(application)
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
-    fun getSignedInUser() {
-        val currentUser = auth.currentUser?.email
+    fun getSignedInUserName() {
+        val currentUser = auth.currentUser?.uid
         viewModelScope.launch {
             db.collection("users")
-                .whereEqualTo("email", currentUser)
+                .whereEqualTo("uid", currentUser)
                 .get()
                 .addOnSuccessListener { documents ->
                     for (document in documents) {

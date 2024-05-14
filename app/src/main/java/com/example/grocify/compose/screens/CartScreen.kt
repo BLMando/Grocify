@@ -1,6 +1,7 @@
-package com.example.grocify
+package com.example.grocify.compose.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,6 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -43,6 +45,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.grocify.R
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.ItemsQuantitySelector
 import com.example.grocify.ui.theme.BlueLight
@@ -51,7 +54,11 @@ import com.example.grocify.ui.theme.BlueMedium
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(){
+fun CartScreen(
+    onCatalogClick: () -> Unit,
+    onGiftClick: () -> Unit,
+    onScanClick: () -> Unit
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -82,6 +89,9 @@ fun CartScreen(){
                     ){
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onCatalogClick()
+                            }
                         ){
                             Icon(
                                 Icons.Filled.ShoppingBag,
@@ -99,6 +109,9 @@ fun CartScreen(){
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onScanClick()
+                            }
                         ){
                             Icon(
                                 Icons.AutoMirrored.Filled.List,
@@ -115,6 +128,9 @@ fun CartScreen(){
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onGiftClick()
+                            }
                         ){
                             Icon(Icons.Filled.CardGiftcard, contentDescription = "Localized description")
                             Text(

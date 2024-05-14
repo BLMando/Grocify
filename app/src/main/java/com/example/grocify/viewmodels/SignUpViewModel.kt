@@ -2,10 +2,12 @@ package com.example.grocify.viewmodels
 
 
 import android.app.Application
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
 import com.example.grocify.data.SignUpUiState
+import com.example.grocify.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -118,13 +120,18 @@ class SignUpViewModel(application: Application): AndroidViewModel(application){
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
 
-                                val newUser = hashMapOf(
-                                    "name" to name,
-                                    "surname" to surname,
-                                    "email" to email,
-                                    "password" to password,
-                                    "profilePic" to  getApplication<Application>().resources.getString(R.string.default_user_link),
-                                    "role" to "user"
+                                val newUser = User(
+                                    uid = auth.currentUser?.uid,
+                                    name = name,
+                                    surname = surname,
+                                    email = email,
+                                    password = password,
+                                    profilePic = getApplication<Application>().resources.getString(R.string.default_user_link),
+                                    role = ContextCompat.getString(
+                                        getApplication(),
+                                        R.string.default_user_role
+                                    )
+
                                 )
 
                                 db.collection("users")

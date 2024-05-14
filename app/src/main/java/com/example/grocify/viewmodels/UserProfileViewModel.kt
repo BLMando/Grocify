@@ -1,11 +1,12 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
-import androidx.compose.ui.text.capitalize
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.UserData
+import com.example.grocify.R
+import com.example.grocify.model.User
 import com.example.grocify.data.UserProfileUiState
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Locale
 import java.util.concurrent.CancellationException
 
 class UserProfileViewModel(application: Application,private val mOneTapClient: SignInClient): AndroidViewModel(application) {
@@ -32,19 +32,21 @@ class UserProfileViewModel(application: Application,private val mOneTapClient: S
         val user = auth.currentUser
 
         if(user?.displayName.isNullOrEmpty()){
-            val currentUserEmail:String? = user?.email
+
             viewModelScope.launch {
                 db.collection("users")
-                    .whereEqualTo("email", currentUserEmail)
+                    .whereEqualTo("uid", user?.uid)
                     .get()
                     .addOnSuccessListener { documents ->
                         documents.documents[0].data?.let { document ->
-                            val currentUser = UserData(
+                            val currentUser = User(
+                                uid = user?.uid,
                                 name = document["name"].toString().replaceFirstChar { it.uppercase() },
                                 surname = document["surname"].toString().replaceFirstChar { it.uppercase() },
                                 email = user?.email,
+                                password = null,
                                 profilePic = document["profilePic"].toString(),
-                                role = "user"
+                                role = getString(getApplication(), R.string.default_user_role)
                             )
                             _uiState.update { currentState ->
                                 currentState.copy(
@@ -58,12 +60,14 @@ class UserProfileViewModel(application: Application,private val mOneTapClient: S
         }else{
             val username = user?.displayName?.split(" ")
 
-            val currentUser = UserData(
+            val currentUser = User(
+                uid = user?.uid,
                 name = username?.get(0).toString().replaceFirstChar { it.uppercase() },
                 surname = username?.get(1).toString().replaceFirstChar { it.uppercase() },
                 email = user?.email,
+                password = null,
                 profilePic = user?.photoUrl.toString(),
-                role = "user"
+                role = getString(getApplication(), R.string.default_user_role)
             )
 
             _uiState.update {
