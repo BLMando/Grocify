@@ -10,6 +10,5 @@ sealed class Screen (
     data object SignUpScreen: Screen("register")
     data object HomeUser: Screen("home_user")
     data object UserProfile: Screen("user_profile")
-
-
+    data object ScanProductScreen: Screen("scan_product_screen")
 }

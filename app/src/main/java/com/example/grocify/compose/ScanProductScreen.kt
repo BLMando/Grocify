@@ -1,7 +1,7 @@
-package com.example.grocify
+package com.example.grocify.compose
 
-import CameraScreen
-import android.Manifest
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,9 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -45,22 +43,24 @@ import com.example.grocify.components.ItemsQuantitySelector
 import com.example.grocify.components.ListItems
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
-
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.R
+import com.example.grocify.viewmodels.ScanProductScreenViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
 @ExperimentalPermissionsApi
 @Composable
-fun ScanProductScreen() {
+fun ScanProductScreen(
+    viewModel: ScanProductScreenViewModel = viewModel(),
+    scanner: GmsBarcodeScanner
+) {
 
-    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
-    var analyzerType by remember { mutableStateOf(AnalyzerType.UNDEFINED) }
+    val scanUiState by viewModel.scanUiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -78,32 +78,32 @@ fun ScanProductScreen() {
             )
         },
         floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = {
+        floatingActionButton = //{ ScanBarcode({ barcodeScanner.startScan() }, barcodeScanner.barCodeResults.collectAsStateWithLifecycle().value) },//{
+        {
             Box(modifier = Modifier.padding(16.dp)) { // Aggiungi un padding per allineare con il BottomAppBar
-                if (cameraPermissionState.status.isGranted) {
-                    if (analyzerType == AnalyzerType.UNDEFINED) {
-                        FloatingActionButton(
-                            onClick = { analyzerType = AnalyzerType.BARCODE },
-                            containerColor = BlueDark,
-                        ) {
-                            Image(
-                                painterResource(id = R.drawable.bar_code),
-                                contentDescription = "bar code scanner",
-                                colorFilter = ColorFilter.tint(Color.White),
-                                modifier = Modifier.size(30.dp)
-                            )
-                        }
-                    } else {
+                FloatingActionButton(
 
-                        CameraScreen(analyzerType)
-                    }
-                } else if (cameraPermissionState.status.shouldShowRationale) {
-                    Text("Camera Permission permanently denied")
-                } else {
-                    SideEffect {
-                        cameraPermissionState.run { launchPermissionRequest() }
-                    }
-                    Text("No Camera Permission")
+                    //onClick = { analyzerType = AnalyzerType.BARCODE; viewModel.setStatoBarcode() },
+                    onClick = { scanner.startScan()
+                        .addOnSuccessListener { barcode ->
+                            val rawValue: String? = barcode.rawValue
+                            viewModel.aggiungiRiga(rawValue.toString())
+                            Log.v("funziona", rawValue.toString())
+                        }
+                        .addOnCanceledListener {
+                            Log.v("funziona", "chiuso è")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.v("funziona", "no")
+                        }},
+                    containerColor = BlueDark,
+                ) {
+                    Image(
+                        painterResource(id = R.drawable.bar_code),
+                        contentDescription = "bar code scanner",
+                        colorFilter = ColorFilter.tint(Color.White),
+                        modifier = Modifier.size(30.dp)
+                    )
                 }
             }
         },
@@ -201,14 +201,22 @@ fun ScanProductScreen() {
                     modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
                 )
                 LazyColumn{
-                    items(5){
-                        ListItems("food","Apples","300g"){
-                            ItemsQuantitySelector()
+                    var currentIndex = 0
+
+                    scanUiState.lista?.let {
+                        items(it.size){
+                            ListItems(image = scanUiState.lista!![currentIndex]?.image, name = scanUiState.lista!![currentIndex]?.name, quantity = scanUiState.lista!![currentIndex]?.quantity){
+                                scanUiState.lista!![currentIndex]?.units?.let { it1 ->
+                                    ItemsQuantitySelector(
+                                        it1
+                                    )
+                                }
+                            }
+                            currentIndex = (currentIndex + 1)
                         }
                     }
                 }
             }
         }
     )
-    }
-
+}
