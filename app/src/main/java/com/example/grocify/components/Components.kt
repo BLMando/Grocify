@@ -2,6 +2,7 @@ package com.example.grocify.components
 
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -12,16 +13,25 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.rememberImagePainter
 import com.example.grocify.R
+import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.LightGray
 
 
@@ -186,7 +197,9 @@ fun ItemsQuantitySelector(units: Int){
         ){
             IconButton(
                 onClick = { state.value -= 1 },
-                Modifier.padding(5.dp).size(18.dp)
+                Modifier
+                    .padding(5.dp)
+                    .size(18.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Remove,
@@ -202,7 +215,9 @@ fun ItemsQuantitySelector(units: Int){
             )
             IconButton(
                 onClick = { state.value += 1 },
-                Modifier.padding(5.dp).size(18.dp)
+                Modifier
+                    .padding(5.dp)
+                    .size(18.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.Add,
@@ -214,7 +229,13 @@ fun ItemsQuantitySelector(units: Int){
 }
 
 @Composable
-fun CheckoutBox(title: String,subtotal:String,shipping:String,total:String,buttonText: String) {
+fun CheckoutBox(
+    title: String?,
+    subtotal:String?,
+    shipping:String?,
+    total:String,
+    buttonText: String
+) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = LightGray
@@ -233,41 +254,57 @@ fun CheckoutBox(title: String,subtotal:String,shipping:String,total:String,butto
                 .height(IntrinsicSize.Min),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row (
-                Modifier.fillMaxWidth().padding(start = 15.dp,end = 15.dp,top = 10.dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Text(
-                    text = title
-                )
+            if(title != null){
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, top = 10.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = title
+                    )
+                }
+            }
+
+            if(subtotal != null){
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, top = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Totale parziale"
+                    )
+                    Text(
+                        text = subtotal
+                    )
+                }
+            }
+
+            if (shipping != null) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp, end = 15.dp, bottom = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text ="Spedizione"
+                    )
+                    Text(
+                        text = shipping
+                    )
+                }
             }
             Row (
-                Modifier.fillMaxWidth().padding(start = 15.dp,end = 15.dp,top = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Text(
-                    text = "Totale parziale"
-                )
-                Text(
-                    text = subtotal
-                )
-            }
-            Row (
-                Modifier.fillMaxWidth().padding(start = 15.dp,end = 15.dp,bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Text(
-                    text = "Spedizione"
-                )
-                Text(
-                    text = shipping
-                )
-            }
-            Row (
-                Modifier.fillMaxWidth().padding(start = 15.dp,end = 15.dp,top = 10.dp,bottom = 10.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ){
@@ -284,11 +321,131 @@ fun CheckoutBox(title: String,subtotal:String,shipping:String,total:String,butto
             }
             Button(
                 onClick = { /*TODO*/ },
-                modifier = Modifier.fillMaxWidth(0.95f).padding(bottom = 10.dp)
+                modifier = Modifier
+                    .fillMaxWidth(0.95f)
+                    .padding(bottom = 10.dp)
             ) {
                 Text(text = buttonText)
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserBottomNavigation(
+    ref: String = "",
+    onCatalogClick: () -> Unit,
+    onGiftClick: () -> Unit,
+    onPhysicalCartClick: () -> Unit,
+    onVirtualCartClick: () -> Unit
+){
+
+    var virtualCartColor= Color.Black
+    var physicalCartColor = Color.Black
+    var giftColor = Color.Black
+    var catalogColor = Color.Black
+
+    when(ref){
+        "virtualCart" -> virtualCartColor = BlueLight
+        "physicalCart" -> physicalCartColor = BlueLight
+        "gift" -> giftColor = BlueLight
+        "catalog" -> catalogColor = BlueLight
+    }
+
+    BottomAppBar(
+        windowInsets = TopAppBarDefaults.windowInsets,
+        modifier = Modifier
+            .shadow(10.dp, RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
+        tonalElevation = 30.dp,
+        containerColor = Color.White,
+        actions = {
+            Row (
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable {
+                        onCatalogClick()
+                    }
+                ){
+                    Icon(
+                        Icons.Filled.ShoppingBag,
+                        contentDescription = "Localized description",
+                        tint = catalogColor
+                    )
+                    Text(
+                        text = "Catalogo",
+                        Modifier.padding(top = 7.dp),
+                        style = TextStyle(
+                            color = catalogColor,
+                        )
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable {
+                        onPhysicalCartClick()
+                    }
+                ){
+                    Icon(
+                        Icons.Filled.ShoppingCart,
+                        contentDescription = "Localized description",
+                        tint = virtualCartColor
+                    )
+                    Text(
+                        text = "Online",
+                        Modifier.padding(top = 7.dp),
+                        style = TextStyle(
+                            color = virtualCartColor,
+                        )
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable {
+                        onVirtualCartClick()
+                    }
+                ){
+                    Icon(
+                        Icons.Filled.Store,
+                        contentDescription = "Localized description",
+                        tint = physicalCartColor
+                    )
+                    Text(
+                        text = "Negozio",
+                        Modifier.padding(top = 7.dp),
+                        style = TextStyle(
+                            color = physicalCartColor,
+                        )
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.clickable {
+                        onGiftClick()
+                    }
+                ){
+                    Icon(
+                        Icons.Filled.CardGiftcard,
+                        contentDescription = "Localized description",
+                        tint = giftColor
+                    )
+                    Text(
+                        text = "Per te",
+                        Modifier.padding(top = 7.dp),
+                        style = TextStyle(
+                            color = giftColor,
+                        )
+                    )
+                }
+            }
+        },
+    )
 }
 

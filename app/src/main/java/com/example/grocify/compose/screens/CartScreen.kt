@@ -1,36 +1,21 @@
 package com.example.grocify.compose.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -48,8 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.grocify.R
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.ItemsQuantitySelector
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.components.UserBottomNavigation
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +41,7 @@ import com.example.grocify.ui.theme.BlueMedium
 fun CartScreen(
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onScanClick: () -> Unit
+    onVirtualCartClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -75,91 +59,12 @@ fun CartScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                windowInsets = TopAppBarDefaults.windowInsets,
-                modifier = Modifier
-                    .shadow(10.dp, RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
-                tonalElevation = 30.dp,
-                containerColor = Color.White,
-                actions = {
-                    Row (
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable {
-                                onCatalogClick()
-                            }
-                        ){
-                            Icon(
-                                Icons.Filled.ShoppingBag,
-                                contentDescription = "Localized description"
-                            )
-                            Text(
-                                text = "Catalogo",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black
-
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable {
-                                onScanClick()
-                            }
-                        ){
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = "Localized description",
-                            )
-                            Text(
-                                text = "Scansiona",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable {
-                                onGiftClick()
-                            }
-                        ){
-                            Icon(Icons.Filled.CardGiftcard, contentDescription = "Localized description")
-                            Text(
-                                text = "Per te",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.ShoppingCart,
-                                contentDescription = "Localized description",
-                                tint = BlueLight
-                            )
-                            Text(
-                                text = "Carrello",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = BlueLight
-                                )
-                            )
-                        }
-                    }
-                },
+            UserBottomNavigation(
+                ref = "virtualCart",
+                onCatalogClick = onCatalogClick,
+                onGiftClick = onGiftClick,
+                onVirtualCartClick = onVirtualCartClick,
+                onPhysicalCartClick = {}
             )
         },
         content = { innerPadding ->
@@ -170,65 +75,20 @@ fun CartScreen(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(top = 15.dp, start = 10.dp, bottom = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start,
-                    ) {
-                        OutlinedButton(
-                            onClick = {/*TODO*/},
-                            contentPadding = PaddingValues(
-                                start = 20.dp,
-                                end = 20.dp
-                            ),
-
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = Color.Black
-                            ),
-                            modifier = Modifier.padding(end = 10.dp)
-                        ){
-                            Text(
-                                text = "Online",
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                ),
-
-                            )
-                        }
-                        Divider(
-                            color = Color.Black,
-                            thickness = 1.dp,
-                            modifier = Modifier
-                                .width(3.dp)
-                                .height(30.dp)
-                                .clip(RoundedCornerShape(10.dp))
-
+                    Text(
+                        text = "Prodotti aggiunti al carrello",
+                        modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
                         )
-                        Button(
-                            onClick = { /*TODO*/ },
-                            contentPadding = PaddingValues(
-                                start = 20.dp,
-                                end = 20.dp
-                            ),
+                    )
 
-                            colors = ButtonDefaults.buttonColors(
-                                contentColor = Color.Black,
-                                containerColor = BlueMedium
-                            ),
-                            modifier = Modifier.padding(start = 10.dp)
-                        ) {
-                            Text(
-                                text = "Negozio",
-                                style = TextStyle(
-                                    fontSize = 18.sp,
-                                    color = Color.White
-                                ),
-                            )
-                        }
-
-                    }
+                    Divider(
+                        color = Color.LightGray,
+                        thickness = 0.6.dp,
+                        modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
+                    )
 
                     LazyColumn {
                         items(2){

@@ -63,8 +63,8 @@ fun GrocifyNavHost(navController: NavHostController) {
             //Bottom navigation route
             val onCatalogClick = { navController.navigate(Screen.HomeUserScreen.route) }
             val onGiftClick = { navController.navigate(Screen.GiftScreen.route) }
-            val onCartClick = { navController.navigate(Screen.CartScreen.route) }
-            val onScanClick = { navController.navigate(Screen.ScanScreen.route) }
+            val onPhysicalCartClick = { navController.navigate(Screen.CartScreen.route) }
+            val onVirtualCartClick = { navController.navigate(Screen.ScanScreen.route) }
 
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
@@ -74,8 +74,8 @@ fun GrocifyNavHost(navController: NavHostController) {
                             categoryId = it
                         ))},
                     onGiftClick = onGiftClick,
-                    onCartClick = onCartClick,
-                    onScanClick = onScanClick,
+                    onPhysicalCartClick = onPhysicalCartClick,
+                    onVirtualCartClick = onVirtualCartClick,
                 )
             }
 
@@ -89,8 +89,8 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onBackClick = { navController.popBackStack() },
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onCartClick = onCartClick,
-                    onScanClick = onScanClick,
+                    onPhysicalCartClick = onPhysicalCartClick,
+                    onVirtualCartClick = onVirtualCartClick,
                 )
             }
 
@@ -107,7 +107,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                     scanner = scanner,
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onCartClick = onCartClick
+                    onPhysicalCartClick = onPhysicalCartClick
                 )
             }
 
@@ -115,15 +115,15 @@ fun GrocifyNavHost(navController: NavHostController) {
                 CartScreen(
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onScanClick = onScanClick,
+                    onVirtualCartClick = onVirtualCartClick,
                 )
             }
 
             composable(route = Screen.GiftScreen.route) {
                 GiftProductScreen(
                     onCatalogClick = onCatalogClick,
-                    onCartClick = onCartClick,
-                    onScanClick = onScanClick,
+                    onPhysicalCartClick = onPhysicalCartClick,
+                    onVirtualCartClick = onVirtualCartClick,
                 )
             }
         }
@@ -146,9 +146,5 @@ fun GrocifyNavHost(navController: NavHostController) {
                 HomeDriverScreen()
             }
         }
-
-
-
-
     }
 }

@@ -53,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import com.example.grocify.components.UserBottomNavigation
 import com.example.grocify.model.Product
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.BlueMedium
@@ -66,8 +67,8 @@ fun CategoryItemsScreen(
     onBackClick: () -> Unit,
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onCartClick: () -> Unit,
-    onScanClick: () -> Unit
+    onPhysicalCartClick: () -> Unit,
+    onVirtualCartClick: () -> Unit
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
@@ -105,85 +106,11 @@ fun CategoryItemsScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                windowInsets = TopAppBarDefaults.windowInsets,
-                modifier = Modifier
-                    .shadow(10.dp, RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
-                tonalElevation = 30.dp,
-                containerColor = Color.White,
-                actions = {
-                    Row (
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { onCatalogClick() }
-                        ){
-                            Icon(
-                                Icons.Filled.ShoppingBag,
-                                contentDescription = "Localized description",
-                                tint = BlueLight
-                            )
-                            Text(
-                                text = "Catalogo",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = BlueLight,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { onScanClick() }
-                        ){
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = "Localized description"
-                            )
-                            Text(
-                                text = "Scansiona",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { onGiftClick() }
-                        ){
-                            Icon(
-                                Icons.Filled.CardGiftcard,
-                                contentDescription = "Localized description"
-                            )
-                            Text(
-                                text = "Per te",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable { onCartClick() }
-                        ){
-                            Icon(Icons.Filled.ShoppingCart, contentDescription = "Localized description")
-                            Text(
-                                text = "Carrello",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-                    }
-                },
+            UserBottomNavigation(
+                onCatalogClick = onCatalogClick,
+                onGiftClick = onGiftClick,
+                onPhysicalCartClick = onPhysicalCartClick,
+                onVirtualCartClick = onVirtualCartClick
             )
         },
         content = { innerPadding ->
