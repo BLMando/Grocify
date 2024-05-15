@@ -1,4 +1,4 @@
-package com.example.grocify
+package com.example.grocify.compose.screens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.grocify.R
 
 @Composable
 fun OrderSuccessScreen(){
