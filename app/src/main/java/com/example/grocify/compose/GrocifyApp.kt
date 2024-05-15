@@ -75,7 +75,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                         ))},
                     onGiftClick = onGiftClick,
                     onPhysicalCartClick = onPhysicalCartClick,
-                    onVirtualCartClick = onVirtualCartClick,
+                    onVirtualCartClick = onVirtualCartClick
                 )
             }
 
@@ -115,7 +115,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                 CartScreen(
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onVirtualCartClick = onVirtualCartClick,
+                    onVirtualCartClick = onVirtualCartClick
                 )
             }
 
