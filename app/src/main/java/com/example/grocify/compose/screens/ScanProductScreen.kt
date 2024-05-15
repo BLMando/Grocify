@@ -1,8 +1,12 @@
 package com.example.grocify.compose.screens
 
+
+import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +30,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -36,21 +41,34 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.grocify.R
 import com.example.grocify.components.ItemsQuantitySelector
 import com.example.grocify.components.ListItems
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.R
+import com.example.grocify.viewmodels.ScanProductScreenViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalPermissionsApi
 @Composable
 fun ScanProductScreen(
+    viewModel: ScanProductScreenViewModel = viewModel(),
+    scanner: GmsBarcodeScanner,
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
     onCartClick: () -> Unit
 ) {
-    Scaffold(
+
+
+    val scanUiState by viewModel.scanUiState.collectAsState()
+
+   Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 windowInsets = TopAppBarDefaults.windowInsets,
@@ -67,19 +85,33 @@ fun ScanProductScreen(
         },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {},
-                containerColor = BlueDark,
-            )
-            {
-                Image(
-                    painterResource(id = R.drawable.bar_code),
-                    contentDescription = "bar code scanner",
-                    colorFilter = ColorFilter.tint(Color.White),
-                    modifier = Modifier
-                        .size(30.dp)
-                )
-            } },
+            Box(modifier = Modifier.padding(16.dp)) { // Aggiungi un padding per allineare con il BottomAppBar
+                FloatingActionButton(
+
+
+                    onClick = { scanner.startScan()
+                        .addOnSuccessListener { barcode ->
+                            val rawValue: String? = barcode.rawValue
+                            viewModel.aggiungiRiga(rawValue.toString())
+                            Log.v("funziona", rawValue.toString())
+                        }
+                        .addOnCanceledListener {
+                            Log.v("funziona", "chiuso è")
+                        }
+                        .addOnFailureListener { e ->
+                            Log.v("funziona", "no")
+                        }},
+                    containerColor = BlueDark,
+                ) {
+                    Image(
+                        painterResource(id = R.drawable.bar_code),
+                        contentDescription = "bar code scanner",
+                        colorFilter = ColorFilter.tint(Color.White),
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+            }
+        },
         bottomBar = {
             BottomAppBar(
                 windowInsets = TopAppBarDefaults.windowInsets,
@@ -183,9 +215,18 @@ fun ScanProductScreen(
                     modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
                 )
                 LazyColumn{
-                    items(5){
-                        ListItems("food","Apples","300g"){
-                            ItemsQuantitySelector()
+                    var currentIndex = 0
+
+                    scanUiState.lista?.let {
+                        items(it.size){
+                            ListItems(image = scanUiState.lista!![currentIndex]?.image, name = scanUiState.lista!![currentIndex]?.name, quantity = scanUiState.lista!![currentIndex]?.quantity){
+                                scanUiState.lista!![currentIndex]?.units?.let { it1 ->
+                                    ItemsQuantitySelector(
+                                        it1
+                                    )
+                                }
+                            }
+                            currentIndex = (currentIndex + 1)
                         }
                     }
                 }
@@ -193,4 +234,3 @@ fun ScanProductScreen(
         }
     )
 }
-

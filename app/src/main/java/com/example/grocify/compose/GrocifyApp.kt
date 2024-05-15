@@ -19,6 +19,8 @@ import com.example.grocify.compose.screens.SignInScreen
 import com.example.grocify.compose.screens.SignUpScreen
 import com.example.grocify.compose.screens.UserProfileScreen
 
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @Composable
 fun GrocifyApp(){
@@ -26,10 +28,12 @@ fun GrocifyApp(){
     GrocifyNavHost(navController = navController)
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun GrocifyNavHost(navController: NavHostController) {
 
     val activity = (LocalContext.current as Activity)
+    val scanner = GmsBarcodeScanning.getClient(activity)
 
     NavHost(navController = navController, startDestination = Screen.SignInScreen.route) {
 
@@ -100,6 +104,7 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.ScanScreen.route){
                 ScanProductScreen(
+                    scanner = scanner,
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
                     onCartClick = onCartClick
@@ -141,6 +146,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                 HomeDriverScreen()
             }
         }
+
 
 
 

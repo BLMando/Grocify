@@ -4,7 +4,6 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-
 val tomtomApiKey: String by project
 
 android {
@@ -65,6 +64,10 @@ android {
 }
 
 dependencies {
+    implementation("com.google.guava:guava:31.0.1-android")
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+
     //FIREBASE LIBRARIES
     implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
     implementation("com.google.firebase:firebase-auth")
@@ -91,12 +94,45 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    //BARCODE E QRCODE LIBRARY
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+
+
+    // Coroutine Lifecycle Scopes
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+
+
+    //bar code scanner
+    implementation("com.google.android.gms:play-services-code-scanner:16.0.0")
+
+
+
+
+
+
+    //IMAGE LOAD FROM LINK LIBRARY
+    implementation("io.coil-kt:coil-compose:1.4.0")
 
     //QRCODE LIBRARY
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.camera.core)
+
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.multidex:multidex:2.0.1")
 
+    //BAR CODE LIBRARY
+    implementation("com.google.zxing:core:3.4.1")
+
+    implementation("androidx.camera:camera-camera2:1.2.2")
+    implementation("androidx.camera:camera-lifecycle:1.2.2")
+    implementation("androidx.camera:camera-view:1.2.2")
+    implementation("com.google.mlkit:barcode-scanning:17.1.0")
     //CHART LIBRARY
     implementation("com.himanshoe:charty:2.0.0-alpha01")
 
