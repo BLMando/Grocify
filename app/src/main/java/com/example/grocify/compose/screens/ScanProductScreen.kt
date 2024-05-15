@@ -1,8 +1,10 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens
+
 
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,12 +59,16 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 @Composable
 fun ScanProductScreen(
     viewModel: ScanProductScreenViewModel = viewModel(),
-    scanner: GmsBarcodeScanner
+    scanner: GmsBarcodeScanner,
+    onCatalogClick: () -> Unit,
+    onGiftClick: () -> Unit,
+    onCartClick: () -> Unit
 ) {
+
 
     val scanUiState by viewModel.scanUiState.collectAsState()
 
-    Scaffold(
+   Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 windowInsets = TopAppBarDefaults.windowInsets,
@@ -78,12 +84,11 @@ fun ScanProductScreen(
             )
         },
         floatingActionButtonPosition = FabPosition.End,
-        floatingActionButton = //{ ScanBarcode({ barcodeScanner.startScan() }, barcodeScanner.barCodeResults.collectAsStateWithLifecycle().value) },//{
-        {
+        floatingActionButton = {
             Box(modifier = Modifier.padding(16.dp)) { // Aggiungi un padding per allineare con il BottomAppBar
                 FloatingActionButton(
 
-                    //onClick = { analyzerType = AnalyzerType.BARCODE; viewModel.setStatoBarcode() },
+
                     onClick = { scanner.startScan()
                         .addOnSuccessListener { barcode ->
                             val rawValue: String? = barcode.rawValue
@@ -122,6 +127,9 @@ fun ScanProductScreen(
                     ){
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onCatalogClick()
+                            }
                         ){
                             Icon(
                                 Icons.Filled.ShoppingBag,
@@ -138,7 +146,7 @@ fun ScanProductScreen(
                         }
 
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ){
                             Icon(
                                 Icons.AutoMirrored.Filled.List,
@@ -156,6 +164,9 @@ fun ScanProductScreen(
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onGiftClick()
+                            }
                         ){
                             Icon(Icons.Filled.CardGiftcard, contentDescription = "Localized description")
                             Text(
@@ -169,6 +180,9 @@ fun ScanProductScreen(
 
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.clickable {
+                                onCartClick()
+                            }
                         ){
                             Icon(Icons.Filled.ShoppingCart, contentDescription = "Localized description")
                             Text(

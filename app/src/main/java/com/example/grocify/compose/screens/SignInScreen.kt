@@ -1,4 +1,4 @@
-package com.example.grocify.compose
+package com.example.grocify.compose.screens
 
 
 import android.app.Activity
@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
 import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
@@ -78,7 +79,7 @@ import kotlinx.coroutines.launch
 fun SignInScreen(
     context: Activity,
     onGoSignUp: () -> Unit,
-    onSignInSuccessful: () -> Unit
+    navController: NavController,
 ) {
 
     val viewModel: SignInViewModel = viewModel(factory = viewModelFactory {
@@ -115,18 +116,28 @@ fun SignInScreen(
         }
     )
 
-    //DA DECOMMENTARE NON APPENA FINITA LA FUNZIONALITA' DI LOGOUT
-    //il codice viene eseguito ad ogni render del composable
-    /*LaunchedEffect(key1 = Unit) {
-        if(googleAuthClient.getSignedInUser() != null){
-            navController.navigate(Screen.SignUpScreen.route)
+    LaunchedEffect(key1 = Unit) {
+        if(viewModel.getSignedInUser()){
+            val role = viewModel.getUserRole()
+            handlePostSignInRoute(role,navController)
         }
-    }*/
+    }
 
     LaunchedEffect(key1 = googleUiState.value.isSignInSuccessful) {
-        if(googleUiState.value.isSignInSuccessful)
-            onSignInSuccessful()
+        if(googleUiState.value.isSignInSuccessful){
+            val role = viewModel.getUserRole()
+            handlePostSignInRoute(role,navController)
+            viewModel.resetGoogleState()
+        }
     }
+
+    LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
+        if(signInUiState.value.isSuccessful){
+            val role = viewModel.getUserRole()
+            handlePostSignInRoute(role,navController)
+        }
+    }
+
 
     LaunchedEffect(key1 = googleUiState.value.signInError) {
         googleUiState.value.signInError?.let { error ->
@@ -141,10 +152,6 @@ fun SignInScreen(
         }
     }
 
-    LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
-        if(signInUiState.value.isSuccessful)
-            onSignInSuccessful()
-    }
 
    LaunchedEffect(key1 = signInUiState.value.signInError){
         signInUiState.value.signInError?.let { error ->
@@ -383,6 +390,14 @@ fun SignInScreen(
                 )
             }
         }
+    }
+}
+
+fun handlePostSignInRoute(userRole: String?,navController: NavController) {
+    when(userRole){
+        "user" -> navController.navigate("user")
+        "admin" -> navController.navigate("admin")
+        "driver" -> navController.navigate("driver")
     }
 }
 

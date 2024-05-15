@@ -3,5 +3,6 @@
     <string name="client_id">135277017788-uetahclfn3d9h4ojchfk2o9337muih19.apps.googleusercontent.com</string>
     <string name="location_permission_denied">Permission denied</string>
     <string name="title_activity_map">MapActivity</string>
-    <string name="default_user_link">https://www.google.com/url?sa=i&amp;url=https%3A%2F%2Fwww.pngwing.com%2Fen%2Fsearch%3Fq%3Ddefault&amp;psig=AOvVaw1_zbvvv4zeqTUlrjZnyE-B&amp;ust=1715438694615000&amp;source=images&amp;cd=vfe&amp;opi=89978449&amp;ved=0CBIQjRxqFwoTCIi-kaKpg4YDFQAAAAAdAAAAABAE</string>
+    <string name="default_user_link">https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png</string>
+    <string name="default_user_role">user</string>
 </resources>

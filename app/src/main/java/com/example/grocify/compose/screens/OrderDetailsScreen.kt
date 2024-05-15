@@ -1,4 +1,4 @@
-package com.example.grocify
+package com.example.grocify.compose.screens
 
 
 import androidx.compose.foundation.Image
@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.grocify.R
 import com.example.grocify.components.Dialog
 import com.example.grocify.components.ListItems
 import com.example.grocify.ui.theme.BlueDark

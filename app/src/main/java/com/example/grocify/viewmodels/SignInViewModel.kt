@@ -7,10 +7,10 @@ import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
-import com.example.grocify.data.signIn.GoogleSignInResult
-import com.example.grocify.data.signIn.GoogleSignInState
-import com.example.grocify.data.signIn.SignInUiState
-import com.example.grocify.data.signIn.UserData
+import com.example.grocify.data.GoogleSignInResult
+import com.example.grocify.data.GoogleSignInState
+import com.example.grocify.data.SignInUiState
+import com.example.grocify.model.User
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.GoogleAuthProvider
@@ -120,11 +120,14 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
             GoogleSignInResult(
                 data = user?.run {
                     val username = displayName?.split(" ")
-                    UserData(
+                    User(
+                        uid = uid,
                         name = username?.get(0),
                         surname = username?.get(1),
                         email = email,
-                        profilePic = photoUrl?.toString()
+                        password = null,
+                        profilePic = photoUrl?.toString(),
+                        role = getString(getApplication(),R.string.default_user_role)
                     )
                 },
                 error = null
@@ -143,14 +146,14 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
         if(result.data != null){
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
-                    result.data.let {
+                    result.data.let { user ->
                         db.collection("users")
-                            .whereEqualTo("email", it.email)
+                            .whereEqualTo("uid", user.uid)
                             .get()
                             .addOnSuccessListener { documents ->
                                 if (documents.isEmpty)
                                     db.collection("users")
-                                        .add(it)
+                                        .add(user)
                                         .addOnFailureListener { error ->
                                             _googleSignInState.update { currentState ->
                                                 currentState.copy(
@@ -168,7 +171,7 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
                             }
                     }
                 }
-                resetGoogleState()
+
             }
         }else
             _googleSignInState.update { currentState ->
@@ -179,15 +182,14 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
             }
     }
 
+    fun getSignedInUser(): Boolean = auth.currentUser != null
 
-    suspend fun signOut(){
-        try {
-            mOneTapClient.signOut().await()
-            auth.signOut()
-        }catch(e: Exception){
-            e.printStackTrace()
-            if(e is CancellationException) throw  e
-        }
+    suspend fun getUserRole(): String{
+            val res = db.collection("users")
+                .whereEqualTo("uid",auth.currentUser?.uid)
+                .get().await()
+
+            return res.documents[0].data?.get("role").toString()
     }
 
     private fun buildSignInRequest(): BeginSignInRequest {
@@ -214,6 +216,6 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
 
     private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
 
-    private fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
+    fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
     private fun resetState() = _signInState.update { SignInUiState() }
 }

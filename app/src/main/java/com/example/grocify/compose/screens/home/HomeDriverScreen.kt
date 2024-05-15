@@ -1,5 +1,4 @@
-package com.example.grocify
-
+package com.example.grocify.compose.screens.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,7 +39,7 @@ import com.example.grocify.ui.theme.BlueDark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeDriverScreen(){
+fun HomeDriverScreen() {
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
@@ -191,4 +190,3 @@ fun OrderItem(){
         }
     }
 }
-
