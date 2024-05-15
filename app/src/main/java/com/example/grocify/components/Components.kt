@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -51,6 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
+import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueLight
@@ -361,9 +365,9 @@ fun UserBottomNavigation(
         containerColor = Color.White,
         actions = {
             Row (
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
+                Modifier.fillMaxWidth().padding(horizontal = 15.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
             ){
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -378,8 +382,9 @@ fun UserBottomNavigation(
                     )
                     Text(
                         text = "Catalogo",
-                        Modifier.padding(top = 7.dp),
+                        Modifier.padding(top = 3.5.dp),
                         style = TextStyle(
+                            fontSize = 13.sp,
                             color = catalogColor,
                         )
                     )
@@ -398,8 +403,9 @@ fun UserBottomNavigation(
                     )
                     Text(
                         text = "Online",
-                        Modifier.padding(top = 7.dp),
+                        Modifier.padding(top = 3.5.dp),
                         style = TextStyle(
+                            fontSize = 13.sp,
                             color = virtualCartColor,
                         )
                     )
@@ -418,8 +424,9 @@ fun UserBottomNavigation(
                     )
                     Text(
                         text = "Negozio",
-                        Modifier.padding(top = 7.dp),
+                        Modifier.padding(top = 3.5.dp),
                         style = TextStyle(
+                            fontSize = 13.sp,
                             color = physicalCartColor,
                         )
                     )
@@ -438,8 +445,9 @@ fun UserBottomNavigation(
                     )
                     Text(
                         text = "Per te",
-                        Modifier.padding(top = 7.dp),
+                        Modifier.padding(top = 3.5.dp),
                         style = TextStyle(
+                            fontSize = 13.sp,
                             color = giftColor,
                         )
                     )
@@ -448,4 +456,3 @@ fun UserBottomNavigation(
         },
     )
 }
-
