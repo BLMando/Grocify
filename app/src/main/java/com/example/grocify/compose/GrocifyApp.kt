@@ -17,8 +17,11 @@ import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
 import com.example.grocify.compose.screens.SignUpScreen
-import com.example.grocify.compose.screens.UserProfileScreen
-
+import com.example.grocify.compose.screens.account.UserAccountScreen
+import com.example.grocify.compose.screens.account.UserAddressScreen
+import com.example.grocify.compose.screens.account.UserOrdersScreen
+import com.example.grocify.compose.screens.account.UserPaymentsScreen
+import com.example.grocify.compose.screens.account.UserProfileScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
@@ -68,7 +71,7 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
-                    onProfileClick = { navController.navigate(Screen.UserProfile.route) },
+                    onAccountClick = { navController.navigate(Screen.UserAccount.route) },
                     onCategoryClick = {
                         navController.navigate(Screen.CategoryItems.createRoute(
                             categoryId = it
@@ -94,14 +97,6 @@ fun GrocifyNavHost(navController: NavHostController) {
                 )
             }
 
-            composable(route = Screen.UserProfile.route) {
-                UserProfileScreen(
-                    context = activity,
-                    onSignOut = { navController.navigate(Screen.SignInScreen.route) },
-                    onBackClick = { navController.popBackStack() }
-                )
-            }
-
             composable(route = Screen.ScanScreen.route){
                 ScanProductScreen(
                     scanner = scanner,
@@ -124,6 +119,42 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onCatalogClick = onCatalogClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick,
+                )
+            }
+
+
+            composable(route = Screen.UserAccount.route) {
+                UserAccountScreen(
+                    context = activity,
+                    onBackClick = { navController.popBackStack() },
+                    onLogOutClick = { navController.navigate(Screen.SignInScreen.route) },
+                    onUserProfileClick = { navController.navigate(Screen.UserProfile.route) },
+                    onUserAddressesClick = { navController.navigate(Screen.UserAddresses.route) },
+                    onUserOrdersClick = { navController.navigate(Screen.UserOrders.route) }
+                ) { navController.navigate(Screen.UserPayment.route) }
+            }
+
+            composable(route = Screen.UserProfile.route){
+                UserProfileScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.UserAddresses.route){
+                UserAddressScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.UserPayment.route){
+                UserPaymentsScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.UserOrders.route){
+                UserOrdersScreen(
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }

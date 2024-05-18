@@ -105,6 +105,7 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                        //se non ho già un carrello per l'utente lo creo
                        val addedProduct = hashMapOf(
                            "name" to product.name,
+                           "price" to product.price,
                            "quantity" to 1,
                        )
                        cartCollection.add(
@@ -132,6 +133,7 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                                    //se l'utente non ha ancora inserito il prodotto che ha cliccato allora lo aggiungo
                                    val newAddedProduct = hashMapOf(
                                        "name" to product.name,
+                                       "price" to product.price,
                                        "quantity" to 1,
                                    )
                                    userProdRef.add(newAddedProduct)

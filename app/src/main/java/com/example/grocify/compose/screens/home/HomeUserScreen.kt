@@ -57,11 +57,11 @@ import com.example.grocify.viewmodels.HomeUserViewModel
 @Composable
 fun HomeUserScreen(
     viewModel: HomeUserViewModel = viewModel(),
-    onProfileClick: () -> Unit,
     onCategoryClick: (categoryId: String) -> Unit,
     onGiftClick: () -> Unit,
     onPhysicalCartClick: () -> Unit,
-    onVirtualCartClick: () -> Unit
+    onVirtualCartClick: () -> Unit,
+    onAccountClick: () -> Unit
 ){
 
     val uiState = viewModel.uiState.collectAsState()
@@ -107,7 +107,7 @@ fun HomeUserScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = onProfileClick
+                        onClick = onAccountClick
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Person,
