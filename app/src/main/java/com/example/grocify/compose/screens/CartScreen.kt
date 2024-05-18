@@ -19,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,19 +31,26 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.R
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.ItemsQuantitySelector
 import com.example.grocify.components.UserBottomNavigation
+import com.example.grocify.model.Product
+import com.example.grocify.viewmodels.CartViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CartScreen(
+    viewModel: CartViewModel = viewModel(),
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
     onVirtualCartClick: () -> Unit
 ) {
+
+    val uiState = viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -91,8 +99,8 @@ fun CartScreen(
                     )
 
                     LazyColumn {
-                        items(2){
-                            CartItems()
+                        items(uiState.value.products.size){
+                            CartItems(uiState.value.products[it])
                         }
                     }
                 }
@@ -109,7 +117,7 @@ fun CartScreen(
 }
 
 @Composable
-fun CartItems() {
+fun CartItems(product: Product) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -146,19 +154,19 @@ fun CartItems() {
                     horizontalAlignment = Alignment.Start
                 ){
                     Text(
-                        text = "Apples",
+                        text = product.name,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         modifier = Modifier.padding(bottom=10.dp)
                     )
                     Text(
-                        text = "$3.4",
+                        text = "${product.price}€",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
 
                     )
                 }
-                ItemsQuantitySelector(1)
+                ItemsQuantitySelector(product.quantity.toInt())
             }
         }
     }
