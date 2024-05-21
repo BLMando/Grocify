@@ -1,11 +1,13 @@
 package com.example.grocify.compose.screens.account
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,7 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -30,15 +32,19 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -46,13 +52,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.data.UserPaymentMethodsUiState
+import com.example.grocify.model.PaymentMethod
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.viewmodels.UserPaymentMethodsViewModel
@@ -65,6 +76,11 @@ fun UserPaymentsScreen(
     onBackClick: () -> Unit
 ){
     val uiState = viewModel.uiState.collectAsState()
+
+    //ad ogni recomposition, ogni volta che l'inserimento e l'aggiornamento è andato a buon fine ricarico gli indirizzi
+    LaunchedEffect(key1 = Unit, key2 = uiState.value.isUDSuccessful, key3 = uiState.value.isInsertSuccessful) {
+        viewModel.getAllPaymentMethods()
+    }
 
     Scaffold(
         topBar = {
@@ -106,35 +122,98 @@ fun UserPaymentsScreen(
                             .size(30.dp)
                     )
                 }
-                PaymentDialog(uiState.value.isFABClicked, viewModel)
+                PaymentDialog(uiState.value, viewModel)
         },
         content = { innerPadding ->
             Column(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                Text(
-                    text = "Metodi di pagamento attuale",
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                if (uiState.value.result == null && uiState.value.paymentMethods.isNotEmpty()) {
+                    //se l'utente ha inserito almeno un metodo di pagamento allora mostro i seguenti composable
+
+                    Text(
+                        text = "Metodi di pagamento attuale",
+                        modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
                     )
-                )
 
-                PaymentMethodCard(selected = true)
+                    //isolo l'eventuale metodo di pagamento selezionato dal resto
+                    val paymentMethodsListWithSelected =
+                        uiState.value.paymentMethods.filter { it.selected }
 
-                Text(
-                    text = "Metodi di pagamento disponibili",
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                    if (paymentMethodsListWithSelected.isEmpty())
+                        //se non ho trovato nessun metodo di pagamento selezionato allora mostro un composable che dice che non ci sono metodi di pagamento in uso
+                        Row(
+                            Modifier.fillMaxWidth().padding(top = 20.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Nessun metodo di pagamento attualmente in uso",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
+                    else
+                        PaymentMethodCard(paymentMethodsListWithSelected.first(), viewModel)
+
+                    Text(
+                        text = "Metodi di pagamento disponibili",
+                        modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
                     )
-                )
 
-                LazyColumn {
-                    items(4) {
-                        PaymentMethodCard(selected = false)
+                    //mostro la lista di indirizzi dell'utente
+                    val paymentMethodsListWithoutSelected: List<PaymentMethod> = if(paymentMethodsListWithSelected.isEmpty())
+                        uiState.value.paymentMethods.filter { !it.selected }
+                    else
+                        uiState.value.paymentMethods.minus(
+                            paymentMethodsListWithSelected.first()
+                        )
+
+
+                    if(paymentMethodsListWithoutSelected.isEmpty())
+                        Row(
+                            Modifier.fillMaxWidth().padding(top = 20.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Nessun altro metodo di pagamento disponibile",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
+                    else
+                        LazyColumn {
+                            items(paymentMethodsListWithoutSelected.size) {
+                                PaymentMethodCard(paymentMethodsListWithoutSelected[it],viewModel = viewModel)
+                            }
+                        }
+                }else{
+                    Row(
+                        Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${uiState.value.result}",
+                            style = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
                     }
                 }
             }
@@ -143,9 +222,9 @@ fun UserPaymentsScreen(
 
 }
 @Composable
-fun PaymentMethodCard(selected:Boolean){
+fun PaymentMethodCard(paymentMethod: PaymentMethod, viewModel: UserPaymentMethodsViewModel){
 
-    val spotColor = if (selected) BlueDark else Color.Black
+    val spotColor = if (paymentMethod.selected) BlueDark else Color.Black
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Card(
@@ -175,7 +254,7 @@ fun PaymentMethodCard(selected:Boolean){
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Mattia Mandorlini",
+                    paymentMethod.owner,
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -205,19 +284,29 @@ fun PaymentMethodCard(selected:Boolean){
                         ),
                         modifier = Modifier.background(Color.White)
                     ) {
-                        if(!selected){
+                        if(!paymentMethod.selected){
                             DropdownMenuItem(
                                 text = { Text("Seleziona") },
-                                onClick = { /*TODO*/ }
+                                onClick = {
+                                    viewModel.setPaymentMethodSelected(paymentMethod)
+                                    expanded = false
+                                }
                             )
                         }
                         DropdownMenuItem(
                             text = { Text("Modifica") },
-                            onClick = { /*TODO*/ }
+                            onClick = {
+                                viewModel.setFABClicked(true)
+                                viewModel.updatePaymentMethod(paymentMethod,false)
+                                expanded = false
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("Elimina") },
-                            onClick = { /*TODO*/ }
+                            onClick = {
+                                viewModel.deletePaymentMethod(paymentMethod)
+                                expanded = false
+                            }
                         )
                     }
                 }
@@ -228,11 +317,11 @@ fun PaymentMethodCard(selected:Boolean){
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
                 Text(
-                    text = "**** **** **** 1234",
+                    text = paymentMethod.number,
                     modifier = Modifier.padding(start = 15.dp,bottom = 10.dp)
                 )
                 Text(
-                    text = "01/24",
+                    text = paymentMethod.expireDate,
                     modifier = Modifier.padding(end = 20.dp,bottom = 10.dp)
                 )
             }
@@ -243,51 +332,250 @@ fun PaymentMethodCard(selected:Boolean){
 
 
 @Composable
-fun PaymentDialog(fabState: Boolean,viewModel: UserPaymentMethodsViewModel){
+fun PaymentDialog(uiState: UserPaymentMethodsUiState,viewModel: UserPaymentMethodsViewModel){
 
-    if (fabState) {
+    var owner by rememberSaveable { mutableStateOf("") }
+    var cardNumber by  remember { mutableStateOf(TextFieldValue("")) }
+    var expireDate by  remember { mutableStateOf(TextFieldValue("")) }
+    var cvc by  remember { mutableStateOf(TextFieldValue("")) }
+
+    //variabili che permettono di effettuare la modifica del metodo di pagamento a partire dai dati attuali
+    var ownerChange by rememberSaveable { mutableStateOf(false) }
+    var cardNumberChange by rememberSaveable { mutableStateOf(false) }
+    var expireDateChange by rememberSaveable { mutableStateOf(false) }
+    var cvcChange by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = uiState.isInsertSuccessful) {
+        if(uiState.isInsertSuccessful){
+            viewModel.setFABClicked(false)
+            owner = ""
+            ownerChange = false
+            cardNumber = TextFieldValue("")
+            cardNumberChange = false
+            expireDate = TextFieldValue("")
+            expireDateChange = false
+            cvc = TextFieldValue("")
+            cvcChange = false
+        }
+    }
+
+    if (uiState.isFABClicked) {
         AlertDialog(
             onDismissRequest = { viewModel.setFABClicked(false) },
             title = {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ){
-                    Text(
-                        text = "Nuovo metodo di pagamento",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
+                Text(
+                    text = "Nuovo metodo di pagamento",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            },
+            text = {
+                Column{
+                    OutlinedTextField(
+                        value = if(uiState.paymentMethodToUpdate != null && !ownerChange) uiState.paymentMethodToUpdate.owner else owner,
+                        singleLine = true,
+                        onValueChange = {
+                            owner = it
+                            ownerChange = true
+                        },
+                        placeholder = { Text(text = "Nome Cognome",color = Color.Gray) },
+                        label = { Text(text = "Intestatario",color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isOwnerValid,
+                        supportingText = {
+                            if (!uiState.isOwnerValid)
+                                Text(
+                                    text = uiState.ownerError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isOwnerValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
                     )
 
-                    IconButton(
-                        onClick = { viewModel.setFABClicked(false) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "close icon"
-                        )
-                    }
-                }
+                    OutlinedTextField(
+                        value = if(uiState.paymentMethodToUpdate != null && !cardNumberChange) TextFieldValue(uiState.paymentMethodToUpdate.number) else cardNumber,
+                        singleLine = true,
+                        placeholder = { Text(text = "XXXX XXXX XXXX XXXX",color = Color.Gray) },
+                        label = { Text(text = "Numero carta",color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = { newValue ->
+                            val formattedValue = formatCreditCardNumber(newValue.text)
+                            val newSelection = calculateCardNumberSelection(newValue, formattedValue)
+                            cardNumber = newValue.copy(text = formattedValue, selection = newSelection)
+                            cardNumberChange = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isNumberValid,
+                        supportingText = {
+                            if (!uiState.isNumberValid)
+                                Text(
+                                    text = uiState.numberError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isNumberValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
+                    )
 
+                    OutlinedTextField(
+                        value = if(uiState.paymentMethodToUpdate != null && !expireDateChange) TextFieldValue(uiState.paymentMethodToUpdate.expireDate) else expireDate,
+                        singleLine = true,
+                        placeholder = { Text(text = "gg/aa",color = Color.Gray) },
+                        label = { Text(text = "Data di scadenza", color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = { newValue ->
+                            val formattedValue = formatExpiryDate(newValue.text)
+                            val newSelection = calculateExpiryDateSelection(newValue, formattedValue)
+                            expireDate = newValue.copy(text = formattedValue, selection = newSelection)
+                            expireDateChange = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isExpireDateValid,
+                        supportingText = {
+                            if (!uiState.isExpireDateValid)
+                                Text(
+                                    text = uiState.expireDateError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isExpireDateValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = if(uiState.paymentMethodToUpdate != null && !cvcChange) TextFieldValue(uiState.paymentMethodToUpdate.cvc.toString()) else cvc,
+                        singleLine = true,
+                        label = { Text(text = "CVC", color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = { newValue ->
+                            val formattedValue = formatCVC(newValue.text)
+                            cvc = TextFieldValue(formattedValue, newValue.selection)
+                            cvcChange = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isCvcValid,
+                        supportingText = {
+                            if (!uiState.isCvcValid)
+                                Text(
+                                    text = uiState.cvcError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isCvcValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
+                    )
+                }
             },
-            text = { PaymentInputDialogContent() },
             confirmButton = {
-                Button(
-                    onClick = { viewModel.setFABClicked(false) },
+                OutlinedButton(
+                    onClick = { viewModel.setFABClicked(false); viewModel.resetFABField() },
                     Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical =15.dp),
-                    shape = RoundedCornerShape(8.dp)
+                    contentPadding = PaddingValues(vertical = 10.dp),
+                    shape = RoundedCornerShape(25)
                 ) {
                     Text(
-                        text = "Aggiungi",
+                        text = "Indietro",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 17.sp
                         )
                     )
+                }
+            },
+            dismissButton = {
+                if(uiState.paymentMethodToUpdate == null)
+                    Button(
+                        onClick = { viewModel.addNewPaymentMethod(owner,cardNumber.text,cvc.text,expireDate.text) },
+                        Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 10.dp),
+                        shape = RoundedCornerShape(25)
+                    ) {
+                        Text(
+                            text = "Aggiungi",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp
+                            )
+                        )
+                    }
+                else{
+                    //creo un nuovo metodo di pagamento con i dati modificati
+                    val _owner = if(!ownerChange) uiState.paymentMethodToUpdate.owner else owner
+                    val _cvc = if(!cvcChange) uiState.paymentMethodToUpdate.cvc else cvc.text.toInt()
+                    val _cardNumber = if(!cardNumberChange) uiState.paymentMethodToUpdate.number else cardNumber.text
+                    val _expireDate = if(!expireDateChange) uiState.paymentMethodToUpdate.expireDate else expireDate.text
+
+                    val newPaymentMethod = PaymentMethod(
+                        owner = _owner,
+                        number = _cardNumber,
+                        cvc = _cvc,
+                        expireDate = _expireDate,
+                        selected = uiState.paymentMethodToUpdate.selected
+                    )
+
+                    Button(
+                        onClick = { viewModel.updatePaymentMethod(newPaymentMethod, true) },
+                        Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 10.dp),
+                        shape = RoundedCornerShape(25)
+                    ) {
+                        Text(
+                            text = "Modifica",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp
+                            )
+                        )
+                    }
                 }
             },
             containerColor = Color.White
@@ -296,91 +584,43 @@ fun PaymentDialog(fabState: Boolean,viewModel: UserPaymentMethodsViewModel){
 }
 
 
-@Composable
-fun PaymentInputDialogContent(){
-
-    var owner by rememberSaveable { mutableStateOf("") }
-    var cardNumber by  rememberSaveable { mutableStateOf("") }
-    var expireDate by  rememberSaveable { mutableStateOf("") }
-    var cvc by  rememberSaveable { mutableStateOf("") }
-
-    Column{
-        OutlinedTextField(
-            value = owner,
-            onValueChange = {
-                owner = it
-            },
-            label = { Text(text = "Intestatario",color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BlueLight,
-                unfocusedBorderColor = Color(0, 0, 0, 50)
-            ),
-            modifier = Modifier
-
-                .padding(0.dp, 10.dp, 0.dp, 10.dp),
-            textStyle = TextStyle(
-                color = Color.Black
-            )
-        )
-
-        OutlinedTextField(
-            value = cardNumber,
-            label = { Text(text = "Numero carta",color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = {
-                cardNumber = it
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BlueLight,
-                unfocusedBorderColor = Color(0, 0, 0, 50)
-            ),
-            modifier = Modifier
-
-                .padding(0.dp, 10.dp, 0.dp, 10.dp),
-            textStyle = TextStyle(
-                color = Color.Black
-            )
-        )
-
-        OutlinedTextField(
-            value = expireDate,
-            label = { Text(text = "Data di scadenza", color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = {
-                expireDate = it
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BlueLight,
-                unfocusedBorderColor = Color(0, 0, 0, 50)
-            ),
-            modifier = Modifier
-                .padding(0.dp, 10.dp, 0.dp, 10.dp),
-            textStyle = TextStyle(
-                color = Color.Black
-            )
-        )
-
-        OutlinedTextField(
-            value = cvc,
-            label = { Text(text = "CVC", color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = {
-                cvc = it
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BlueLight,
-                unfocusedBorderColor = Color(0, 0, 0, 50)
-            ),
-            modifier = Modifier
-                .padding(0.dp, 10.dp, 0.dp, 10.dp),
-            textStyle = TextStyle(
-                color = Color.Black
-            )
-        )
-    }
+//Vengono rimossi gli slash (/) dal testo e i caratteri non numerici, lo tronca a 4 caratteri se necessario e aggiunge uno slash dopo i primi due caratteri.
+fun formatExpiryDate(input: String): String {
+    val sanitizedInput = input.filter { it.isDigit() }.replace("/", "")
+    val trimmedInput = if (sanitizedInput.length > 4) sanitizedInput.substring(0, 4) else sanitizedInput
+    return trimmedInput.chunked(2).joinToString("/")
 }
+
+//Vengono rimossi gli spazi dal testo e i caratteri non numerici, lo tronca a 16 caratteri se necessario e aggiunge spazi ogni 4 cifre.
+fun formatCreditCardNumber(input: String): String {
+    val sanitizedInput = input.filter { it.isDigit() }.replace(" ", "")
+    val trimmedInput = if (sanitizedInput.length > 16) sanitizedInput.substring(0, 16) else sanitizedInput
+    return trimmedInput.chunked(4).joinToString(" ")
+}
+
+//Vengono rimossi i caratteri non numerici dal testo, lo tronca a 3 cifre se necessario.
+fun formatCVC(input: String): String{
+    val sanitizedInput = input.filter { it.isDigit() }
+    return if (sanitizedInput.length > 3) sanitizedInput.substring(0, 3) else sanitizedInput
+}
+
+
+//Calcola la nuova posizione del cursore basandosi sulla differenza tra la lunghezza del testo originale e quello formattato, tenendo conto dello slash aggiunto.
+fun calculateExpiryDateSelection(oldValue: TextFieldValue, newFormattedValue: String): TextRange {
+    val oldCursorPos = oldValue.selection.end
+    val sanitizedOldText = oldValue.text.replace("/", "")
+    val diff = oldCursorPos - sanitizedOldText.length
+    val newCursorPos = 1 + oldCursorPos + diff + if (newFormattedValue.contains("/") && !oldValue.text.contains("/")) 1 else 0
+    return TextRange(newCursorPos.coerceIn(0, newFormattedValue.length))
+}
+
+//Calcola la nuova posizione del cursore basandosi sulla differenza tra la lunghezza del testo originale e quello formattato, tenendo conto degli spazi aggiunti.
+fun calculateCardNumberSelection(oldValue: TextFieldValue, newFormattedValue: String): TextRange {
+    val oldCursorPos = oldValue.selection.end
+    val sanitizedOldText = oldValue.text.replace(" ", "")
+    val diff = oldCursorPos - sanitizedOldText.length
+    val newCursorPos = 1 + oldCursorPos + diff + (newFormattedValue.length - sanitizedOldText.length) / 4
+    return TextRange(newCursorPos.coerceIn(0, newFormattedValue.length))
+}
+
+

@@ -1,15 +1,16 @@
 package com.example.grocify.compose.screens.account
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,12 +32,15 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,12 +54,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.viewmodels.UserAddressesViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.data.UserAddressesUiState
+import com.example.grocify.model.Address
+import com.example.grocify.ui.theme.BlueLight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +73,11 @@ fun UserAddressScreen(
 ){
 
     val uiState = viewModel.uiState.collectAsState()
+
+    //ad ogni recomposition, ogni volta che l'inserimento e l'aggiornamento è andato a buon fine ricarico gli indirizzi
+    LaunchedEffect(key1 = Unit, key2 = uiState.value.isUDSuccessful, key3 = uiState.value.isInsertSuccessful) {
+        viewModel.getAllAddresses()
+    }
 
     Scaffold(
         topBar = {
@@ -106,34 +119,99 @@ fun UserAddressScreen(
                         .size(30.dp)
                 )
             }
-            AddressDialog(uiState.value.isFABClicked, viewModel)
+            AddressDialog(uiState.value, viewModel)
         },
         content = { innerPadding ->
             Column(
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
             ) {
-                Text(
-                    text = "Indirizzo corrente",
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                if(uiState.value.result == null && uiState.value.addresses.isNotEmpty()) {
+                    //se l'utente ha inserito almeno un indirizzo allora mostro i seguenti composable
+                    Text(
+                        text = "Indirizzo corrente",
+                        modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
                     )
-                )
 
-                AddressCard(true)
+                    //isolo l'eventuale indirizzo selezionato dal resto
+                    val addressListWithSelected = uiState.value.addresses.filter { it.selected }
 
-                Text(
-                    text = "Indizzi disponibili",
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                    if (addressListWithSelected.isEmpty())
+                        //se non ho trovato nessun indirizzo selezionato allora mostro un composable che dice che non ci sono indirizzi in uso
+                        Row(
+                            Modifier.fillMaxWidth().padding(top = 20.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Nessun indirizzo attualmente in uso",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
+                    else
+                        //altrimenti mostro l'indirizzo
+                        AddressCard(addressListWithSelected.first(), viewModel)
+
+
+                    Text(
+                        text = "Indizzi disponibili",
+                        modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
                     )
-                )
-                LazyColumn {
-                    items(4) {
-                        AddressCard(false)
+
+                    //mostro la lista di indirizzi dell'utente
+                    val addressListWithoutSelected: List<Address> = if(addressListWithSelected.isEmpty())
+                        uiState.value.addresses.filter { !it.selected }
+                    else
+                        uiState.value.addresses.minus(
+                            addressListWithSelected.first()
+                        )
+
+                    if(addressListWithoutSelected.isEmpty())
+                        Row(
+                            Modifier.fillMaxWidth().padding(top = 20.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Nessun altro indirizzo disponibile",
+                                style = TextStyle(
+                                    textAlign = TextAlign.Center,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
+                    else
+                        LazyColumn {
+                            items(addressListWithoutSelected.size) {
+                                AddressCard(addressListWithoutSelected[it],viewModel)
+                            }
+                        }
+                }else{
+                    Row(
+                        Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${uiState.value.result}",
+                            style = TextStyle(
+                                textAlign = TextAlign.Center,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
                     }
                 }
             }
@@ -141,9 +219,9 @@ fun UserAddressScreen(
     )
 }
 @Composable
-fun AddressCard(selected:Boolean){
+fun AddressCard(address: Address,viewModel: UserAddressesViewModel){
 
-    val spotColor = if (selected) BlueDark else Color.Black
+    val spotColor = if (address.selected) BlueDark else Color.Black
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Card(
@@ -173,7 +251,7 @@ fun AddressCard(selected:Boolean){
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Indirizzo di casa",
+                    address.name,
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -203,25 +281,35 @@ fun AddressCard(selected:Boolean){
                         ),
                         modifier = Modifier.background(Color.White)
                     ) {
-                        if(!selected){
+                        if(!address.selected){
                             DropdownMenuItem(
                                 text = { Text("Seleziona") },
-                                onClick = { /*TODO*/ }
+                                onClick = {
+                                    viewModel.setAddressSelected(address)
+                                    expanded = false
+                                }
                             )
                         }
                         DropdownMenuItem(
                             text = { Text("Modifica") },
-                            onClick = { /*TODO*/ }
+                            onClick = {
+                                viewModel.setFABClicked(true)
+                                viewModel.updateAddress(address,false)
+                                expanded = false
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("Elimina") },
-                            onClick = { /*TODO*/ }
+                            onClick = {
+                                viewModel.deleteAddress(address)
+                                expanded = false
+                            }
                         )
                     }
                 }
             }
             Text(
-                text = "Via di casa, 123",
+                text = "${address.address}, ${address.civic}",
                 modifier = Modifier.padding(start = 15.dp,bottom = 10.dp)
             )
         }
@@ -230,46 +318,153 @@ fun AddressCard(selected:Boolean){
 
 
 @Composable
-fun AddressDialog(fabState: Boolean,viewModel: UserAddressesViewModel){
+fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewModel){
 
-    if (fabState) {
+    var addressName by rememberSaveable { mutableStateOf("")}
+    var address by  rememberSaveable { mutableStateOf("") }
+    var civic by  rememberSaveable { mutableStateOf("") }
+
+    //variabili che permettono di effettuare la modifica dell'indirizzo a partire dai dati attuali
+    var addressNameChange by rememberSaveable { mutableStateOf(false) }
+    var addressChange by rememberSaveable { mutableStateOf(false) }
+    var civicChange by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = uiState.isInsertSuccessful) {
+        if(uiState.isInsertSuccessful){
+            viewModel.setFABClicked(false)
+            addressName = ""
+            addressNameChange = false
+            address = ""
+            addressChange = false
+            civic = ""
+            civicChange = false
+        }
+    }
+
+    if (uiState.isFABClicked) {
         AlertDialog(
             onDismissRequest = { viewModel.setFABClicked(false) },
             title = {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ){
-                    Text(
-                        text = "Nuovo indirizzo",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
+                Text(
+                    text = "Nuovo indirizzo",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            },
+            text = {
+                Column{
+                    OutlinedTextField(
+                    value = if(uiState.addressToUpdate != null && !addressNameChange) uiState.addressToUpdate.name else addressName,
+                        singleLine = true,
+                        onValueChange = {
+                            addressName = it
+                            addressNameChange = true
+                        },
+                        label = { Text(text = "Nome indirizzo",color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isAddressNameValid,
+                        supportingText = {
+                            if (!uiState.isAddressNameValid)
+                                Text(
+                                    text = uiState.addressNameError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isAddressNameValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
                     )
 
-                    IconButton(
-                        onClick = { viewModel.setFABClicked(false) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "close icon"
-                        )
-                    }
-                }
+                    OutlinedTextField(
+                        value = if(uiState.addressToUpdate != null && !addressChange) uiState.addressToUpdate.address else address,
+                        singleLine = true,
+                        label = { Text(text = "Indirizzo",color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        onValueChange = {
+                            address = it
+                            addressChange = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isAddressValid,
+                        supportingText = {
+                            if (!uiState.isAddressValid)
+                                Text(
+                                    text = uiState.addressError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isAddressValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
+                    )
 
+                    OutlinedTextField(
+                        value = if(uiState.addressToUpdate != null && !civicChange) uiState.addressToUpdate.civic.toString() else civic,
+                        singleLine = true,
+                        label = { Text(text = "Civico",color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = {
+                            civic = it
+                            civicChange = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isCivicValid,
+                        supportingText = {
+                            if (!uiState.isCivicValid)
+                                Text(
+                                    text = uiState.civicError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isCivicValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
+                    )
+                }
             },
-            text = { AddressInputDialogContent() },
             confirmButton = {
-                Button(
-                    onClick = { viewModel.setFABClicked(false) },
+                OutlinedButton(
+                    onClick = { viewModel.setFABClicked(false); viewModel.resetFABField() },
                     Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical =15.dp),
-                    shape = RoundedCornerShape(8.dp)
+                    contentPadding = PaddingValues(vertical = 10.dp),
+                    shape = RoundedCornerShape(25)
                 ) {
                     Text(
-                        text = "Aggiungi",
+                        text = "Indietro",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 17.sp
@@ -277,56 +472,52 @@ fun AddressDialog(fabState: Boolean,viewModel: UserAddressesViewModel){
                     )
                 }
             },
+            dismissButton = {
+                if(uiState.addressToUpdate == null)
+                    Button(
+                        onClick = { viewModel.addNewAddress(addressName,address,civic)  },
+                        Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 10.dp),
+                        shape = RoundedCornerShape(25)
+                    ) {
+                        Text(
+                            text = "Aggiungi",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp
+                            )
+                        )
+                    }
+                else {
+                    //creo un nuovo indirizzo con i dati modificati
+                    val _civic = if(!civicChange) uiState.addressToUpdate.civic else civic.toInt()
+                    val _address = if(!addressChange) uiState.addressToUpdate.address else address
+                    val _addressName = if(!addressNameChange) uiState.addressToUpdate.name else addressName
+
+                    val newAddress = Address(
+                        _addressName,
+                        _address,
+                        _civic,
+                        uiState.addressToUpdate.selected
+                    )
+
+                    Button(
+                        onClick = { viewModel.updateAddress(newAddress, true) },
+                        Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(vertical = 10.dp),
+                        shape = RoundedCornerShape(25)
+                    ) {
+                        Text(
+                            text = "Modifica",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 17.sp
+                            )
+                        )
+                    }
+                }
+            },
             containerColor = Color.White
-        )
-    }
-}
-
-@Composable
-fun AddressInputDialogContent(){
-
-    var addressName by rememberSaveable { mutableStateOf("") }
-    var address by  rememberSaveable { mutableStateOf("") }
-
-    Column{
-        OutlinedTextField(
-            value = addressName,
-            onValueChange = {
-                addressName = it
-            },
-            label = { Text(text = "Nome indirizzo",color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Black,
-                unfocusedBorderColor = Color(0, 0, 0, 50)
-            ),
-            modifier = Modifier
-                .width(325.dp)
-                .padding(0.dp, 10.dp, 0.dp, 10.dp),
-            textStyle = TextStyle(
-                color = Color.Black
-            )
-        )
-
-        OutlinedTextField(
-            value = address,
-            label = { Text(text = "Indirizzo",color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            onValueChange = {
-                address = it
-            },
-            shape = RoundedCornerShape(8.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Black,
-                unfocusedBorderColor = Color(0, 0, 0, 50)
-            ),
-            modifier = Modifier
-                .width(325.dp)
-                .padding(0.dp, 10.dp, 0.dp, 10.dp),
-            textStyle = TextStyle(
-                color = Color.Black
-            )
         )
     }
 }

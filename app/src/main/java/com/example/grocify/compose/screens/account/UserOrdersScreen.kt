@@ -1,6 +1,7 @@
 package com.example.grocify.compose.screens.account
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
@@ -34,9 +36,11 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -54,10 +58,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.viewmodels.UserOrdersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,6 +124,7 @@ fun UserOrdersScreen(
                 Text(
                     text = "Ordini passati",
                     modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
@@ -238,7 +245,7 @@ fun OrderCard(
                         )
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                         .clickable {
-                            if(!actualOrder)
+                            if (!actualOrder)
                                 viewModel?.setReviewIconClicked(true)
                         }
                 ){
@@ -262,45 +269,74 @@ fun OrderCard(
 
 @Composable
 fun OrderDialog(fabState: Boolean,viewModel: UserOrdersViewModel){
-    Log.d("orderdialog", fabState.toString())
+
+    var rating by rememberSaveable { mutableFloatStateOf(1f) } //default rating will be 1
+    var text by rememberSaveable { mutableStateOf("") }
+
     if (fabState) {
         AlertDialog(
             onDismissRequest = { viewModel.setReviewIconClicked(false) },
             title = {
-                Row(
+                Text(
+                    text = "Dicci cosa pensi",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center
+                    )
+                )
+            },
+            text = {
+                Column(
                     Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.Center
                 ){
-                    Text(
-                        text = "Dicci cosa pensi",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
+                    StarRatingBar(
+                        maxStars = 5,
+                        rating = rating,
+                        onRatingChanged = {
+                            rating = it
+                        }
                     )
 
-                    IconButton(
-                        onClick = { viewModel.setReviewIconClicked(false) },
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "close icon"
-                        )
-                    }
+                    TextField(
+                        value = text,
+                        onValueChange = {text = it},
+                        Modifier
+                            .height(150.dp)
+                            .padding(top = 20.dp),
+                        singleLine = false,
+                        label = {
+                            Text(text = "Inserisci un commento",)
+                        }
+                    )
                 }
-
             },
-            text = { OrderInputDialogContent() },
-            confirmButton = {
+            dismissButton = {
                 Button(
-                    onClick = { viewModel.setReviewIconClicked(false) },
+                    onClick = {   },
                     Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(vertical =15.dp),
-                    shape = RoundedCornerShape(8.dp)
+                    contentPadding = PaddingValues(vertical = 10.dp),
+                    shape = RoundedCornerShape(25)
                 ) {
                     Text(
                         text = "Invia",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                OutlinedButton(
+                    onClick = { viewModel.setReviewIconClicked(false) },
+                    Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(vertical = 10.dp),
+                    shape = RoundedCornerShape(25)
+                ) {
+                    Text(
+                        text = "Indietro",
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
                             fontSize = 17.sp
@@ -313,35 +349,6 @@ fun OrderDialog(fabState: Boolean,viewModel: UserOrdersViewModel){
     }
 }
 
-
-@Composable
-fun OrderInputDialogContent(){
-
-    var rating by rememberSaveable { mutableFloatStateOf(1f) } //default rating will be 1
-    var text by rememberSaveable { mutableStateOf("") }
-
-    Column(
-        Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.Center
-    ){
-        StarRatingBar(
-            maxStars = 5,
-            rating = rating,
-            onRatingChanged = {
-                rating = it
-            }
-        )
-
-        TextField(
-            value = text,
-            onValueChange = {text = it},
-            Modifier.padding(top = 20.dp),
-            singleLine = false,
-            placeholder = {Text(text = "Inserisci un commento...")}
-        )
-    }
-
-}
 
 @Composable
 fun StarRatingBar(

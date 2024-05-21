@@ -1,5 +1,7 @@
 package com.example.grocify.data
 
+import com.example.grocify.model.Address
+import com.example.grocify.model.PaymentMethod
 import com.example.grocify.model.User
 
 data class UserAccountUiState(
@@ -28,7 +30,18 @@ data class UserProfileUiState(
 
 
 data class UserAddressesUiState(
-    val isFABClicked: Boolean = false
+    val addresses: List<Address> = emptyList(),
+    val addressToUpdate: Address? = null,
+    val result: String? = null,
+    val isFABClicked: Boolean = false,
+    val isInsertSuccessful: Boolean = false,
+    val isUDSuccessful: Boolean = false,
+    val addressNameError: String = "",
+    val isAddressNameValid: Boolean = true,
+    val addressError: String = "",
+    val isAddressValid: Boolean = true,
+    val civicError: String = "",
+    val isCivicValid: Boolean = true
 )
 
 data class UserOrdersUiState(
@@ -36,5 +49,18 @@ data class UserOrdersUiState(
 )
 
 data class UserPaymentMethodsUiState(
-    val isFABClicked: Boolean = false
+    val paymentMethods: List<PaymentMethod> = emptyList(),
+    val paymentMethodToUpdate: PaymentMethod? = null,
+    val result: String? = null,
+    val isFABClicked: Boolean = false,
+    val isInsertSuccessful: Boolean = false,
+    val isUDSuccessful: Boolean = false,
+    val ownerError: String = "",
+    val isOwnerValid: Boolean = true,
+    val numberError: String = "",
+    val isNumberValid: Boolean = true,
+    val cvcError: String = "",
+    val isCvcValid: Boolean = true,
+    val expireDateError: String = "",
+    val isExpireDateValid: Boolean = true
 )
