@@ -1,6 +1,6 @@
 package com.example.grocify.compose.screens.account
 
-import android.util.Log
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -127,7 +127,7 @@ fun UserAddressScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start
             ) {
-                if(uiState.value.result == null && uiState.value.addresses.isNotEmpty()) {
+                if(uiState.value.result.isEmpty() && uiState.value.addresses.isNotEmpty()) {
                     //se l'utente ha inserito almeno un indirizzo allora mostro i seguenti composable
                     Text(
                         text = "Indirizzo corrente",
@@ -205,7 +205,7 @@ fun UserAddressScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${uiState.value.result}",
+                            text = uiState.value.result,
                             style = TextStyle(
                                 textAlign = TextAlign.Center,
                                 fontSize = 22.sp,

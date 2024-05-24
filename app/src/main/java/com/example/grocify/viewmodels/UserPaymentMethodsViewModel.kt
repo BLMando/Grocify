@@ -176,7 +176,7 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                             _uiState.update { currentState ->
                                 currentState.copy(
                                     paymentMethods = paymentMethods,
-                                    result = null
+                                    result = ""
                                 )
                             }
                         }else{

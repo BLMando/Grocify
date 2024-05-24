@@ -25,14 +25,14 @@ data class UserProfileUiState(
     val isNameValid: Boolean = true,
     val surnameError: String = "",
     val isSurnameValid: Boolean = true,
-    val error: String? = null
+    val error: String = ""
 )
 
 
 data class UserAddressesUiState(
     val addresses: List<Address> = emptyList(),
     val addressToUpdate: Address? = null,
-    val result: String? = null,
+    val result: String = "",
     val isFABClicked: Boolean = false,
     val isInsertSuccessful: Boolean = false,
     val isUDSuccessful: Boolean = false,
@@ -51,7 +51,7 @@ data class UserOrdersUiState(
 data class UserPaymentMethodsUiState(
     val paymentMethods: List<PaymentMethod> = emptyList(),
     val paymentMethodToUpdate: PaymentMethod? = null,
-    val result: String? = null,
+    val result: String = "",
     val isFABClicked: Boolean = false,
     val isInsertSuccessful: Boolean = false,
     val isUDSuccessful: Boolean = false,

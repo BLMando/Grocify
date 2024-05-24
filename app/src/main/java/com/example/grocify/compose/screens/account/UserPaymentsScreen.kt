@@ -128,7 +128,7 @@ fun UserPaymentsScreen(
             Column(
                 modifier = Modifier.padding(innerPadding)
             ) {
-                if (uiState.value.result == null && uiState.value.paymentMethods.isNotEmpty()) {
+                if (uiState.value.result.isEmpty() && uiState.value.paymentMethods.isNotEmpty()) {
                     //se l'utente ha inserito almeno un metodo di pagamento allora mostro i seguenti composable
 
                     Text(
@@ -207,7 +207,7 @@ fun UserPaymentsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${uiState.value.result}",
+                            text = uiState.value.result,
                             style = TextStyle(
                                 textAlign = TextAlign.Center,
                                 fontSize = 22.sp,

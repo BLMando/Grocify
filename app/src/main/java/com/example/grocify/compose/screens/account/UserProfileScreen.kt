@@ -94,11 +94,11 @@ fun UserProfileScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(key1 = uiState.value.error, key2 = uiState.value.isSuccessful){
-        if(uiState.value.error != null){
+        if(uiState.value.error.isNotEmpty()){
             scope.launch {
                 snackbarHostState
                     .showSnackbar(
-                        message = uiState.value.error!!,
+                        message = uiState.value.error,
                         withDismissAction = true,
                         duration = SnackbarDuration.Long
                     )
@@ -146,7 +146,7 @@ fun UserProfileScreen(
         },
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState){
-                if(uiState.value.error.isNullOrEmpty())
+                if(uiState.value.error.isEmpty())
                     Snackbar(
                         snackbarData = it,
                         containerColor = BlueLight,

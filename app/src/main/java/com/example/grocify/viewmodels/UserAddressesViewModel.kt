@@ -158,7 +158,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
                             _uiState.update { currentState ->
                                 currentState.copy(
                                     addresses = addresses,
-                                    result = null
+                                    result = ""
                                 )
                             }
                         }else{

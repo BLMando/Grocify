@@ -13,6 +13,7 @@ import com.example.grocify.compose.screens.home.HomeAdminScreen
 import com.example.grocify.compose.screens.home.HomeDriverScreen
 import com.example.grocify.compose.screens.home.HomeUserScreen
 import com.example.grocify.compose.screens.CategoryItemsScreen
+import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
@@ -76,7 +77,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                         navController.navigate(Screen.CategoryItems.createRoute(
                             categoryId = it
                         ))},
-                    onGiftClick = onGiftClick,
+                    onGiftClick = {navController.navigate(Screen.CheckoutScreen.route)},
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick
                 )
@@ -155,6 +156,17 @@ fun GrocifyNavHost(navController: NavHostController) {
             composable(route = Screen.UserOrders.route){
                 UserOrdersScreen(
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.CheckoutScreen.route){
+                CheckoutScreen(
+                    onBackClick = {navController.popBackStack() },
+                    onAddressClick = {navController.navigate(Screen.UserAddresses.route)},
+                    onPaymentMethodClick = {navController.navigate(Screen.UserPayment.route)},
+                    onCatalogClick = onCatalogClick,
+                    onGiftClick = onGiftClick,
+                    onVirtualCartClick = onVirtualCartClick
                 )
             }
         }

@@ -31,5 +31,6 @@ sealed class Screen(
     data object UserAddresses: Screen("user_addresses")
     data object UserOrders: Screen("user_orders")
     data object UserPayment: Screen("user_payment")
+    data object CheckoutScreen: Screen("checkout_screen")
 
 }
