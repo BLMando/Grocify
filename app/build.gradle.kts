@@ -142,7 +142,7 @@ dependencies {
 
 
     //TOMTOM MAPS API
-    val version = "0.50.6"
+    val version = "1.4.0"
     implementation("com.tomtom.sdk.location:provider-android:$version"){
         exclude(group = "com.google.protobuf", module = "proto-google-common-protos")
         exclude(group = "com.google.protobuf", module = "protolite-well-known-types")

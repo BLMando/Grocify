@@ -8,10 +8,7 @@
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tomtom:cameraTilt="45"
-        tomtom:cameraRotation="20"
-        tomtom:cameraPositionZoom="10" />
+        android:layout_height="match_parent" />
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/navigation_fragment_container"

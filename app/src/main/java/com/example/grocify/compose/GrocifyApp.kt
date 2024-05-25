@@ -15,6 +15,7 @@ import com.example.grocify.compose.screens.home.HomeUserScreen
 import com.example.grocify.compose.screens.CategoryItemsScreen
 import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
+import com.example.grocify.compose.screens.MapScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
 import com.example.grocify.compose.screens.SignUpScreen
@@ -59,7 +60,7 @@ fun GrocifyNavHost(navController: NavHostController) {
         //END DEFAULT SCREEN
 
 
-        //USER SCREEN
+        //USER SCREENS
         navigation(
             route = "user",
             startDestination = Screen.HomeUserScreen.route
@@ -170,7 +171,25 @@ fun GrocifyNavHost(navController: NavHostController) {
                 )
             }
         }
-        //END USER SCREEN
+        //END USER SCREENS
+
+        //DRIVER SCREENS
+        navigation(
+            route = "driver",
+            startDestination = Screen.HomeDriverScreen.route
+        ){
+            composable(route = Screen.HomeDriverScreen.route){
+                HomeDriverScreen()
+            }
+
+            composable(route = Screen.MapScreen.route){
+                MapScreen(
+                    context = activity,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+        }
+        //END DRIVER SCREENS
 
         navigation(
             route = "admin",
@@ -181,13 +200,6 @@ fun GrocifyNavHost(navController: NavHostController) {
             }
         }
 
-        navigation(
-            route = "driver",
-            startDestination = Screen.HomeDriverScreen.route
-        ){
-            composable(route = Screen.HomeDriverScreen.route){
-                HomeDriverScreen()
-            }
-        }
+
     }
 }

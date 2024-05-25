@@ -3,7 +3,9 @@ package com.example.grocify.viewmodels
 import android.Manifest
 import android.app.Application
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.util.Log
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.AndroidViewModel
@@ -14,11 +16,14 @@ import com.example.grocify.databinding.MapLayoutBinding
 import com.tomtom.sdk.common.measures.UnitSystem
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStore
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStoreConfiguration
+import com.tomtom.sdk.location.GeoLocation
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.location.LocationProvider
 import com.tomtom.sdk.location.OnLocationUpdateListener
 import com.tomtom.sdk.location.android.AndroidLocationProvider
 import com.tomtom.sdk.location.mapmatched.MapMatchedLocationProvider
+import com.tomtom.sdk.location.simulation.SimulationLocationProvider
+import com.tomtom.sdk.location.simulation.strategy.InterpolationStrategy
 import com.tomtom.sdk.map.display.TomTomMap
 import com.tomtom.sdk.map.display.camera.CameraChangeListener
 import com.tomtom.sdk.map.display.camera.CameraOptions
@@ -27,10 +32,10 @@ import com.tomtom.sdk.map.display.common.screen.Padding
 import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.route.Instruction
-import com.tomtom.sdk.map.display.route.RouteClickListener
 import com.tomtom.sdk.map.display.route.RouteOptions
 import com.tomtom.sdk.map.display.ui.MapFragment
 import com.tomtom.sdk.map.display.ui.currentlocation.CurrentLocationButton
+import com.tomtom.sdk.map.display.ui.logo.LogoView
 import com.tomtom.sdk.navigation.ActiveRouteChangedListener
 import com.tomtom.sdk.navigation.ProgressUpdatedListener
 import com.tomtom.sdk.navigation.RoutePlan
@@ -47,7 +52,6 @@ import com.tomtom.sdk.routing.RoutingFailure
 import com.tomtom.sdk.routing.online.OnlineRoutePlanner
 import com.tomtom.sdk.routing.options.Itinerary
 import com.tomtom.sdk.routing.options.RoutePlanningOptions
-import com.tomtom.sdk.routing.options.calculation.WaypointOptimization
 import com.tomtom.sdk.routing.options.guidance.ExtendedSections
 import com.tomtom.sdk.routing.options.guidance.GuidanceOptions
 import com.tomtom.sdk.routing.options.guidance.InstructionPhoneticsType
@@ -58,7 +62,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import java.util.Locale
 
 class MapViewModel(application: Application): AndroidViewModel(application){
 
@@ -87,10 +90,15 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     fun initMap(mapFragmentView: MapFragment){
         mapFragment = mapFragmentView
 
-        mapFragment.getMapAsync{ map ->
+        mapFragment.getMapAsync { map ->
             tomTomMap = map
             enableUserLocation()
-            setUpMapListeners()
+
+            tomTomMap.addMapLongClickListener(mapLongClickListener)
+
+            mapFragment.zoomControlsView.isVisible = true
+            mapFragment.scaleView.units = UnitSystem.Metric
+            mapFragment.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
         }
     }
 
@@ -153,15 +161,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
      * che richiedono le autorizzazioni appropriate.
      */
     private fun enableUserLocation() {
-        if (areLocationPermissionsGranted()) {
+        if (areLocationPermissionsGranted())
             showUserLocation()
-        } else {
-            _uiState.update {
-                it.copy(
-                    requestLocationPermissions = true
-                )
-            }
-        }
+         else
+            _uiState.update { it.copy(requestLocationPermissions = true) }
     }
 
     /**
@@ -171,9 +174,9 @@ class MapViewModel(application: Application): AndroidViewModel(application){
      */
     fun showUserLocation() {
         locationProvider.enable()
-        //zoom alla posizione corrente
         onLocationUpdateListener = OnLocationUpdateListener { location ->
-            tomTomMap.moveCamera(CameraOptions(location.position, zoom = 8.0))
+            setLocationDialogState(false)
+            tomTomMap.moveCamera(CameraOptions(location.position, zoom = 10.0))
             locationProvider.removeOnLocationUpdateListener(onLocationUpdateListener)
         }
         locationProvider.addOnLocationUpdateListener(onLocationUpdateListener)
@@ -183,11 +186,6 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
 
-    private fun setUpMapListeners() {
-        tomTomMap.addMapLongClickListener(mapLongClickListener)
-        //tomTomMap.addRouteClickListener(routeClickListener)
-    }
-
     private val mapLongClickListener = MapLongClickListener { geoPoint ->
         tomTomMap.clear()
         calculateRouteTo(geoPoint)
@@ -196,18 +194,6 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
     private fun isNavigationRunning(): Boolean = tomTomNavigation.navigationSnapshot != null
 
-    /**
-     * Utilizzato per avviare la navigazione basata su un percorso selezionato, se la navigazione non è già in esecuzione.
-     */
-    private val routeClickListener = RouteClickListener {
-        if (!isNavigationRunning()) {
-            route?.let { route ->
-                //viene nasconsto il pulsante della posizione
-                mapFragment.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
-                startNavigation(route)
-            }
-        }
-    }
 
     /**
      * Crea la rotta a partire dalla posizione correte fino alla destinazione selezionata
@@ -219,11 +205,9 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             itinerary = itinerary,
             guidanceOptions = GuidanceOptions(
                 phoneticsType = InstructionPhoneticsType.Ipa,
-                extendedSections = ExtendedSections.All,
-                language = Locale.ITALIAN
+                extendedSections = ExtendedSections.All
             ),
-            vehicle = Vehicle.Car(),
-            waypointOptimization = WaypointOptimization.DistanceBased
+            vehicle = Vehicle.Car()
         )
         routePlanner.planRoute(routePlanningOptions, routePlanningCallback)
     }
@@ -235,10 +219,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     private val routePlanningCallback = object : RoutePlanningCallback {
         override fun onSuccess(result: RoutePlanningResponse) {
             route = result.routes.first()
-            _uiState.update {
-                it.copy(route = route)
-            }
             drawRoute(route!!)
+            _uiState.update { it.copy(route = route) }
             tomTomMap.zoomToRoutes(ZOOM_TO_ROUTE_PADDING)
         }
 
@@ -268,10 +250,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     private fun Route.mapInstructions(): List<Instruction> {
         val routeInstructions = legs.flatMap { routeLeg -> routeLeg.instructions }
         return routeInstructions.map {
-            Instruction(
-                routeOffset = it.routeOffset,
-                combineWithNext = true
-            )
+            Instruction(routeOffset = it.routeOffset)
         }
     }
 
@@ -282,12 +261,21 @@ class MapViewModel(application: Application): AndroidViewModel(application){
      * - gestione degli aggiornamenti agli stati di navigazione utilizzando il NavigationListener.
      */
     fun startNavigation(route: Route) {
-        navigationFragment.setTomTomNavigation(tomTomNavigation)
-        val routePlan = RoutePlan(route, routePlanningOptions)
-        navigationFragment.startNavigation(routePlan)
-        navigationFragment.addNavigationListener(navigationListener)
-        tomTomNavigation.addProgressUpdatedListener(progressUpdatedListener)
-        tomTomNavigation.addActiveRouteChangedListener(activeRouteChangedListener)
+        if (!isNavigationRunning()) {
+            _uiState.update {
+                it.copy(
+                    mapHeight = Resources.getSystem().displayMetrics.widthPixels.dp,
+                    mapWidth = Resources.getSystem().displayMetrics.widthPixels.dp
+                )
+            }
+            mapFragment.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
+            navigationFragment.setTomTomNavigation(tomTomNavigation)
+            val routePlan = RoutePlan(route, routePlanningOptions)
+            navigationFragment.startNavigation(routePlan)
+            navigationFragment.addNavigationListener(navigationListener)
+            tomTomNavigation.addProgressUpdatedListener(progressUpdatedListener)
+            tomTomNavigation.addActiveRouteChangedListener(activeRouteChangedListener)
+        }
     }
 
 
@@ -295,26 +283,26 @@ class MapViewModel(application: Application): AndroidViewModel(application){
      * Inizializzazione del NavigationFragment per la navigazione
      */
       fun initNavigationFragment(binding: MapLayoutBinding, fragmentManager: FragmentManager?) {
-          if(!::navigationFragment.isInitialized)
-             navigationFragment = NavigationFragment.newInstance(
-                NavigationUiOptions(
-                    keepInBackground = true,
-                    voiceLanguage = Locale.ITALIAN,
-                    unitSystemType = UnitSystemType.Dynamic(UnitSystem.Metric),
-                    adaptVoiceLanguage = true
-                )
-            )
+          if(!::navigationFragment.isInitialized) {
+              navigationFragment = NavigationFragment.newInstance(
+                  NavigationUiOptions(
+                      keepInBackground = true,
+                      unitSystemType = UnitSystemType.Dynamic(UnitSystem.Metric)
+                  )
+              )
+          }
 
         fragmentManager?.beginTransaction()?.apply {
             replace(binding.navigationFragmentContainer.id, navigationFragment)
             commitNow()
         }
 
-        _uiState.update {
-            it.copy(
-                binding = binding
-            )
+        navigationFragment.navigationView.setArrivalViewButtonClickListener{
+            stopNavigation()
+            setDialogState(true)
         }
+
+        _uiState.update { it.copy(binding = binding) }
     }
 
     /**
@@ -327,12 +315,21 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             tomTomMap.cameraTrackingMode = CameraTrackingMode.FollowRouteDirection
             tomTomMap.enableLocationMarker(LocationMarkerOptions(LocationMarkerOptions.Type.Chevron))
             setMapMatchedLocationProvider()
+            setSimulationLocationProviderToNavigation(route!!)
             tomTomMap.setPadding(Padding(0, 0, 0, getApplication<Application>().resources.getDimensionPixelOffset(R.dimen.map_padding_bottom)))
         }
 
         override fun onStopped() {
             stopNavigation()
         }
+    }
+
+    private fun setSimulationLocationProviderToNavigation(route: Route) {
+        val routeGeoLocations = route.geometry.map { GeoLocation(it) }
+        val simulationStrategy = InterpolationStrategy(routeGeoLocations)
+        locationProvider = SimulationLocationProvider.create(strategy = simulationStrategy)
+        tomTomNavigation.locationProvider = locationProvider
+        locationProvider.enable()
     }
 
     private val progressUpdatedListener = ProgressUpdatedListener {
@@ -347,6 +344,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     fun stopNavigation() {
+        resetMapSize()
         navigationFragment.stopNavigation()
         mapFragment.currentLocationButton.visibilityPolicy =
             CurrentLocationButton.VisibilityPolicy.InvisibleWhenRecentered
@@ -389,15 +387,20 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         Manifest.permission.ACCESS_COARSE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
-    /*fun onDestroy() {
-        tomTomMap.setLocationProvider(null)
-        super.onDestroy()
-        tomTomNavigation.close()
-        navigationTileStore.close()
-        locationProvider.close()
-    }*/
+
+
+    fun setDialogState(openDialog: Boolean) {
+        _uiState.update { it.copy(openDialog = openDialog) }
+    }
+
+    fun setLocationDialogState(locationAcquired: Boolean) {
+        _uiState.update { it.copy(locationAcquired = locationAcquired) }
+    }
+
+    private fun resetMapSize() = run { _uiState.update { it.copy(mapHeight = 600.dp, mapWidth = 400.dp) } }
 
     companion object {
         private const val ZOOM_TO_ROUTE_PADDING = 100
     }
+
 }
