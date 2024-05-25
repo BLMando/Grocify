@@ -13,6 +13,7 @@ import com.example.grocify.compose.screens.home.HomeAdminScreen
 import com.example.grocify.compose.screens.home.HomeDriverScreen
 import com.example.grocify.compose.screens.home.HomeUserScreen
 import com.example.grocify.compose.screens.CategoryItemsScreen
+import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
@@ -107,7 +108,10 @@ fun GrocifyNavHost(navController: NavHostController) {
                     scanner = scanner,
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onPhysicalCartClick = onPhysicalCartClick
+                    onPhysicalCartClick = onPhysicalCartClick,
+                    onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
+                                        flagCart = "store"
+                                    ))},
                 )
             }
 
@@ -115,7 +119,10 @@ fun GrocifyNavHost(navController: NavHostController) {
                 CartScreen(
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onVirtualCartClick = onVirtualCartClick
+                    onVirtualCartClick = onVirtualCartClick,
+                    onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
+                                        flagCart = "online"
+                                    ))},
                 )
             }
 
@@ -124,6 +131,16 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onCatalogClick = onCatalogClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick,
+                )
+            }
+
+            composable(
+                route = Screen.CheckoutScreen.route,
+                arguments = Screen.CheckoutScreen.navArguments
+            ) { backStackEntry ->
+                val url = backStackEntry.arguments?.getString("flagCart")
+                CheckoutScreen(
+                    flagCart = url,
                 )
             }
         }

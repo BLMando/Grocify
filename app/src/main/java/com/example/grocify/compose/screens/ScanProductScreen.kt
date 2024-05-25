@@ -2,6 +2,7 @@ package com.example.grocify.compose.screens
 
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -31,12 +35,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.R
+import com.example.grocify.components.CartItems
 import com.example.grocify.components.CheckoutBox
-import com.example.grocify.components.ItemsQuantitySelector
-import com.example.grocify.components.ListItems
 import com.example.grocify.components.UserBottomNavigation
+import com.example.grocify.components.anyToDouble
 import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.viewmodels.ScanProductScreenViewModel
+import com.example.grocify.viewmodels.CartViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 
@@ -46,14 +50,19 @@ import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 @ExperimentalPermissionsApi
 @Composable
 fun ScanProductScreen(
-    viewModel: ScanProductScreenViewModel = viewModel(),
+    viewModel: CartViewModel = viewModel(),
     scanner: GmsBarcodeScanner,
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onPhysicalCartClick: () -> Unit
+    onPhysicalCartClick: () -> Unit,
+    onCheckoutClick: () -> Unit,
 ) {
 
     val scanUiState by viewModel.scanUiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.initializeProductsList("store")
+    }
 
    Scaffold(
         topBar = {
@@ -77,7 +86,7 @@ fun ScanProductScreen(
                     onClick = { scanner.startScan()
                         .addOnSuccessListener { barcode ->
                             val rawValue: String? = barcode.rawValue
-                            viewModel.aggiungiRiga(rawValue.toString())
+                            viewModel.addRow(rawValue.toString())
                         }},
                     containerColor = BlueDark,
                 ) {
@@ -103,13 +112,21 @@ fun ScanProductScreen(
             Column (
                 Modifier.padding(innerPadding)
             ) {
-                CheckoutBox(
-                    null,
-                    null,
-                    null,
-                    "6.50€",
-                    "Checkout"
-                )
+                //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
+                if (scanUiState.productsList!= null){
+                    val totalPrice = viewModel.getTotalPrice()
+                    if(anyToDouble(totalPrice)!! > 0){
+                        CheckoutBox(
+                            null,
+                            null,
+                            null,
+                            (String.format("%.2f", anyToDouble(totalPrice)) + "€").replace(',', '.'),
+                            "Checkout",
+                            onCheckoutClick = onCheckoutClick,
+                        )
+
+                    }
+                }
                 Column {
                     Text(
                         text = "La tua spesa",
@@ -125,18 +142,23 @@ fun ScanProductScreen(
                         modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
                     )
                     LazyColumn{
-                        var currentIndex = 0
-
-                        scanUiState.lista?.let {
-                            items(it.size){
-                                ListItems(image = scanUiState.lista!![currentIndex]?.image, name = scanUiState.lista!![currentIndex]?.name, quantity = scanUiState.lista!![currentIndex]?.quantity){
-                                    scanUiState.lista!![currentIndex]?.units?.let { it1 ->
-                                        ItemsQuantitySelector(
-                                            it1
-                                        )
-                                    }
+                        val productsList = viewModel.getProductsList()
+                        //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
+                        if(productsList != null){
+                            items(productsList.size) { index ->
+                                val product = productsList[index]
+                                product?.let {
+                                    CartItems(
+                                        id = it.id,
+                                        name = it.name,
+                                        price = it.price,
+                                        quantity = it.quantity,
+                                        image = it.image,
+                                        units = it.units,
+                                        viewModel = viewModel,
+                                        flagCart = "store"
+                                    )
                                 }
-                                currentIndex = (currentIndex + 1)
                             }
                         }
                     }
