@@ -1,6 +1,7 @@
 package com.example.grocify.compose.screens
 
 
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -21,6 +23,7 @@ import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -28,12 +31,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,10 +63,14 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.components.UserBottomNavigation
-import com.example.grocify.model.Product
+import com.example.grocify.data.Product
+import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.ui.theme.Purple80
 import com.example.grocify.viewmodels.CategoryItemsViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +88,7 @@ fun CategoryItemsScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getProducts(categoryId)
+        viewModel.getTotalPrice()
     }
 
     Scaffold(
@@ -121,12 +135,14 @@ fun CategoryItemsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ){
+                //se sono presenti prodotti nella categoria
                 if(uiState.value.isSuccessful)
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
                     ){
+                        //ciclo i prodotti della categoria e li mostro nell'app
                         items(uiState.value.products.size){
-                            CategoryItemCard(uiState.value.products[it],viewModel)
+                            CategoryItemCard(uiState.value.products[it], viewModel, "online")
                         }
                     }
                 else
@@ -145,7 +161,9 @@ fun CategoryItemsScreen(
 }
 
 @Composable
-fun CategoryItemCard(product: Product, viewModel: CategoryItemsViewModel) {
+fun CategoryItemCard(product: Product, viewModel: CategoryItemsViewModel, flagCart: String) {
+    val scope = rememberCoroutineScope()
+    var isAddingToCart by remember { mutableStateOf(false) }
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -223,14 +241,41 @@ fun CategoryItemCard(product: Product, viewModel: CategoryItemsViewModel) {
 
 
             Button(
-                onClick = { viewModel.addToCart(product) },
+                onClick = {
+
+                    if (!isAddingToCart ) {
+                        isAddingToCart   = true
+                        scope.launch {
+                            viewModel.addToCart(product, flagCart)
+                            delay(300)  // Debounce delay
+                            isAddingToCart  = false
+                        }
+                    }
+                         },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp)
-            ) {
-                Text(text = "Aggiungi")
-            }
+                    .padding(10.dp),
+                enabled = !isAddingToCart,
 
+
+                colors = ButtonDefaults.buttonColors(
+
+                    containerColor  = if (isAddingToCart) Color.Black else BlueDark,
+                    contentColor = Color.White,
+                    disabledContainerColor = BlueMedium,
+                )
+            ) {
+                if (isAddingToCart) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(20.dp)
+                    )
+                } else {
+                    Text(text = "Aggiungi")
+                }
+            }
         }
     }
 }
