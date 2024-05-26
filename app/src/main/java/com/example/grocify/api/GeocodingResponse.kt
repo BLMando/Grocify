@@ -73,5 +73,5 @@ data class TopLeftPoint(
 )
 
 data class MatchConfidence(
-    val score: Int
+    val score: Double
 )

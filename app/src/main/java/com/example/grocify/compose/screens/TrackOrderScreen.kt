@@ -1,10 +1,16 @@
 package com.example.grocify.compose.screens
 
 import android.graphics.Bitmap
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,17 +29,23 @@ import androidx.compose.material.icons.filled.AccessTimeFilled
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.twotone.SwipeUp
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,29 +53,27 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.material.ExperimentalWearMaterialApi
-import androidx.wear.compose.material.FractionalThreshold
-import androidx.wear.compose.material.rememberSwipeableState
-import androidx.wear.compose.material.swipeable
 import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.BlueMedium
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TrackOrderScreen(){
+fun TrackOrderScreen(
+    onBackClick: () -> Unit
+){
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -71,7 +82,8 @@ fun TrackOrderScreen(){
                     .padding(bottom = 20.dp)
                     .shadow(10.dp, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)),
                 title = {
-                    Text(text= "Stato dell'ordine #1234",
+                    Text(
+                        text= "Stato dell'ordine #1234",
                         style = TextStyle(
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
@@ -80,7 +92,7 @@ fun TrackOrderScreen(){
                     ) },
                 navigationIcon = {
                     IconButton(
-                        onClick = { /*TODO*/ }
+                        onClick = onBackClick
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -100,7 +112,7 @@ fun TrackOrderScreen(){
                 Column (
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top=50.dp),
+                        .padding(top = 50.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     TrackingState(Icons.Filled.LocalShipping,"Ordine in corso di elaborazione","Stiamo preparando il tuo ordine. 22 Aprile 2024, 15:30",true)
@@ -109,132 +121,154 @@ fun TrackOrderScreen(){
                     TrackingState(Icons.Filled.CheckCircle,"Consegnato","La tua spesa è stata consegnata. 22 Aprile 2024, 16:30",false)
                 }
 
+
+                SwipeUp()
                 QRCodeInfo()
             }
         }
     )
 }
 
-@OptIn(ExperimentalWearMaterialApi::class)
+@Composable
+fun SwipeUp() {
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QRCodeInfo() {
 
-    val swipeableState = rememberSwipeableState(0)
-    val context = LocalContext.current
-    val displayMetrics = context.resources.displayMetrics
-    val heightPx = displayMetrics.heightPixels.toFloat()
-    val anchors = mapOf(heightPx/2 to 0, 0f to 1) // Maps anchor points (in px) to statesto 0, sizePx to 1) // Maps anchor points (in px) to states
+    val sheetState = rememberModalBottomSheetState()
+    var showBottomSheet by remember { mutableStateOf(false) }
 
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 30.dp,
-            draggedElevation = 10.dp,
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = -15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
 
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .swipeable(
-                state = swipeableState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                orientation = Orientation.Vertical
-            )
-            .offset { IntOffset(0, swipeableState.offset.value.roundToInt()) }
-            .shadow(
-                10.dp,
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                ambientColor = Color.Black
-            )
-            .clip(RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
+    Column(
+        Modifier.fillMaxWidth()
+            .padding(bottom = 20.dp)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDrag = { _, _ -> /* Handle drag if needed */ },
+                    onDragEnd = {showBottomSheet = true},
+                )
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column (
-            Modifier
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+        Icon(
+            imageVector = Icons.TwoTone.SwipeUp,
+            contentDescription = "Swipe up",
+            modifier = Modifier
+                .size(40.dp)
+                .offset { IntOffset(0, offsetY.dp.roundToPx()) },
+            tint = BlueLight
+        )
+        Text(
+            text = "Mostra di più",
+            fontSize = 15.sp
+        )
+    }
+
+    if(showBottomSheet)
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            dragHandle = { BottomSheetDefaults.ExpandedShape },
+            containerColor = Color.White,
+
         ) {
-
-            Divider(
-                color = BlueDark,
-                thickness = 5.dp,
-                modifier = Modifier
-                    .width(100.dp)
-                    .padding(top = 30.dp, bottom = 30.dp)
-                    .clip(RoundedCornerShape(50))
-            )
-
-            Row(
+            Column (
                 Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ){
-                Text(
-                    text = "Nome:",
-                    style = TextStyle(fontSize = 18.sp)
-                )
-                Text(
-                    text = "Mattia Mandorlini",
-                    style = TextStyle(fontSize = 18.sp)
-                )
-            }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, top = 10.dp, end = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ){
-                Text(
-                    text = "Quantità:",
-                    style = TextStyle(fontSize = 18.sp)
-                )
-                Text(
-                    text = "6 prodotti",
-                    style = TextStyle(fontSize = 18.sp)
-                )
-            }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, top = 10.dp, end = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ){
-                Text(
-                    text = "Prezzo totale:",
-                    style = TextStyle(fontSize = 18.sp)
-                )
-                Text(
-                    text = "$145.00",
-                    style = TextStyle(fontSize = 18.sp)
-                )
-            }
-            Divider(
-                color = Color.Gray,
-                thickness = 1.dp,
-                modifier = Modifier.padding(start = 10.dp,end = 10.dp,top = 10.dp)
-            )
-            Column(
-                Modifier.fillMaxWidth(),
+                    .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Fai scansionare il QR CODE al driver dopo aver ricevuto la spesa",
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 10.dp)
+                Divider(
+                    color = BlueDark,
+                    thickness = 5.dp,
+                    modifier = Modifier
+                        .width(100.dp)
+                        .padding(top = 30.dp, bottom = 30.dp)
+                        .clip(RoundedCornerShape(50))
                 )
-                Image(
-                    bitmap = qrCodeGenerator().asImageBitmap(),
-                    contentDescription = "QR Code",
 
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ){
+                    Text(
+                        text = "Nome:",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
+                    Text(
+                        text = "Mattia Mandorlini",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, top = 10.dp, end = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ){
+                    Text(
+                        text = "Quantità:",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
+                    Text(
+                        text = "6 prodotti",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, top = 10.dp, end = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ){
+                    Text(
+                        text = "Prezzo totale:",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
+                    Text(
+                        text = "$145.00",
+                        style = TextStyle(fontSize = 18.sp)
+                    )
+                }
+                Divider(
+                    color = Color.Gray,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(start = 10.dp,end = 10.dp,top = 10.dp)
                 )
+                Column(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Fai scansionare il QR CODE al driver dopo aver ricevuto la spesa",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                    Image(
+                        bitmap = qrCodeGenerator().asImageBitmap(),
+                        contentDescription = "QR Code"
+                    )
+                }
             }
         }
-    }
 }
+
 fun qrCodeGenerator(): Bitmap {
     val mfw = MultiFormatWriter()
 

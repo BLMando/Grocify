@@ -61,6 +61,7 @@ import com.tomtom.sdk.routing.route.Route
 import com.tomtom.sdk.vehicle.Vehicle
 import com.tomtom.sdk.vehicle.VehicleProviderFactory
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -102,7 +103,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             tomTomMap = map
             enableUserLocation()
 
-            tomTomMap.addMapLongClickListener(mapLongClickListener)
+            //tomTomMap.addMapLongClickListener(mapLongClickListener)
 
             mapFragment.zoomControlsView.isVisible = true
             mapFragment.scaleView.units = UnitSystem.Metric
@@ -194,11 +195,11 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
 
-    private val mapLongClickListener = MapLongClickListener { geoPoint ->
+    /*private val mapLongClickListener = MapLongClickListener { geoPoint ->
         tomTomMap.clear()
         calculateRouteTo(geoPoint)
         true
-    }
+    }*/
 
     private fun isNavigationRunning(): Boolean = tomTomNavigation.navigationSnapshot != null
 
@@ -206,9 +207,11 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     /**
      * Crea la rotta a partire dalla posizione correte fino alla destinazione selezionata
      */
-    private fun calculateRouteTo(destination: GeoPoint) {
+    suspend fun calculateRouteTo() {
+        val destination = getUserLocation()
+        Log.d("MapViewModel", "destination: $destination")
         val userLocation = tomTomMap.currentLocation?.position ?: return
-        val itinerary = Itinerary(origin = userLocation, destination = destination)
+        val itinerary = Itinerary(origin = userLocation, destination = destination!!)
         routePlanningOptions = RoutePlanningOptions(
             itinerary = itinerary,
             guidanceOptions = GuidanceOptions(
@@ -407,26 +410,28 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         _uiState.update { it.copy(locationAcquired = false) }
     }
 
-    fun getUserLocation(){
-        viewModelScope.launch {
-            withContext(Dispatchers.IO){
-                val result =  try {
-                    RetrofitObject.apiService.getUserLocation("Strada provinciale bolzetta 25",apiKey)
-                }catch (e: IOException){
-                    Log.d("MapViewModel", "No internet connection")
-                    return@withContext
-                }catch (e: HttpException){
-                    Log.d("MapViewModel", "Unexpected response")
-                    return@withContext
-                }
-                if(result.isSuccessful && result.body() != null){
-                    Log.d("MapViewModel", result.body()!!.results.toString())
-                }else{
+    private suspend fun getUserLocation(): GeoPoint? = withContext(Dispatchers.Main) {
+        val deferred = viewModelScope.async(Dispatchers.IO) {
+            try {
+                val response = RetrofitObject.apiService.getUserLocation("Strada provinciale montottonese sud 18", apiKey)
+                if (response.isSuccessful && response.body() != null) {
+                    Log.d("MapViewModel", "Successful")
+                    val lat = response.body()!!.results[0].entryPoints[0].position.lat
+                    val lon = response.body()!!.results[0].entryPoints[0].position.lon
+                    GeoPoint(lat, lon)
+                } else {
                     Log.d("MapViewModel", "Not successful")
+                    null
                 }
-
+            } catch (e: IOException) {
+                Log.d("MapViewModel", "No internet connection")
+                null
+            } catch (e: HttpException) {
+                Log.d("MapViewModel", "Unexpected response")
+                null
             }
         }
+        deferred.await()
     }
 
     private fun resetMapSize() = run { _uiState.update { it.copy(mapHeight = 600.dp, mapWidth = 400.dp) } }

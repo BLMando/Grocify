@@ -58,6 +58,10 @@ import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.ui.MapFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,7 +96,7 @@ fun MapScreen(
     }
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.getUserLocation()
+
     }
 
     LaunchedEffect(key1 = uiState.value.requestLocationPermissions) {
@@ -227,6 +231,9 @@ fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?,context:
             viewModel.initLocationProvider()
             viewModel.initRouting()
             viewModel.initNavigation()
+            CoroutineScope(Dispatchers.Main).launch{
+                viewModel.calculateRouteTo()
+            }
         }
 
         binding

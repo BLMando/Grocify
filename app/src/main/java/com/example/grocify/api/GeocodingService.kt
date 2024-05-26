@@ -11,6 +11,7 @@ interface GeocodingService {
         @Path("address") address:String,
         @Query("key") apiKey: String,
         @Query("storeResult") storeResult: Boolean = false,
+        @Query("limit") limit: Int = 1,
         @Query("countrySet") countrySet: String = "it",
         @Query("language") language: String = "it-IT",
     ): Response<GeocodingResponse>
