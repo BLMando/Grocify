@@ -1,17 +1,11 @@
 package com.example.grocify.compose.screens
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -19,24 +13,32 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+
 import androidx.compose.ui.Alignment
+
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
 import com.example.grocify.R
+
+import com.example.grocify.components.CartItems
+
 import com.example.grocify.components.CheckoutBox
-import com.example.grocify.components.ItemsQuantitySelector
 import com.example.grocify.components.UserBottomNavigation
-import com.example.grocify.model.Product
+
+import com.example.grocify.components.anyToDouble
 import com.example.grocify.viewmodels.CartViewModel
 
 
@@ -46,10 +48,16 @@ fun CartScreen(
     viewModel: CartViewModel = viewModel(),
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onVirtualCartClick: () -> Unit
+    onVirtualCartClick: () -> Unit,
+    onCheckoutClick: () -> Unit,
 ) {
 
-    val uiState = viewModel.uiState.collectAsState()
+
+    val scanUiState by viewModel.scanUiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.initializeProductsList("online")
+    }
 
     Scaffold(
         topBar = {
@@ -98,76 +106,50 @@ fun CartScreen(
                         modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
                     )
 
-                    LazyColumn {
-                        items(uiState.value.products.size){
-                            CartItems(uiState.value.products[it])
+
+                    LazyColumn (
+                        modifier = Modifier.weight(1f)
+                    ){
+                        val productsList = viewModel.getProductsList()
+                        //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
+                        if(productsList != null){
+                            items(productsList.size) { index ->
+                                val product = productsList[index]
+                                product?.let {
+                                    CartItems(
+                                        id = it.id,
+                                        name = it.name,
+                                        price = it.price,
+                                        quantity = it.quantity,
+                                        image = it.image,
+                                        units = it.units,
+                                        viewModel = viewModel,
+                                        flagCart = "online"
+                                    )
+                                }
+                            }
                         }
                     }
+
+                    //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
+                    if (scanUiState.productsList!= null){
+                        val totalPrice = viewModel.getTotalPrice()
+                        val shipping = "1.50"
+                        if(anyToDouble(totalPrice)!! > 1.5){
+                            CheckoutBox(
+                                "Riepilogo ordine",
+                                (String.format("%.2f",(anyToDouble(totalPrice)!! - anyToDouble(shipping)!!)) + "€").replace(',', '.'),
+                                shipping + "€",
+                                totalPrice,
+                                "Checkout",
+                                onCheckoutClick = onCheckoutClick,
+                            )
+
+                        }
+                    }
+
                 }
-                CheckoutBox(
-                    "Riepilogo ordine",
-                    "$5.00",
-                    "$1.50",
-                    "$6.50",
-                    "Checkout"
-                )
             }
         }
     )
-}
-
-@Composable
-fun CartItems(product: Product) {
-    Card (
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
-        modifier = Modifier
-            .padding(10.dp)
-            .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
-            .clip(RoundedCornerShape(20.dp))
-    ) {
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
-        ){
-            Image(
-                painter = painterResource(id = R.drawable.food),
-                contentDescription = "item image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .padding(12.dp)
-                    .size(65.dp)
-                    .clip(RoundedCornerShape(20.dp))
-            )
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ){
-                Column (
-                    modifier = Modifier.padding(start=10.dp),
-                    horizontalAlignment = Alignment.Start
-                ){
-                    Text(
-                        text = product.name,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(bottom=10.dp)
-                    )
-                    Text(
-                        text = "${product.price}€",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-
-                    )
-                }
-                ItemsQuantitySelector(product.quantity.toInt())
-            }
-        }
-    }
 }

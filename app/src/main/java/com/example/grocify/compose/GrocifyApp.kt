@@ -104,7 +104,10 @@ fun GrocifyNavHost(navController: NavHostController) {
                     scanner = scanner,
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onPhysicalCartClick = onPhysicalCartClick
+                    onPhysicalCartClick = onPhysicalCartClick,
+                    onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
+                                        flagCart = "store"
+                                    ))},
                 )
             }
 
@@ -112,7 +115,10 @@ fun GrocifyNavHost(navController: NavHostController) {
                 CartScreen(
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onVirtualCartClick = onVirtualCartClick
+                    onVirtualCartClick = onVirtualCartClick,
+                    onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
+                                        flagCart = "online"
+                                    ))},
                 )
             }
 
@@ -123,7 +129,6 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onVirtualCartClick = onVirtualCartClick,
                 )
             }
-
 
             composable(route = Screen.UserAccount.route) {
                 UserAccountScreen(
@@ -160,8 +165,14 @@ fun GrocifyNavHost(navController: NavHostController) {
                 )
             }
 
-            composable(route = Screen.CheckoutScreen.route){
+            composable(
+                      route = Screen.CheckoutScreen.route,
+                      arguments = Screen.CheckoutScreen.navArguments
+            ) 
+          { backStackEntry ->
+                val url = backStackEntry.arguments?.getString("flagCart")
                 CheckoutScreen(
+                    flagCart = url,
                     onBackClick = {navController.popBackStack() },
                     onAddressClick = {navController.navigate(Screen.UserAddresses.route)},
                     onPaymentMethodClick = {navController.navigate(Screen.UserPayment.route)},

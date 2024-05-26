@@ -1,6 +1,8 @@
 package com.example.grocify.compose.screens
 
+
 import androidx.compose.foundation.clickable
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,17 +36,21 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.UserBottomNavigation
 import com.example.grocify.ui.theme.BlueLight
+
 import com.example.grocify.viewmodels.CheckoutViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.data.CheckoutUiState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
     viewModel: CheckoutViewModel = viewModel(),
+    flagCart: String?,
     onBackClick: () -> Unit,
     onAddressClick: () -> Unit,
     onPaymentMethodClick: () -> Unit,
@@ -58,6 +64,7 @@ fun CheckoutScreen(
     LaunchedEffect(key1 = Unit) {
         viewModel.getCurrentInfo()
     }
+
 
 
     Scaffold(
@@ -115,7 +122,8 @@ fun CheckoutScreen(
                     "$5.00",
                     "$1.50",
                     "$6.50",
-                    "Conferma"
+                    "Conferma",
+                    onCheckoutClick = { } ,
                 )
             }
 

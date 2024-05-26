@@ -44,6 +44,16 @@ sealed class Screen(
     data object HomeAdminScreen: Screen("home_admin")
     //END ADMIN ROUTES
 
+    data object CheckoutScreen: Screen(
+        route = "checkout_screen/{flagCart}",
+        navArguments = listOf(
+            navArgument("flagCart") {
+                type = NavType.StringType
+            }
+        )
+    ){
+        fun createRoute(flagCart: String) = "checkout_screen/${flagCart}"
+    }
 
 
 }
