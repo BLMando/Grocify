@@ -62,6 +62,9 @@ import com.example.grocify.ui.theme.LightGray
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import com.example.grocify.util.anyToDouble
+import com.example.grocify.util.anyToInt
+import com.example.grocify.util.checkName
 import com.example.grocify.viewmodels.CartViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -122,40 +125,8 @@ fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composabl
     }
 }
 
-fun getResourceId(name: String): Int {
-    return try {
-        R.drawable::class.java.getField(name).getInt(null)
-    } catch (e: Exception) {
-        Log.e("DrawableCatch","Errore nell'ottenere l'ID del drawable")
-    }
-}
 
-fun anyToInt(value: Any?): Int? {
-    return when (value) {
-        is Int -> value
-        is String -> value.toIntOrNull()
-        is Number -> value.toInt()
-        else -> null
-    }
-}
 
-fun anyToDouble(value: Any?): Double? {
-    return when (value) {
-        is Double -> value
-        is String -> value.toDoubleOrNull()
-        is Number -> value.toDouble()
-        else -> null
-    }
-}
-
-fun checkName(name: String?): String{
-    if(name.toString().count() > 14){
-        return name!!.substring(0, 14) + "..."
-    }
-    else{
-        return name.toString()
-    }
-}
 
 @Composable
 fun ItemsQuantitySelector(units: Any?, id: String?, price: Any?, viewModel: CartViewModel, flagCart: String){

@@ -63,11 +63,9 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.components.UserBottomNavigation
-import com.example.grocify.data.Product
+import com.example.grocify.model.Product
 import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.ui.theme.BlueMedium
-import com.example.grocify.ui.theme.Purple80
 import com.example.grocify.viewmodels.CategoryItemsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

@@ -4,10 +4,10 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.components.anyToDouble
 import com.example.grocify.data.CategoryItemsUiState
 import com.example.grocify.model.Cart
-import com.example.grocify.data.Product
+import com.example.grocify.model.Product
+import com.example.grocify.util.anyToDouble
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue

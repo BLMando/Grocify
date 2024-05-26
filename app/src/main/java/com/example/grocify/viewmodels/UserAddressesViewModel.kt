@@ -7,6 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.UserAddressesUiState
 import com.example.grocify.model.Address
 import com.example.grocify.model.UserDetails
+import com.example.grocify.util.dataClassToMap
+import com.example.grocify.util.isNotEmpty
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
@@ -363,8 +365,6 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
-    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
-
     private fun resetFlag() = run { _uiState.update { it.copy(
         isUDSuccessful = false,
         isInsertSuccessful = false
@@ -375,13 +375,5 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
     ) } }
 
 
-    private fun dataClassToMap(data: Address): HashMap<String, Any?> {
-        val map = hashMapOf<String, Any?>()
-        data::class.members
-            .filterIsInstance<kotlin.reflect.KProperty<*>>()
-            .forEach { property ->
-                map[property.name] = property.getter.call(data)
-            }
-        return map
-    }
+
 }

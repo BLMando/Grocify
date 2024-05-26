@@ -38,7 +38,8 @@ import com.example.grocify.components.CartItems
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.UserBottomNavigation
 
-import com.example.grocify.components.anyToDouble
+import com.example.grocify.model.Product
+import com.example.grocify.util.anyToDouble
 import com.example.grocify.viewmodels.CartViewModel
 
 
@@ -49,11 +50,10 @@ fun CartScreen(
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
     onVirtualCartClick: () -> Unit,
-    onCheckoutClick: () -> Unit,
+    onCheckoutClick: (totalPrice: String) -> Unit,
 ) {
 
-
-    val scanUiState by viewModel.scanUiState.collectAsState()
+    val scanUiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeProductsList("online")
@@ -111,11 +111,10 @@ fun CartScreen(
                         modifier = Modifier.weight(1f)
                     ){
                         val productsList = viewModel.getProductsList()
-                        //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
-                        if(productsList != null){
+                        if(productsList != emptyList<Product>()){
                             items(productsList.size) { index ->
                                 val product = productsList[index]
-                                product?.let {
+                                product.let {
                                     CartItems(
                                         id = it.id,
                                         name = it.name,
@@ -130,9 +129,7 @@ fun CartScreen(
                             }
                         }
                     }
-
-                    //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
-                    if (scanUiState.productsList!= null){
+                    if (scanUiState.productsList!= emptyList<Product>()){
                         val totalPrice = viewModel.getTotalPrice()
                         val shipping = "1.50"
                         if(anyToDouble(totalPrice)!! > 1.5){
@@ -142,7 +139,7 @@ fun CartScreen(
                                 shipping + "€",
                                 totalPrice,
                                 "Checkout",
-                                onCheckoutClick = onCheckoutClick,
+                                onCheckoutClick = {onCheckoutClick(totalPrice)},
                             )
 
                         }

@@ -11,6 +11,8 @@ import com.example.grocify.data.GoogleSignInResult
 import com.example.grocify.data.GoogleSignInState
 import com.example.grocify.data.SignInUiState
 import com.example.grocify.model.User
+import com.example.grocify.util.verifyEmail
+import com.example.grocify.util.verifyPassword
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.GoogleAuthProvider
@@ -204,17 +206,6 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
             .setAutoSelectEnabled(true)
             .build()
     }
-
-    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
-
-    private fun verifyEmail(email: String): Boolean = isNotEmpty(email) && isEmailValid(email)
-
-    private fun isEmailValid(email: String): Boolean {
-        val emailRegex = Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
-        return emailRegex.matches(email)
-    }
-
-    private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
 
     fun resetGoogleState() =  _googleSignInState.update { GoogleSignInState() }
     private fun resetState() = _signInState.update { SignInUiState() }

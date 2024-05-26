@@ -69,6 +69,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.Locale
 
 class MapViewModel(application: Application): AndroidViewModel(application){
 
@@ -212,7 +213,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             itinerary = itinerary,
             guidanceOptions = GuidanceOptions(
                 phoneticsType = InstructionPhoneticsType.Ipa,
-                extendedSections = ExtendedSections.All
+                extendedSections = ExtendedSections.All,
+                language = Locale.ITALIAN
             ),
             vehicle = Vehicle.Car()
         )
@@ -294,7 +296,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
               navigationFragment = NavigationFragment.newInstance(
                   NavigationUiOptions(
                       keepInBackground = true,
-                      unitSystemType = UnitSystemType.Dynamic(UnitSystem.Metric)
+                      unitSystemType = UnitSystemType.Dynamic(UnitSystem.Metric),
+                      voiceLanguage = Locale.ITALIAN
                   )
               )
           }

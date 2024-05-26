@@ -8,6 +8,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
 import com.example.grocify.data.SignUpUiState
 import com.example.grocify.model.User
+import com.example.grocify.util.isNotEmpty
+import com.example.grocify.util.verifyConfirmPassword
+import com.example.grocify.util.verifyEmail
+import com.example.grocify.util.verifyPassword
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -156,19 +160,6 @@ class SignUpViewModel(application: Application): AndroidViewModel(application){
             }
         }
     }
-
-    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
-
-    private fun verifyEmail(email: String): Boolean = isNotEmpty(email) && isEmailValid(email)
-
-    private fun isEmailValid(email: String): Boolean {
-        val emailRegex = Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
-        return emailRegex.matches(email)
-    }
-
-    private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
-
-    private fun verifyConfirmPassword(password: String, confirmPassword: String): Boolean = password == confirmPassword && isNotEmpty(confirmPassword)
 
     private fun resetState() = _signUpState.update { SignUpUiState() }
 }

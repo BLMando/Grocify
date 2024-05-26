@@ -6,6 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.UserPaymentMethodsUiState
 import com.example.grocify.model.PaymentMethod
 import com.example.grocify.model.UserDetails
+import com.example.grocify.util.dataClassToMap
+import com.example.grocify.util.isNotEmpty
+import com.example.grocify.util.isValidCreditCardNumber
+import com.example.grocify.util.isValidExpireDate
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
@@ -390,48 +394,6 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
         }
     }
 
-
-
-
-    private fun isValidExpireDate(expireDate: String): Boolean {
-
-        if(!isNotEmpty(expireDate))
-            return false
-
-        val dateParts = expireDate.split("/")
-
-        //se la data non è nel formato corretto dd/yy ritorno false
-        if(dateParts.size  != 2)
-            return false
-
-        val month = dateParts[0].toInt()
-        val year = dateParts[1].toInt()
-
-        //il mese e l'anno devono essere compresi tra concettualmete corretti
-        return month in 1..12 && year in 23..70
-    }
-
-    //Algoritmo di Luhn per la verifica della carta di credito
-    private fun isValidCreditCardNumber(number: String): Boolean {
-        val sanitizedNumber = number.replace(" ", "")
-        if (sanitizedNumber.length != 16 || !sanitizedNumber.all { it.isDigit() }) {
-            return false
-        }
-
-        val reversedDigits = sanitizedNumber.reversed().map { it.toString().toInt() }
-        val luhnSum = reversedDigits.mapIndexed { index, digit ->
-            if (index % 2 == 1) {
-                val doubled = digit * 2
-                if (doubled > 9) doubled - 9 else doubled
-            } else {
-                digit
-            }
-        }.sum()
-
-        return luhnSum % 10 == 0
-    }
-
-
     fun setFABClicked(value: Boolean) = run {
         _uiState.update { currentState ->
             currentState.copy(
@@ -448,17 +410,5 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
     fun resetFABField() = run { _uiState.update { it.copy(
         paymentMethodToUpdate =  null
     ) } }
-
-    private fun dataClassToMap(data: PaymentMethod): HashMap<String, Any?> {
-        val map = hashMapOf<String, Any?>()
-        data::class.members
-            .filterIsInstance<kotlin.reflect.KProperty<*>>()
-            .forEach { property ->
-                map[property.name] = property.getter.call(data)
-            }
-        return map
-    }
-
-    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
 
 }

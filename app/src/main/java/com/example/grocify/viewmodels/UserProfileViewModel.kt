@@ -6,6 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.UserProfileUiState
 import com.example.grocify.model.User
+import com.example.grocify.util.isNotEmpty
+import com.example.grocify.util.verifyPassword
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -180,7 +182,5 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
-    private fun isNotEmpty(value:String) : Boolean = value.isNotEmpty() && value.isNotBlank()
-    private fun verifyPassword(password: String): Boolean = isNotEmpty(password) && password.length >= 6
     private fun resetState() = _uiState.update { UserProfileUiState() }
 }

@@ -44,25 +44,30 @@ import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.viewmodels.CheckoutViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.data.CheckoutUiState
+import com.example.grocify.util.anyToDouble
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
     viewModel: CheckoutViewModel = viewModel(),
-    flagCart: String?,
+    flagCart: String,
+    totalPrice: String,
     onBackClick: () -> Unit,
     onAddressClick: () -> Unit,
     onPaymentMethodClick: () -> Unit,
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onVirtualCartClick: () -> Unit
+    onVirtualCartClick: () -> Unit,
+    onConfirmClick: (flagCart: String) -> Unit,
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getCurrentInfo()
+        Log.v("checkout", flagCart)
+        Log.v("checkout", totalPrice)
     }
 
 
@@ -117,13 +122,15 @@ fun CheckoutScreen(
                     PaymentOptionsCard(onPaymentMethodClick,uiState.value)
                     DeliveryOptionCard(onAddressClick,uiState.value)
                 }
+
+                val shipping = "1.50"
                 CheckoutBox(
                     "Riepilogo ordine",
-                    "$5.00",
-                    "$1.50",
-                    "$6.50",
+                    if(flagCart == "online") (String.format("%.2f",(anyToDouble(totalPrice)!! - anyToDouble(shipping)!!))).replace(',', '.') + "€" else null,
+                    if(flagCart == "online") shipping + "€" else null,
+                    (String.format("%.2f", anyToDouble(totalPrice))).replace(',', '.') + "€",
                     "Conferma",
-                    onCheckoutClick = { } ,
+                    {onConfirmClick(flagCart)},
                 )
             }
 

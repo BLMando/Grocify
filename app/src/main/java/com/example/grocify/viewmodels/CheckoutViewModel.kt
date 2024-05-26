@@ -6,6 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import com.example.grocify.data.CheckoutUiState
 import com.example.grocify.model.Address
 import com.example.grocify.model.PaymentMethod
+import com.example.grocify.util.maskCardNumber
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -99,16 +100,6 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                     }
                 }
             }
-    }
-
-    private fun maskCardNumber(number:String):String{
-        val blocks = number.split(" ")
-
-        val maskedBlocks = blocks.mapIndexed { index, block ->
-            if (index < 3) "****" else block
-        }
-
-        return maskedBlocks.joinToString(" ")
     }
 }
 

@@ -3,11 +3,11 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.components.anyToInt
-import com.example.grocify.components.anyToDouble
 import com.example.grocify.data.CartUiState
-import com.example.grocify.data.Product
+import com.example.grocify.model.Product
 import com.example.grocify.model.Cart
+import com.example.grocify.util.anyToInt
+import com.example.grocify.util.anyToDouble
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
@@ -23,7 +23,7 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CartUiState())
 
-    val scanUiState: StateFlow<CartUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
 
     private val db = Firebase.firestore

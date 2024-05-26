@@ -66,6 +66,11 @@ import com.example.grocify.data.UserPaymentMethodsUiState
 import com.example.grocify.model.PaymentMethod
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.util.calculateCardNumberSelection
+import com.example.grocify.util.calculateExpiryDateSelection
+import com.example.grocify.util.formatCVC
+import com.example.grocify.util.formatCreditCardNumber
+import com.example.grocify.util.formatExpiryDate
 import com.example.grocify.viewmodels.UserPaymentMethodsViewModel
 
 
@@ -584,43 +589,6 @@ fun PaymentDialog(uiState: UserPaymentMethodsUiState,viewModel: UserPaymentMetho
 }
 
 
-//Vengono rimossi gli slash (/) dal testo e i caratteri non numerici, lo tronca a 4 caratteri se necessario e aggiunge uno slash dopo i primi due caratteri.
-fun formatExpiryDate(input: String): String {
-    val sanitizedInput = input.filter { it.isDigit() }.replace("/", "")
-    val trimmedInput = if (sanitizedInput.length > 4) sanitizedInput.substring(0, 4) else sanitizedInput
-    return trimmedInput.chunked(2).joinToString("/")
-}
 
-//Vengono rimossi gli spazi dal testo e i caratteri non numerici, lo tronca a 16 caratteri se necessario e aggiunge spazi ogni 4 cifre.
-fun formatCreditCardNumber(input: String): String {
-    val sanitizedInput = input.filter { it.isDigit() }.replace(" ", "")
-    val trimmedInput = if (sanitizedInput.length > 16) sanitizedInput.substring(0, 16) else sanitizedInput
-    return trimmedInput.chunked(4).joinToString(" ")
-}
-
-//Vengono rimossi i caratteri non numerici dal testo, lo tronca a 3 cifre se necessario.
-fun formatCVC(input: String): String{
-    val sanitizedInput = input.filter { it.isDigit() }
-    return if (sanitizedInput.length > 3) sanitizedInput.substring(0, 3) else sanitizedInput
-}
-
-
-//Calcola la nuova posizione del cursore basandosi sulla differenza tra la lunghezza del testo originale e quello formattato, tenendo conto dello slash aggiunto.
-fun calculateExpiryDateSelection(oldValue: TextFieldValue, newFormattedValue: String): TextRange {
-    val oldCursorPos = oldValue.selection.end
-    val sanitizedOldText = oldValue.text.replace("/", "")
-    val diff = oldCursorPos - sanitizedOldText.length
-    val newCursorPos = 1 + oldCursorPos + diff + if (newFormattedValue.contains("/") && !oldValue.text.contains("/")) 1 else 0
-    return TextRange(newCursorPos.coerceIn(0, newFormattedValue.length))
-}
-
-//Calcola la nuova posizione del cursore basandosi sulla differenza tra la lunghezza del testo originale e quello formattato, tenendo conto degli spazi aggiunti.
-fun calculateCardNumberSelection(oldValue: TextFieldValue, newFormattedValue: String): TextRange {
-    val oldCursorPos = oldValue.selection.end
-    val sanitizedOldText = oldValue.text.replace(" ", "")
-    val diff = oldCursorPos - sanitizedOldText.length
-    val newCursorPos = 1 + oldCursorPos + diff + (newFormattedValue.length - sanitizedOldText.length) / 4
-    return TextRange(newCursorPos.coerceIn(0, newFormattedValue.length))
-}
 
 

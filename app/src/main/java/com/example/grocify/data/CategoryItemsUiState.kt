@@ -1,6 +1,6 @@
 package com.example.grocify.data
 
-import com.example.grocify.data.Product
+import com.example.grocify.model.Product
 
 data class CategoryItemsUiState(
     val categoryName: String = "",

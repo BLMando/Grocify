@@ -16,9 +16,11 @@ import com.example.grocify.compose.screens.CategoryItemsScreen
 import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.MapScreen
+import com.example.grocify.compose.screens.OrderSuccessScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
 import com.example.grocify.compose.screens.SignUpScreen
+import com.example.grocify.compose.screens.TrackOrderScreen
 import com.example.grocify.compose.screens.account.UserAccountScreen
 import com.example.grocify.compose.screens.account.UserAddressScreen
 import com.example.grocify.compose.screens.account.UserOrdersScreen
@@ -38,7 +40,6 @@ fun GrocifyApp(){
 fun GrocifyNavHost(navController: NavHostController) {
 
     val activity = (LocalContext.current as Activity)
-    val scanner = GmsBarcodeScanning.getClient(activity)
 
     NavHost(navController = navController, startDestination = Screen.SignInScreen.route) {
 
@@ -101,12 +102,13 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.ScanScreen.route){
                 ScanProductScreen(
-                    scanner = scanner,
+                    activity = activity,
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
-                                        flagCart = "store"
+                                        flagCart = "store",
+                                        totalPrice = it,
                                     ))},
                 )
             }
@@ -117,7 +119,8 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onGiftClick = onGiftClick,
                     onVirtualCartClick = onVirtualCartClick,
                     onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
-                                        flagCart = "online"
+                                        flagCart = "online",
+                                        totalPrice = it,
                                     ))},
                 )
             }
@@ -170,16 +173,37 @@ fun GrocifyNavHost(navController: NavHostController) {
                       arguments = Screen.CheckoutScreen.navArguments
             ) 
           { backStackEntry ->
-                val url = backStackEntry.arguments?.getString("flagCart")
+                val flagCart = backStackEntry.arguments?.getString("flagCart")
+                val totalPrice = backStackEntry.arguments?.getString("totalPrice")
                 CheckoutScreen(
-                    flagCart = url,
+                    flagCart = flagCart!!,
+                    totalPrice = totalPrice!!,
                     onBackClick = {navController.popBackStack() },
                     onAddressClick = {navController.navigate(Screen.UserAddresses.route)},
                     onPaymentMethodClick = {navController.navigate(Screen.UserPayment.route)},
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onVirtualCartClick = onVirtualCartClick
+                    onVirtualCartClick = onVirtualCartClick,
+                    onConfirmClick = { navController.navigate(Screen.OrderSuccessScreen.createRoute(
+                                        flagCart = it,
+                                    ))},
                 )
+            }
+            composable(
+                route = Screen.OrderSuccessScreen.route,
+                arguments = Screen.OrderSuccessScreen.navArguments
+            )
+            { backStackEntry ->
+                val flagCart = backStackEntry.arguments?.getString("flagCart")
+                OrderSuccessScreen(
+                    flagCart = flagCart!!,
+                    onHomeClick = onCatalogClick,
+                    onTrackOrder = { navController.navigate(Screen.TrackOrderScreen.route) }
+                )
+            }
+
+            composable(route = Screen.TrackOrderScreen.route){
+                TrackOrderScreen()
             }
         }
         //END USER SCREENS
