@@ -27,7 +27,6 @@ import com.example.grocify.compose.screens.account.UserOrdersScreen
 import com.example.grocify.compose.screens.account.UserPaymentsScreen
 import com.example.grocify.compose.screens.account.UserProfileScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @Composable
 fun GrocifyApp(){
@@ -107,9 +106,9 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onGiftClick = onGiftClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
-                                        flagCart = "store",
-                                        totalPrice = it,
-                                    ))},
+                        flagCart = "store",
+                        totalPrice = it,
+                    ))},
                 )
             }
 
@@ -119,9 +118,9 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onGiftClick = onGiftClick,
                     onVirtualCartClick = onVirtualCartClick,
                     onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
-                                        flagCart = "online",
-                                        totalPrice = it,
-                                    ))},
+                        flagCart = "online",
+                        totalPrice = it,
+                    ))},
                 )
             }
 
@@ -169,10 +168,9 @@ fun GrocifyNavHost(navController: NavHostController) {
             }
 
             composable(
-                      route = Screen.CheckoutScreen.route,
-                      arguments = Screen.CheckoutScreen.navArguments
-            ) 
-          { backStackEntry ->
+              route = Screen.CheckoutScreen.route,
+              arguments = Screen.CheckoutScreen.navArguments
+            ) { backStackEntry ->
                 val flagCart = backStackEntry.arguments?.getString("flagCart")
                 val totalPrice = backStackEntry.arguments?.getString("totalPrice")
                 CheckoutScreen(
@@ -185,8 +183,8 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onGiftClick = onGiftClick,
                     onVirtualCartClick = onVirtualCartClick,
                     onConfirmClick = { navController.navigate(Screen.OrderSuccessScreen.createRoute(
-                                        flagCart = it,
-                                    ))},
+                        flagCart = it,
+                    ))},
                 )
             }
             composable(
@@ -203,7 +201,9 @@ fun GrocifyNavHost(navController: NavHostController) {
             }
 
             composable(route = Screen.TrackOrderScreen.route){
-                TrackOrderScreen()
+                TrackOrderScreen(
+                    onBackClick = onCatalogClick
+                )
             }
         }
         //END USER SCREENS

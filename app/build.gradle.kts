@@ -110,6 +110,13 @@ dependencies {
     implementation("com.squareup.moshi:moshi:1.14.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
+    //ROOM DB
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    // To use Kotlin annotation processing tool (kapt)
+    kapt("androidx.room:room-compiler:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
 
 
     //BAR CODE LIBRARY
