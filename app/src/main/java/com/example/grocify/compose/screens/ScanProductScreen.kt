@@ -57,7 +57,7 @@ fun ScanProductScreen(
     onCheckoutClick: (totalPrice: String) -> Unit,
 ) {
     val scanner = GmsBarcodeScanning.getClient(activity)
-    val scanUiState by viewModel.uiState.collectAsState()
+    val storeUiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeProductsList("store")
@@ -84,8 +84,7 @@ fun ScanProductScreen(
                 FloatingActionButton(
                     onClick = { scanner.startScan()
                         .addOnSuccessListener { barcode ->
-                            val rawValue: String? = barcode.rawValue
-                            viewModel.addRow(rawValue.toString())
+                            viewModel.addRow(barcode.rawValue.toString())
                         }},
                     containerColor = BlueDark,
                 ) {
@@ -112,16 +111,15 @@ fun ScanProductScreen(
                 Modifier.padding(innerPadding)
             ) {
                 //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
-                if (scanUiState.productsList!= emptyList<Product>()){
-                    val totalPrice = viewModel.getTotalPrice()
-                    if(anyToDouble(totalPrice)!! > 0){
+                if (storeUiState.productsList!= emptyList<Product>()){
+                    if(anyToDouble(storeUiState.totalPrice)!! > 0){
                         CheckoutBox(
                             null,
                             null,
                             null,
-                            (String.format("%.2f", anyToDouble(totalPrice)) + "€").replace(',', '.'),
+                            (String.format("%.2f", storeUiState.totalPrice)).replace(',', '.') + "€",
                             "Checkout",
-                            onCheckoutClick = {onCheckoutClick(totalPrice)},
+                            onCheckoutClick = {onCheckoutClick(storeUiState.totalPrice.toString())},
                         )
 
                     }
@@ -141,11 +139,11 @@ fun ScanProductScreen(
                         modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
                     )
                     LazyColumn{
-                        val productsList = viewModel.getProductsList()
+
                         //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
-                        if(productsList != emptyList<Product>()){
-                            items(productsList.size) { index ->
-                                val product = productsList[index]
+                        if(storeUiState.productsList != emptyList<Product>()){
+                            items(storeUiState.productsList.size) { index ->
+                                val product = storeUiState.productsList[index]
                                 product.let {
                                     CartItems(
                                         id = it.id,

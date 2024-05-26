@@ -52,8 +52,7 @@ fun CartScreen(
     onVirtualCartClick: () -> Unit,
     onCheckoutClick: (totalPrice: String) -> Unit,
 ) {
-
-    val scanUiState by viewModel.uiState.collectAsState()
+    val onlineUiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeProductsList("online")
@@ -110,10 +109,9 @@ fun CartScreen(
                     LazyColumn (
                         modifier = Modifier.weight(1f)
                     ){
-                        val productsList = viewModel.getProductsList()
-                        if(productsList != emptyList<Product>()){
-                            items(productsList.size) { index ->
-                                val product = productsList[index]
+                        if(onlineUiState.productsList != emptyList<Product>()){
+                            items(onlineUiState.productsList.size) { index ->
+                                val product = onlineUiState.productsList[index]
                                 product.let {
                                     CartItems(
                                         id = it.id,
@@ -129,17 +127,16 @@ fun CartScreen(
                             }
                         }
                     }
-                    if (scanUiState.productsList!= emptyList<Product>()){
-                        val totalPrice = viewModel.getTotalPrice()
+                    if (onlineUiState.productsList!= emptyList<Product>()){
                         val shipping = "1.50"
-                        if(anyToDouble(totalPrice)!! > 1.5){
+                        if(anyToDouble(onlineUiState.totalPrice)!! > 1.5){
                             CheckoutBox(
                                 "Riepilogo ordine",
-                                (String.format("%.2f",(anyToDouble(totalPrice)!! - anyToDouble(shipping)!!)) + "€").replace(',', '.'),
+                                (String.format("%.2f",(onlineUiState.totalPrice - shipping.toDouble()))).replace(',', '.') + "€",
                                 shipping + "€",
-                                totalPrice,
+                                (String.format("%.2f", onlineUiState.totalPrice)).replace(',', '.') + "€",
                                 "Checkout",
-                                onCheckoutClick = {onCheckoutClick(totalPrice)},
+                                onCheckoutClick = {onCheckoutClick(onlineUiState.totalPrice.toString())},
                             )
 
                         }

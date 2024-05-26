@@ -7,7 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.CategoryItemsUiState
 import com.example.grocify.model.Cart
 import com.example.grocify.model.Product
-import com.example.grocify.util.anyToDouble
+import com.example.grocify.model.ProductType
+import com.example.grocify.storage.Storage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
@@ -24,8 +25,10 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
     private val _uiState = MutableStateFlow(CategoryItemsUiState())
     val uiState: StateFlow<CategoryItemsUiState> = _uiState.asStateFlow()
 
+    val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
+    val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
+
     private val db = Firebase.firestore
-    private val auth = Firebase.auth
 
     private fun getCategoryName(categoryId: String?) {
         db.collection("categories")
@@ -41,7 +44,6 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
     }
 
     fun getProducts(categoryId: String?){
-
         //estraggo la categoria
         viewModelScope.launch {
             getCategoryName(categoryId)
@@ -58,23 +60,21 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                         //ciclo i prodotti e li salvo in una lista
                         for (product in products) {
                             val name     = product.get("nome").toString().replaceFirstChar { it.uppercase() }
-                            val priceKg  = product.get("prezzo_al_kg")
-                            val price    = product.get("prezzo_unitario")
+                            val priceKg  = product.get("prezzo_al_kg")?.toString() ?: ""
+                            val price    = product.get("prezzo_unitario")?.toString() ?: ""
                             val quantity = product.get("quantita")?.toString() ?: ""
                             val image    = product.get("immagine")?.toString() ?: ""
 
-                           val item = Product(
+                           val item = ProductType(
                                 product.id,
                                 name,
-                                priceKg,
-                                price,
+                                priceKg.toDouble(),
+                                price.toDouble(),
                                 quantity,
-                                image,
-                                1
-                            )
+                                image)
 
                             _uiState.update { currentState ->
-                                val updatedList = currentState.products.orEmpty() + item
+                                val updatedList = currentState.products + item
                                 currentState.copy(products = updatedList.toMutableList())
                             }
                         }
@@ -92,90 +92,47 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
-    fun addToCart(product: Product, flagCart: String){
-        val cartCollection = db.collection("carts")
+    fun addToCart(productId: String) {
         viewModelScope.launch {
-            //filtro solo i carrelli del negozio per l'utente attuale
-            cartCollection
-                .whereEqualTo("userId", auth.currentUser?.uid)
-                .whereEqualTo("type", flagCart)
+            //scorro tutti i prodotti
+            db.collection("prodotti")
                 .get()
-                .addOnSuccessListener { documents ->
-                    if(documents.isEmpty){
-                        //se non ho già un carrello per l'utente lo creo
-                        val addedProduct = hashMapOf(
-                            "id" to product.id,
-                            "quantity" to 1,
-                        )
+                .addOnSuccessListener { products ->
+                    for (product in products) {
+                        if (product.id == productId) {
+                            val price = product.get("prezzo_unitario")?.toString() ?: ""
 
-                        addToTotalPrice(product.price)
-
-                        cartCollection.add(
-                            Cart(
-                                userId = auth.currentUser?.uid.toString(),
-                                totalPrice = _uiState.value.totalPrice,
-                                type = flagCart,
-                            )
-                        ).addOnSuccessListener {
-                            //appena creato il carrello crea la subcollection con i prodotti
-                            cartCollection
-                                .document(it.id)
-                                .collection("products")
-                                .add(addedProduct)
-                        }
-
-                    }
-                    else{
-                        //se ho già il carrello aggiungo il prodotto alla subcollection
-                        val userProdRef = cartCollection.document(documents.documents[0].id).collection("products")
-                        userProdRef
-                            .whereEqualTo("id",product.id)
-                            .get()
-                            .addOnSuccessListener {
-                                if(it.isEmpty){
-                                    //se l'utente non ha ancora inserito il prodotto che ha cliccato allora lo aggiungo
-                                    val newAddedProduct = hashMapOf(
-                                        "id" to product.id,
-                                        "quantity" to 1,
-                                    )
-                                    userProdRef.add(newAddedProduct)
-                                }
-                                else{
-                                    //altrimenti aggiorno la quantità
-                                    userProdRef.document(it.documents[0].id).update("quantity",
-                                        FieldValue.increment(1))
-                                }
-
-                                //aggiorno il prezzo del carrello
-                                /*cartCollection.document(documents.documents[0].id).update("totalPrice",
-                                    FieldValue.increment(anyToDouble(product.price)!!))*/
-                                addToTotalPrice(product.price)
-                                cartCollection.document(documents.documents[0].id).update("totalPrice", _uiState.value.totalPrice)
-
+                            val productToCheck = productDao.getProductById(product.id, "online")
+                            if (productToCheck != emptyList<Product>()) {
+                                productDao.addValueToProductUnits(1, product.id, "online")
                             }
+                            else {
+                                val name = product.get("nome")?.toString() ?: ""
+                                val priceKg = product.get("prezzo_al_kg")?.toString() ?: ""
+                                val quantity = product.get("quantita")?.toString() ?: ""
+                                val image = product.get("immagine")?.toString() ?: ""
+
+                                val productToAdd = Product(product.id, "online", name, priceKg.toDouble(), price.toDouble(), quantity, image, 1)
+
+                                productDao.insertProduct(productToAdd)
+                            }
+                            cartDao.addValueToTotalPrice("online", price.toDouble())
+                        }
                     }
                 }
         }
     }
 
-    fun getTotalPrice(){
-        val cartCollection = db.collection("carts")
+    fun initializeProductsList(flagCart: String) {
         viewModelScope.launch {
-            //filtro solo i carrelli del negozio per l'utente attuale
-            cartCollection
-                .whereEqualTo("userId", auth.currentUser?.uid)
-                .get()
-                .addOnSuccessListener { documents ->
-                    if(!documents.isEmpty) {
-                        _uiState.value.totalPrice = documents.documents[0].get("totalPrice")?.toString()!!
-                    }
-                }
+            val cartDb = cartDao.getCart(flagCart)
+            if(cartDb == emptyList<Cart>()){
+                val cart = Cart(
+                    type = flagCart,
+                    totalPrice = 1.50,
+                )
+                cartDao.insertCart(cart)
+            }
         }
-    }
-
-    fun addToTotalPrice(priceToAdd: Any?){
-        val newPrice = anyToDouble(_uiState.value.totalPrice)!! + anyToDouble(priceToAdd)!!
-        _uiState.value.totalPrice = String.format("%.2f", anyToDouble(newPrice)).replace(',', '.')
-        Log.v("ciao",_uiState.value.totalPrice)
     }
 }

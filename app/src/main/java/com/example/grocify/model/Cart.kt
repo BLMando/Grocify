@@ -4,9 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-@Entity(tableName = "Carts")
+@Entity(tableName = "Carts", primaryKeys = ["type"])
 data class Cart(
-    @PrimaryKey val userId:String,
-    val totalPrice: String,
-    val type: String
+    val type: String,
+    val totalPrice: Double,
 )

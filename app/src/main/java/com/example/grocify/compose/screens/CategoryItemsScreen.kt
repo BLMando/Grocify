@@ -63,7 +63,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.components.UserBottomNavigation
-import com.example.grocify.model.Product
+import com.example.grocify.model.ProductType
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.CategoryItemsViewModel
@@ -85,8 +85,8 @@ fun CategoryItemsScreen(
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
+        viewModel.initializeProductsList("online")
         viewModel.getProducts(categoryId)
-        viewModel.getTotalPrice()
     }
 
     Scaffold(
@@ -159,7 +159,7 @@ fun CategoryItemsScreen(
 }
 
 @Composable
-fun CategoryItemCard(product: Product, viewModel: CategoryItemsViewModel, flagCart: String) {
+fun CategoryItemCard(product: ProductType, viewModel: CategoryItemsViewModel, flagCart: String) {
     val scope = rememberCoroutineScope()
     var isAddingToCart by remember { mutableStateOf(false) }
     Card (
@@ -244,7 +244,7 @@ fun CategoryItemCard(product: Product, viewModel: CategoryItemsViewModel, flagCa
                     if (!isAddingToCart ) {
                         isAddingToCart   = true
                         scope.launch {
-                            viewModel.addToCart(product, flagCart)
+                            viewModel.addToCart(product.id)
                             delay(300)  // Debounce delay
                             isAddingToCart  = false
                         }
