@@ -129,7 +129,7 @@ fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composabl
 
 
 @Composable
-fun ItemsQuantitySelector(units: Any?, id: String?, price: Any?, viewModel: CartViewModel, flagCart: String){
+fun ItemsQuantitySelector(units: Int, id: String, price: Double, viewModel: CartViewModel, flagCart: String){
     var state = units.toString()
     var isUpdating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -205,12 +205,12 @@ fun ItemsQuantitySelector(units: Any?, id: String?, price: Any?, viewModel: Cart
 
 @Composable
 fun CartItems(
-    id: String?,
-    name: String?,
-    price: Any?,
-    quantity: String?,
-    image: String?,
-    units: Any?,
+    id: String,
+    name: String,
+    price: Double,
+    quantity: String,
+    image: String,
+    units: Int,
     viewModel: CartViewModel,
     flagCart: String
 ) {
@@ -290,7 +290,7 @@ fun CartItems(
 
                         ItemsQuantitySelector(units, id, price, viewModel, flagCart)
                         IconButton(
-                            onClick = { viewModel.removeFromCart(id, price, flagCart) },
+                            onClick = { viewModel.removeFromCart(id, price, units, flagCart) },
                             Modifier
                                 .padding(5.dp)
                                 .size(18.dp)

@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.grocify.compose.GrocifyApp
-import com.example.grocify.compose.screens.MapScreen
 import com.example.grocify.ui.theme.GrocifyTheme
 
 class MainActivity : AppCompatActivity() {
@@ -18,9 +17,7 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             GrocifyTheme {
-              MapScreen(context = this) {
-                  
-              }
+                GrocifyApp()
             }
         }
     }
