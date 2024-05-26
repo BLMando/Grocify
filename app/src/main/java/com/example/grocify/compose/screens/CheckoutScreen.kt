@@ -1,5 +1,7 @@
 package com.example.grocify.compose.screens
 
+
+import androidx.compose.foundation.clickable
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,12 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -29,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,17 +38,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.components.CheckoutBox
+import com.example.grocify.components.UserBottomNavigation
 import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.viewmodels.CategoryItemsViewModel
+
+import com.example.grocify.viewmodels.CheckoutViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.data.CheckoutUiState
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
+    viewModel: CheckoutViewModel = viewModel(),
     flagCart: String?,
-){
+    onBackClick: () -> Unit,
+    onAddressClick: () -> Unit,
+    onPaymentMethodClick: () -> Unit,
+    onCatalogClick: () -> Unit,
+    onGiftClick: () -> Unit,
+    onVirtualCartClick: () -> Unit
+) {
+
+    val uiState = viewModel.uiState.collectAsState()
+
     LaunchedEffect(key1 = Unit) {
-        //Log.v("checkout", flagCart!!)
+        viewModel.getCurrentInfo()
     }
+
+
 
     Scaffold(
         topBar = {
@@ -67,7 +82,7 @@ fun CheckoutScreen(
                 ) },
                 navigationIcon = {
                     IconButton(
-                        onClick = { /*TODO*/ }
+                        onClick = onBackClick
                     ) {
                         Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "arrow back")
                     }
@@ -75,82 +90,12 @@ fun CheckoutScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                windowInsets = TopAppBarDefaults.windowInsets,
-                modifier = Modifier
-                    .shadow(10.dp, RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
-                tonalElevation = 30.dp,
-                containerColor = Color.White,
-                actions = {
-                    Row (
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.ShoppingBag,
-                                contentDescription = "Localized description"
-                            )
-                            Text(
-                                text = "Catalogo",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black
-
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.AutoMirrored.Filled.List,
-                                contentDescription = "Localized description",
-                            )
-                            Text(
-                                text = "Scansiona",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(Icons.Filled.CardGiftcard, contentDescription = "Localized description")
-                            Text(
-                                text = "Per te",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.ShoppingCart,
-                                contentDescription = "Localized description",
-                                tint = BlueLight
-                            )
-                            Text(
-                                text = "Carrello",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = BlueLight
-                                )
-                            )
-                        }
-                    }
-                },
+            UserBottomNavigation(
+                ref = "virtualCart",
+                onCatalogClick = onCatalogClick,
+                onGiftClick = onGiftClick,
+                onPhysicalCartClick = {},
+                onVirtualCartClick = onVirtualCartClick
             )
         },
         content = { innerPadding ->
@@ -169,8 +114,8 @@ fun CheckoutScreen(
                         ),
                         modifier = Modifier.padding(start=15.dp,top=15.dp, bottom = 10.dp)
                     )
-                    PaymentOptionsCard()
-                    DeliveryOptionCard()
+                    PaymentOptionsCard(onPaymentMethodClick,uiState.value)
+                    DeliveryOptionCard(onAddressClick,uiState.value)
                 }
                 CheckoutBox(
                     "Riepilogo ordine",
@@ -187,7 +132,7 @@ fun CheckoutScreen(
 }
 
 @Composable
-fun DeliveryOptionCard() {
+fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -199,6 +144,7 @@ fun DeliveryOptionCard() {
             .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 20.dp)
             .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
             .clip(RoundedCornerShape(20.dp))
+            .clickable { onAddressClick() }
     ) {
         Column(
             Modifier.fillMaxWidth()
@@ -206,23 +152,21 @@ fun DeliveryOptionCard() {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(start = 15.dp),
+                    .padding(start = 15.dp, top = 15.dp, end = 15.dp, bottom = 0.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+
                 Text(
-                    text = "Informazioni di spedizione",
+                    text = "Indirizzo di spedizione",
                     fontWeight = FontWeight.SemiBold
                 )
-                IconButton(
-                    onClick = { /*TODO*/ }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = "arrow forward",
-                        Modifier.size(15.dp)
-                    )
-                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = "arrow forward",
+                    Modifier.size(15.dp)
+                )
             }
             Row(
                 Modifier
@@ -231,19 +175,27 @@ fun DeliveryOptionCard() {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Indirizzo di spezione"
-                )
-                Text(
-                    text = "123 Main St."
-                )
+                if(uiState.result.isEmpty()){
+                    uiState.currentAddress?.let {
+                        Text(
+                            text = it.name
+                        )
+                    }
+                    Text(
+                        text = "${uiState.currentAddress?.address}, ${uiState.currentAddress?.civic}"
+                    )
+                }else{
+                    Text(
+                        text = uiState.result
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun PaymentOptionsCard() {
+fun PaymentOptionsCard(onPaymentMethodClick: () -> Unit, uiState: CheckoutUiState) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -255,15 +207,15 @@ fun PaymentOptionsCard() {
             .padding(10.dp)
             .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
             .clip(RoundedCornerShape(20.dp))
+            .clickable { onPaymentMethodClick() }
     ) {
         Column(
             Modifier.fillMaxWidth(),
-
         ) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(start = 15.dp),
+                    .padding(start = 15.dp, top = 15.dp, end = 15.dp, bottom = 0.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -271,41 +223,49 @@ fun PaymentOptionsCard() {
                     text = "Pagamento",
                     fontWeight = FontWeight.SemiBold
                 )
-                IconButton(
-                    onClick = { /*TODO*/ }
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = "arrow forward",
-                        Modifier.size(15.dp)
-                    )
-                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+                    contentDescription = "arrow forward",
+                    Modifier.size(15.dp)
+                )
+
             }
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(end = 15.dp),
+                    .padding(15.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically){
-                    IconButton(
-                        onClick = { /*TODO*/ }
-                    ) {
+                if(uiState.result.isEmpty()){
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ){
                         Icon(
                             imageVector = Icons.Filled.CreditCard,
                             contentDescription = "credit card",
                             tint = BlueLight,
+                            modifier = Modifier.padding(end = 10.dp)
+                        )
+
+                        uiState.currentPaymentMethod?.let {
+                            Text(
+                                text = it.number
+                            )
+                        }
+                    }
+
+                    uiState.currentPaymentMethod?.let {
+                        Text(
+                            text = it.expireDate
                         )
                     }
+                }else{
                     Text(
-                        text = "**** **** **** 1234"
+                        text = uiState.result
                     )
                 }
-
-                Text(
-                    text = "01/24"
-                )
             }
         }
     }

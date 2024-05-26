@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 val tomtomApiKey: String by project
@@ -38,7 +39,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
 
     buildFeatures {
@@ -77,17 +78,18 @@ dependencies {
 
     //ANDROID X COMPOSE LIBRARIES
     implementation(libs.androidx.core.ktx)
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.ui:ui-viewbinding:1.6.6")
+    implementation("androidx.compose.ui:ui-viewbinding:1.6.7")
     implementation("androidx.core:core-splashscreen:1.1.0-rc01")
-    implementation("androidx.compose.material:material-icons-extended:1.7.0-alpha07")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0-beta01")
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.appcompat)
@@ -102,37 +104,28 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
 
-    // Coroutine Lifecycle Scopes
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1")
+    //RETROFIT
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+    implementation("com.squareup.moshi:moshi:1.14.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
 
 
-    //bar code scanner
-    implementation("com.google.android.gms:play-services-code-scanner:16.0.0")
-
-
-
-
-
-
-    //IMAGE LOAD FROM LINK LIBRARY
-    implementation("io.coil-kt:coil-compose:1.4.0")
-
-    //QRCODE LIBRARY
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.camera.core)
-
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    implementation("androidx.multidex:multidex:2.0.1")
 
     //BAR CODE LIBRARY
+    implementation("com.google.android.gms:play-services-code-scanner:16.0.0")
     implementation("com.google.zxing:core:3.4.1")
-
     implementation("androidx.camera:camera-camera2:1.2.2")
     implementation("androidx.camera:camera-lifecycle:1.2.2")
     implementation("androidx.camera:camera-view:1.2.2")
     implementation("com.google.mlkit:barcode-scanning:17.1.0")
+    implementation(libs.androidx.camera.core)
+
+    //QRCODE LIBRARY
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    implementation("androidx.multidex:multidex:2.0.1")
+
     //CHART LIBRARY
     implementation("com.himanshoe:charty:2.0.0-alpha01")
 
@@ -142,7 +135,7 @@ dependencies {
 
 
     //TOMTOM MAPS API
-    val version = "0.50.6"
+    val version = "1.4.0"
     implementation("com.tomtom.sdk.location:provider-android:$version"){
         exclude(group = "com.google.protobuf", module = "proto-google-common-protos")
         exclude(group = "com.google.protobuf", module = "protolite-well-known-types")
@@ -224,4 +217,5 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(kotlin("reflect"))
 }

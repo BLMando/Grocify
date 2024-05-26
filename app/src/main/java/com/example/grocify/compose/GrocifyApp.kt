@@ -15,11 +15,15 @@ import com.example.grocify.compose.screens.home.HomeUserScreen
 import com.example.grocify.compose.screens.CategoryItemsScreen
 import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
+import com.example.grocify.compose.screens.MapScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
 import com.example.grocify.compose.screens.SignUpScreen
-import com.example.grocify.compose.screens.UserProfileScreen
-
+import com.example.grocify.compose.screens.account.UserAccountScreen
+import com.example.grocify.compose.screens.account.UserAddressScreen
+import com.example.grocify.compose.screens.account.UserOrdersScreen
+import com.example.grocify.compose.screens.account.UserPaymentsScreen
+import com.example.grocify.compose.screens.account.UserProfileScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
@@ -56,7 +60,7 @@ fun GrocifyNavHost(navController: NavHostController) {
         //END DEFAULT SCREEN
 
 
-        //USER SCREEN
+        //USER SCREENS
         navigation(
             route = "user",
             startDestination = Screen.HomeUserScreen.route
@@ -69,12 +73,12 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
-                    onProfileClick = { navController.navigate(Screen.UserProfile.route) },
+                    onAccountClick = { navController.navigate(Screen.UserAccount.route) },
                     onCategoryClick = {
                         navController.navigate(Screen.CategoryItems.createRoute(
                             categoryId = it
                         ))},
-                    onGiftClick = onGiftClick,
+                    onGiftClick = {navController.navigate(Screen.CheckoutScreen.route)},
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick
                 )
@@ -92,14 +96,6 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onGiftClick = onGiftClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick,
-                )
-            }
-
-            composable(route = Screen.UserProfile.route) {
-                UserProfileScreen(
-                    context = activity,
-                    onSignOut = { navController.navigate(Screen.SignInScreen.route) },
-                    onBackClick = { navController.popBackStack() }
                 )
             }
 
@@ -134,17 +130,77 @@ fun GrocifyNavHost(navController: NavHostController) {
                 )
             }
 
+            composable(route = Screen.UserAccount.route) {
+                UserAccountScreen(
+                    context = activity,
+                    onBackClick = { navController.popBackStack() },
+                    onLogOutClick = { navController.navigate(Screen.SignInScreen.route) },
+                    onUserProfileClick = { navController.navigate(Screen.UserProfile.route) },
+                    onUserAddressesClick = { navController.navigate(Screen.UserAddresses.route) },
+                    onUserOrdersClick = { navController.navigate(Screen.UserOrders.route) }
+                ) { navController.navigate(Screen.UserPayment.route) }
+            }
+
+            composable(route = Screen.UserProfile.route){
+                UserProfileScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.UserAddresses.route){
+                UserAddressScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.UserPayment.route){
+                UserPaymentsScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable(route = Screen.UserOrders.route){
+                UserOrdersScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
             composable(
-                route = Screen.CheckoutScreen.route,
-                arguments = Screen.CheckoutScreen.navArguments
-            ) { backStackEntry ->
+                      route = Screen.CheckoutScreen.route,
+                      arguments = Screen.CheckoutScreen.navArguments
+            ) 
+          { backStackEntry ->
                 val url = backStackEntry.arguments?.getString("flagCart")
                 CheckoutScreen(
                     flagCart = url,
+                    onBackClick = {navController.popBackStack() },
+                    onAddressClick = {navController.navigate(Screen.UserAddresses.route)},
+                    onPaymentMethodClick = {navController.navigate(Screen.UserPayment.route)},
+                    onCatalogClick = onCatalogClick,
+                    onGiftClick = onGiftClick,
+                    onVirtualCartClick = onVirtualCartClick
                 )
             }
         }
-        //END USER SCREEN
+        //END USER SCREENS
+
+        //DRIVER SCREENS
+        navigation(
+            route = "driver",
+            startDestination = Screen.HomeDriverScreen.route
+        ){
+            composable(route = Screen.HomeDriverScreen.route){
+                HomeDriverScreen()
+            }
+
+            composable(route = Screen.MapScreen.route){
+                MapScreen(
+                    context = activity,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+        }
+        //END DRIVER SCREENS
 
         navigation(
             route = "admin",
@@ -155,13 +211,6 @@ fun GrocifyNavHost(navController: NavHostController) {
             }
         }
 
-        navigation(
-            route = "driver",
-            startDestination = Screen.HomeDriverScreen.route
-        ){
-            composable(route = Screen.HomeDriverScreen.route){
-                HomeDriverScreen()
-            }
-        }
+
     }
 }

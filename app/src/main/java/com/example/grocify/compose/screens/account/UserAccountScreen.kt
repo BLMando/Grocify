@@ -1,4 +1,4 @@
-package com.example.grocify.compose.screens
+package com.example.grocify.compose.screens.account
 
 import android.app.Activity
 import androidx.compose.foundation.border
@@ -46,20 +46,24 @@ import coil.compose.SubcomposeAsyncImage
 import com.example.grocify.model.User
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.viewmodels.UserProfileViewModel
+import com.example.grocify.viewmodels.UserAccountViewModel
 import com.google.android.gms.auth.api.identity.Identity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserProfileScreen(
+fun UserAccountScreen(
     context: Activity,
-    onSignOut: () -> Unit,
-    onBackClick: () -> Unit
+    onLogOutClick: () -> Unit,
+    onBackClick: () -> Unit,
+    onUserProfileClick: () -> Unit,
+    onUserAddressesClick: () -> Unit,
+    onUserOrdersClick: () -> Unit,
+    onUserPaymentClick: () -> Unit,
 ){
 
-    val viewModel: UserProfileViewModel = viewModel(factory = viewModelFactory {
-        addInitializer(UserProfileViewModel::class) {
-            UserProfileViewModel(context.application, Identity.getSignInClient(context))
+    val viewModel: UserAccountViewModel = viewModel(factory = viewModelFactory {
+        addInitializer(UserAccountViewModel::class) {
+            UserAccountViewModel(context.application, Identity.getSignInClient(context))
         }
     })
 
@@ -68,14 +72,6 @@ fun UserProfileScreen(
     }
 
     val uiState = viewModel.uiState.collectAsState()
-
-    val label = arrayOf(
-        "Il tuo profilo",
-        "Indirizzi di spedizione",
-        "Metodo di pagamento",
-        "Storico degli ordini"
-    )
-
 
     Scaffold(
         topBar = {
@@ -115,14 +111,14 @@ fun UserProfileScreen(
             UserInfo(uiState.value.user)
 
             Column {
-                label.forEach { label -> UserOptions(label, false) {} }
-            }
+                if(viewModel.getUserAuthProvider() != "google.com")
+                    UserOptions("Il tuo profilo",false, onUserProfileClick)
 
-            UserOptions("Esci", true) {
-                viewModel.signOut()
-                onSignOut()
+                UserOptions("Indirizzi di spedizione",false, onUserAddressesClick)
+                UserOptions("Metodi di pagamento",false, onUserPaymentClick)
+                UserOptions("Storico degli ordini",false, onUserOrdersClick)
             }
-
+            UserOptions("Esci",true) { viewModel.signOut(); onLogOutClick() }
         }
     }
 }
@@ -165,7 +161,7 @@ fun UserInfo(userData: User) {
             Text(
                 text = it,
                 style = TextStyle(
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     color = Color.Gray
                 )
             )
@@ -174,7 +170,7 @@ fun UserInfo(userData: User) {
 }
 
 @Composable
-fun UserOptions(text:String, logOut:Boolean, action: () -> Unit) {
+fun UserOptions(option:String,logOut: Boolean, toRoute: () -> Unit) {
 
     val cardColor = if(logOut) BlueLight else Color.White
     val textColor = if(logOut) Color.White else Color.Black
@@ -199,15 +195,12 @@ fun UserOptions(text:String, logOut:Boolean, action: () -> Unit) {
         Row (
             Modifier
                 .fillMaxWidth()
-                .clickable {
-                    if (logOut)
-                        action()
-                },
+                .clickable { toRoute() },
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ){
             Text(
-                text = text,
+                text = option,
                 style = TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight(500),

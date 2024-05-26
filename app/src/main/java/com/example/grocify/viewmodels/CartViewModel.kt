@@ -18,13 +18,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+
 class CartViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CartUiState())
+
     val scanUiState: StateFlow<CartUiState> = _uiState.asStateFlow()
+
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
+
 
     fun getProductsList(): MutableList<Product> {
         return _uiState.value.productsList

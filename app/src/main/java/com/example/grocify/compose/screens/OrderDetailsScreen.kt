@@ -44,7 +44,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.grocify.R
-import com.example.grocify.components.Dialog
 import com.example.grocify.components.ListItems
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
@@ -108,7 +107,7 @@ fun OrderDetailsScreen(){
             )
         } },
         content = { innerPadding ->
-            Dialog(
+           /* Dialog(
                 "Ordine completato",
                 true,
                 Icons.Filled.DoneOutline,
@@ -135,7 +134,7 @@ fun OrderDetailsScreen(){
                         )
                     )
                 }
-            }
+            }*/
 
             Column (
                 Modifier.padding(innerPadding)

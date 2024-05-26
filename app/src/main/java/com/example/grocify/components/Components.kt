@@ -130,62 +130,6 @@ fun getResourceId(name: String): Int {
     }
 }
 
-@Composable
-fun Dialog(
-    title:String,
-    state:Boolean,
-    icon:ImageVector,
-    buttonText:String,
-    buttonIcon:ImageVector,
-    content: @Composable() () -> Unit
-) {
-
-    val dialogState = rememberSaveable { mutableStateOf(state) }
-
-    if (dialogState.value) {
-        AlertDialog(
-            onDismissRequest = { dialogState.value = false },
-            title = {
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
-                )
-            },
-            icon = {
-                Icon(imageVector = icon, contentDescription ="dialog icon" )
-            },
-            text = {
-                content()
-            },
-            confirmButton = {
-                Button(
-                    onClick = { dialogState.value = false },
-                    Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = buttonText,
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    )
-                    Icon(
-                        imageVector = buttonIcon,
-                        contentDescription = "button icon",
-                        modifier = Modifier.padding(start = 10.dp)
-                    )
-                }
-            },
-            properties = DialogProperties(
-                dismissOnClickOutside = false
-            )
-        )
-    }
-}
-
 fun anyToInt(value: Any?): Int? {
     return when (value) {
         is Int -> value
@@ -218,7 +162,7 @@ fun ItemsQuantitySelector(units: Any?, id: String?, price: Any?, viewModel: Cart
     var state = units.toString()
     var isUpdating by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-
+    
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White

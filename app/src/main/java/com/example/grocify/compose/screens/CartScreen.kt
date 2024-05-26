@@ -13,11 +13,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+
+import androidx.compose.ui.Alignment
+
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -26,9 +30,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+
+import com.example.grocify.R
+
 import com.example.grocify.components.CartItems
+
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.UserBottomNavigation
+
 import com.example.grocify.components.anyToDouble
 import com.example.grocify.viewmodels.CartViewModel
 
@@ -42,6 +51,7 @@ fun CartScreen(
     onVirtualCartClick: () -> Unit,
     onCheckoutClick: () -> Unit,
 ) {
+
 
     val scanUiState by viewModel.scanUiState.collectAsState()
 
@@ -96,6 +106,7 @@ fun CartScreen(
                         modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
                     )
 
+
                     LazyColumn (
                         modifier = Modifier.weight(1f)
                     ){
@@ -119,7 +130,6 @@ fun CartScreen(
                             }
                         }
                     }
-
 
                     //NON rimuovere il controllo che la lista non sia vuota altrimenti l'app non mostra la lista aggiornata
                     if (scanUiState.productsList!= null){
