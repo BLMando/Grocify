@@ -9,8 +9,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.grocify.BuildConfig
 import com.example.grocify.R
+import com.example.grocify.api.RetrofitObject
 import com.example.grocify.data.MapUiState
 import com.example.grocify.databinding.MapLayoutBinding
 import com.tomtom.sdk.common.measures.UnitSystem
@@ -58,10 +60,15 @@ import com.tomtom.sdk.routing.options.guidance.InstructionPhoneticsType
 import com.tomtom.sdk.routing.route.Route
 import com.tomtom.sdk.vehicle.Vehicle
 import com.tomtom.sdk.vehicle.VehicleProviderFactory
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 
 class MapViewModel(application: Application): AndroidViewModel(application){
 
@@ -85,7 +92,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
 
     /**
-     * Inizializzazione della mappa mediante il riferimento alla view ottenuto dal AndroiudViewBindig
+     * Inizializzazione della mappa mediante il riferimento alla view ottenuto dal AndroidViewBinding
      */
     fun initMap(mapFragmentView: MapFragment){
         mapFragment = mapFragmentView
@@ -175,7 +182,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     fun showUserLocation() {
         locationProvider.enable()
         onLocationUpdateListener = OnLocationUpdateListener { location ->
-            setLocationDialogState(false)
+            setLocationDialogState()
             tomTomMap.moveCamera(CameraOptions(location.position, zoom = 10.0))
             locationProvider.removeOnLocationUpdateListener(onLocationUpdateListener)
         }
@@ -393,8 +400,30 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         _uiState.update { it.copy(openDialog = openDialog) }
     }
 
-    fun setLocationDialogState(locationAcquired: Boolean) {
-        _uiState.update { it.copy(locationAcquired = locationAcquired) }
+    private fun setLocationDialogState() {
+        _uiState.update { it.copy(locationAcquired = false) }
+    }
+
+    fun getUserLocation(){
+        viewModelScope.launch {
+            withContext(Dispatchers.IO){
+                val result =  try {
+                    RetrofitObject.apiService.getUserLocation("Strada provinciale bolzetta 25",apiKey)
+                }catch (e: IOException){
+                    Log.d("MapViewModel", "No internet connection")
+                    return@withContext
+                }catch (e: HttpException){
+                    Log.d("MapViewModel", "Unexpected response")
+                    return@withContext
+                }
+                if(result.isSuccessful && result.body() != null){
+                    Log.d("MapViewModel", result.body()!!.results.toString())
+                }else{
+                    Log.d("MapViewModel", "Not successful")
+                }
+
+            }
+        }
     }
 
     private fun resetMapSize() = run { _uiState.update { it.copy(mapHeight = 600.dp, mapWidth = 400.dp) } }

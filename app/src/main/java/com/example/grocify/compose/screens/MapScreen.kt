@@ -91,6 +91,10 @@ fun MapScreen(
         }
     }
 
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getUserLocation()
+    }
+
     LaunchedEffect(key1 = uiState.value.requestLocationPermissions) {
         if(uiState.value.requestLocationPermissions == true) {
             locationPermissionRequest.launch(
