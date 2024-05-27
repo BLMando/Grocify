@@ -9,7 +9,7 @@ import com.tomtom.sdk.routing.route.Route
 
 data class MapUiState(
     val requestLocationPermissions: Boolean? = null,
-    val locationAcquired: Boolean = true,
+    val locationAcquired: Boolean = false,
     val route: Route? = null,
     val binding: MapLayoutBinding? = null,
     val openDialog: Boolean = false,

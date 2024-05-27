@@ -95,8 +95,10 @@ fun MapScreen(
         }
     }
 
-    LaunchedEffect(key1 = Unit) {
-
+    LaunchedEffect(key1 = uiState.value.locationAcquired) {
+        if(uiState.value.locationAcquired) {
+            viewModel.calculateRouteTo()
+        }
     }
 
     LaunchedEffect(key1 = uiState.value.requestLocationPermissions) {
@@ -231,9 +233,6 @@ fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?,context:
             viewModel.initLocationProvider()
             viewModel.initRouting()
             viewModel.initNavigation()
-            CoroutineScope(Dispatchers.Main).launch{
-                viewModel.calculateRouteTo()
-            }
         }
 
         binding
@@ -313,7 +312,7 @@ fun Dialog(
 fun LocationDialog(
     state:Boolean
 ) {
-    if (state) {
+    if (!state) {
         AlertDialog(
             containerColor = Color.White,
             shape = AlertDialogDefaults.shape,

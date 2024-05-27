@@ -1,6 +1,5 @@
 package com.example.grocify.components
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +21,6 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Store
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -34,12 +32,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,21 +43,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
-import coil.compose.rememberImagePainter
-import com.example.grocify.R
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.BlueMedium
-import com.example.grocify.ui.theme.LightGray
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
+import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.ui.theme.LightGray
 import com.example.grocify.util.anyToDouble
 import com.example.grocify.util.anyToInt
 import com.example.grocify.util.checkName
@@ -70,14 +65,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composable() () -> Unit ){
+fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composable () -> Unit ){
 
-    val painter = rememberImagePainter(
-        data = image,
-        builder = {
-            // You can customize image loading parameters here if needed
-        }
-    )
+    val painter = // You can customize image loading parameters here if needed
+        rememberAsyncImagePainter(
+            ImageRequest.Builder(LocalContext.current).data(data = image).apply(block = fun ImageRequest.Builder.() {
+                // You can customize image loading parameters here if needed
+            }).build()
+        )
     Row (
         Modifier
             .fillMaxWidth()
@@ -171,7 +166,7 @@ fun ItemsQuantitySelector(units: Int, id: String, price: Double, viewModel: Cart
                 )
             }
             Text(
-                text = state.toString(),
+                text = state,
                 style = TextStyle(
                     fontSize = 15.sp
                 ),

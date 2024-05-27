@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 class CartViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CartUiState())
-
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
     val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
