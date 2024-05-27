@@ -29,6 +29,8 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
     val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
 
     private val db = Firebase.firestore
+    private val auth = Firebase.auth
+
 
     private fun getCategoryName(categoryId: String?) {
         db.collection("categories")
@@ -102,9 +104,9 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                         if (product.id == productId) {
                             val price = product.get("prezzo_unitario")?.toString() ?: ""
 
-                            val productToCheck = productDao.getProductById(product.id, "online")
+                            val productToCheck = productDao.getProductById(product.id, "online", auth.currentUser?.uid.toString())
                             if (productToCheck != emptyList<Product>()) {
-                                productDao.addValueToProductUnits(1, product.id, "online")
+                                productDao.addValueToProductUnits(product.id, "online", auth.currentUser?.uid.toString(),1)
                             }
                             else {
                                 val name = product.get("nome")?.toString() ?: ""
@@ -112,11 +114,11 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                                 val quantity = product.get("quantita")?.toString() ?: ""
                                 val image = product.get("immagine")?.toString() ?: ""
 
-                                val productToAdd = Product(product.id, "online", name, priceKg.toDouble(), price.toDouble(), quantity, image, 1)
+                                val productToAdd = Product(product.id, "online", auth.currentUser?.uid.toString(), name, priceKg.toDouble(), price.toDouble(), quantity, image, 1)
 
                                 productDao.insertProduct(productToAdd)
                             }
-                            cartDao.addValueToTotalPrice("online", price.toDouble())
+                            cartDao.addValueToTotalPrice("online", auth.currentUser?.uid.toString(), price.toDouble())
                         }
                     }
                 }
@@ -125,10 +127,11 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
 
     fun initializeProductsList(flagCart: String) {
         viewModelScope.launch {
-            val cartDb = cartDao.getCart(flagCart)
+            val cartDb = cartDao.getCart(flagCart, auth.currentUser?.uid.toString())
             if(cartDb == emptyList<Cart>()){
                 val cart = Cart(
                     type = flagCart,
+                    userId = auth.currentUser?.uid.toString(),
                     totalPrice = 1.50,
                 )
                 cartDao.insertCart(cart)
