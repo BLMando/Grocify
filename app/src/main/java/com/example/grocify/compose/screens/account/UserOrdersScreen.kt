@@ -1,7 +1,5 @@
 package com.example.grocify.compose.screens.account
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,10 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DepartureBoard
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.LocalShipping
@@ -40,9 +36,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -62,18 +58,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.model.Order
 import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.viewmodels.UserOrdersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserOrdersScreen(
     viewModel: UserOrdersViewModel = viewModel(),
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onTrackOrderClick: (orderId: String) -> Unit
 ){
 
     val uiState = viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getAllOrders()
+    }
 
     Scaffold(
         topBar = {
@@ -100,59 +101,97 @@ fun UserOrdersScreen(
                     }
                 }
             )
-        },
-        content = { innerPadding ->
-            Column(
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                Text(
-                    text = "Ordine corrente",
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            Text(
+                text = "Ordine corrente",
+                modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
                 )
+            )
 
+            val currentOrder = uiState.value.orders.filter { it.status != "concluso" }
+            val pastOrders = uiState.value.orders.filter { it.status == "concluso" }
+
+            if (currentOrder.isEmpty())
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Nessun ordine in corso",
+                        style = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp
+                        )
+                    )
+                }
+            else
                 OrderCard(
                     viewModel = null,
-                    "Spedito",
+                    currentOrder.first(),
                     Icons.Filled.DepartureBoard,
-                    true
+                    true,
+                    onTrackOrderClick
                 )
 
-                Text(
-                    text = "Ordini passati",
-                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+            Text(
+                text = "Ordini passati",
+                modifier = Modifier.padding(top = 20.dp, start = 20.dp),
 
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                style = TextStyle(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                )
+            )
+
+            if (pastOrders.isEmpty())
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Nessun ordine effettuato",
+                        style = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontSize = 15.sp
+                        )
                     )
-                )
+                }
+            else {
                 LazyColumn {
-                    items(4) {
+                    items(pastOrders.size) {
                         OrderCard(
                             viewModel = viewModel,
-                            state = "Consegnato",
+                            pastOrders[it],
                             iconState = Icons.Filled.Done,
                             actualOrder = false
-                        )
-                        OrderDialog(uiState.value.isReviewClicked,viewModel)
+                        ) { }
+                        OrderDialog(pastOrders[it].orderId,pastOrders[it].userId, uiState.value.isReviewClicked, viewModel)
                     }
                 }
-
-
             }
         }
-    )
+    }
 }
 @Composable
 fun OrderCard(
     viewModel: UserOrdersViewModel?,
-    state:String,
-    iconState:ImageVector,
-    actualOrder:Boolean
+    order: Order,
+    iconState: ImageVector,
+    actualOrder: Boolean,
+    onTrackOrderClick: (orderId: String) -> Unit
 ){
     val optionButtonIcon = if(actualOrder) Icons.Filled.LocalShipping else Icons.Filled.RateReview
     val optionButtonText = if(actualOrder) "Traccia l'ordine" else "Recensisci"
@@ -188,7 +227,7 @@ fun OrderCard(
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    "Ordine #1234",
+                    "Ordine ${order.orderId}",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -196,12 +235,12 @@ fun OrderCard(
                 )
 
                 Text(
-                    text = "Data: 10/05/2024",
+                    text = "Data: ${order.date}",
                     Modifier.padding(vertical = 5.dp)
                 )
 
                 Text(
-                    text = "Totale: $50.00",
+                    text = "Totale: ${order.totalPrice}€",
                 )
             }
 
@@ -226,7 +265,7 @@ fun OrderCard(
                         Modifier.padding(end = 5.dp),
                     )
                     Text(
-                        state,
+                        order.status,
                         style = TextStyle(
                             fontSize = 14.sp,
                         )
@@ -247,6 +286,9 @@ fun OrderCard(
                         .clickable {
                             if (!actualOrder)
                                 viewModel?.setReviewIconClicked(true)
+                            else {
+                                onTrackOrderClick(order.orderId)
+                            }
                         }
                 ){
                     Icon(
@@ -268,7 +310,12 @@ fun OrderCard(
 
 
 @Composable
-fun OrderDialog(fabState: Boolean,viewModel: UserOrdersViewModel){
+fun OrderDialog(
+    orderId: String,
+    userId: String,
+    fabState: Boolean,
+    viewModel: UserOrdersViewModel
+){
 
     var rating by rememberSaveable { mutableFloatStateOf(1f) } //default rating will be 1
     var text by rememberSaveable { mutableStateOf("") }
@@ -314,7 +361,8 @@ fun OrderDialog(fabState: Boolean,viewModel: UserOrdersViewModel){
             },
             dismissButton = {
                 Button(
-                    onClick = {   },
+                    onClick = {viewModel.addOrderReview(orderId,userId,text,rating)
+                              viewModel.setReviewIconClicked(false) },
                     Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 10.dp),
                     shape = RoundedCornerShape(25)

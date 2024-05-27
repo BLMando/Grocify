@@ -3,9 +3,12 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.CheckoutUiState
 import com.example.grocify.model.Address
+import com.example.grocify.model.Order
 import com.example.grocify.model.PaymentMethod
+import com.example.grocify.storage.Storage
 import com.example.grocify.util.maskCardNumber
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -14,12 +17,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import java.math.RoundingMode
+import java.text.DecimalFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class CheckoutViewModel(application: Application):AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
     val uiState: StateFlow<CheckoutUiState> = _uiState.asStateFlow()
 
+    private val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
@@ -37,12 +46,11 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                 }else{
                     val addresses: List<HashMap<String,Any>> = documents.documents[0].get("addresses") as List<HashMap<String,Any>>
                     val paymentMethods: List<HashMap<String,Any>> = documents.documents[0].get("paymentMethods") as List<HashMap<String,Any>>
-                    Log.d("CheckoutViewModel", "$addresses $paymentMethods")
 
                     if(addresses.isEmpty())
                         _uiState.update {
                             it.copy(
-                                result = "Nessun indirizzo aggiunto"
+                                resultAddress = "Nessun indirizzo aggiunto"
                             )
                         }
                     else {
@@ -51,7 +59,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                         if(selectedAddress.isEmpty())
                             _uiState.update {
                                 it.copy(
-                                    result = "Nessun indirizzo selezionato"
+                                    resultAddress = "Nessun indirizzo selezionato"
                                 )
                             }
                         else {
@@ -72,7 +80,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                     if(paymentMethods.isEmpty())
                         _uiState.update {
                             it.copy(
-                                result = "Nessun metodo di pagamento aggiunto"
+                                resultPaymentMethod = "Nessun metodo di pagamento aggiunto"
                             )
                         }
                     else {
@@ -80,7 +88,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                         if(selectedPaymentMethod.isEmpty())
                             _uiState.update {
                                 it.copy(
-                                    result = "Nessun metodo di pagamento selezionato"
+                                    resultPaymentMethod = "Nessun metodo di pagamento selezionato"
                                 )
                             }
                         else {
@@ -100,6 +108,60 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                     }
                 }
             }
+    }
+
+
+    fun createNewOrder(flagCart: String, totalPrice:Double){
+        //prendo ora e data attuali nel formato indicato
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+        val localDate = LocalDateTime.now().format(formatter)
+        val dateTime = localDate.split(" ")
+
+        //arrotondo il prezzo finale alla seconda cifra decimale
+        val df = DecimalFormat("#.##")
+        df.roundingMode = RoundingMode.DOWN
+        val roundedTotalPrice = df.format(totalPrice)
+
+        viewModelScope.launch{
+            //prendo tutti i prodotti dal carrello locale
+            val products = productDao.getProducts(flagCart, auth.currentUser!!.uid).toList()
+            val lightProducts: MutableList<HashMap<String,Any>> = mutableListOf()
+
+            for (product in products){
+                lightProducts.add(
+                    hashMapOf(
+                        "id" to product.id,
+                        "name" to product.name,
+                        "units" to product.units,
+                        "image" to product.image,
+                        "quantity" to product.quantity
+                    )
+                )
+            }
+
+            //creo un nuovo ordine e lo aggiungo al db
+            val newOrder = Order(
+                cart = lightProducts,
+                userId = auth.currentUser!!.uid,
+                status = if(flagCart == "online") "in attesa" else "concluso",
+                destination = "${_uiState.value.currentAddress!!.address} ${_uiState.value.currentAddress!!.civic}",
+                totalPrice = roundedTotalPrice.toDouble(),
+                type = flagCart,
+                date = dateTime[0],
+                time = dateTime[1]
+            )
+
+            val ordersRef = db.collection("orders")
+            ordersRef
+                .add(newOrder)
+                .addOnSuccessListener { document ->
+                    val orderId = document.id.hashCode().toString().replace("-","#")
+                    ordersRef.document(document.id).update(
+                        "orderId",orderId
+                    )
+                    _uiState.update { it.copy(orderId = orderId) }
+                }
+        }
     }
 }
 

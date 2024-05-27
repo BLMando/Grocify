@@ -1,7 +1,6 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.CategoryItemsUiState
@@ -11,7 +10,6 @@ import com.example.grocify.model.ProductType
 import com.example.grocify.storage.Storage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +23,8 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
     private val _uiState = MutableStateFlow(CategoryItemsUiState())
     val uiState: StateFlow<CategoryItemsUiState> = _uiState.asStateFlow()
 
-    val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
-    val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
+    private val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
+    private val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth

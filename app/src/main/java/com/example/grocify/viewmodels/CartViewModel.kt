@@ -22,8 +22,8 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(CartUiState())
     val uiState: StateFlow<CartUiState> = _uiState.asStateFlow()
 
-    val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
-    val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
+    private val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
+    private val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth

@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -306,10 +308,11 @@ fun CartItems(
 @Composable
 fun CheckoutBox(
     title: String?,
-    subtotal:String?,
-    shipping:String?,
-    total:String,
+    subtotal: String?,
+    shipping: String?,
+    total: String,
     buttonText: String,
+    buttonEnabled: Boolean = true,
     onCheckoutClick: () -> Unit,
 ) {
     Card (
@@ -399,7 +402,8 @@ fun CheckoutBox(
                 onClick = { onCheckoutClick() },
                 modifier = Modifier
                     .fillMaxWidth(0.95f)
-                    .padding(bottom = 10.dp)
+                    .padding(bottom = 10.dp),
+                enabled = buttonEnabled,
             ) {
                 Text(text = buttonText)
             }

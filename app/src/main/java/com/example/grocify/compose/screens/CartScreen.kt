@@ -3,6 +3,7 @@ package com.example.grocify.compose.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,19 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-
-import com.example.grocify.R
 
 import com.example.grocify.components.CartItems
 
@@ -89,59 +87,87 @@ fun CartScreen(
                     .padding(innerPadding),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        text = "Prodotti aggiunti al carrello",
-                        modifier = Modifier.padding(top = 20.dp, start = 20.dp),
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                if (onlineUiState.productsList.isEmpty()) {
+                    Column(
+                        Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Nessun prodotto nel carrello",
+                            style = TextStyle(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                                textAlign = TextAlign.Center
+                            )
                         )
-                    )
+                    }
+                }else {
+                    Column {
+                        Text(
+                            text = "Prodotti aggiunti al carrello",
+                            modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp
+                            )
+                        )
 
-                    Divider(
-                        color = Color.LightGray,
-                        thickness = 0.6.dp,
-                        modifier = Modifier.padding(start= 20.dp,top = 10.dp,end = 20.dp,bottom = 15.dp),
-                    )
+                        Divider(
+                            color = Color.LightGray,
+                            thickness = 0.6.dp,
+                            modifier = Modifier.padding(
+                                start = 20.dp,
+                                top = 10.dp,
+                                end = 20.dp,
+                                bottom = 15.dp
+                            ),
+                        )
 
 
-                    LazyColumn (
-                        modifier = Modifier.weight(1f)
-                    ){
-                        if(onlineUiState.productsList != emptyList<Product>()){
-                            items(onlineUiState.productsList.size) { index ->
-                                val product = onlineUiState.productsList[index]
-                                product.let {
-                                    CartItems(
-                                        id = it.id,
-                                        name = it.name,
-                                        price = it.price,
-                                        quantity = it.quantity,
-                                        image = it.image,
-                                        units = it.units,
-                                        viewModel = viewModel,
-                                        flagCart = "online"
-                                    )
+                        LazyColumn(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if (onlineUiState.productsList != emptyList<Product>()) {
+                                items(onlineUiState.productsList.size) { index ->
+                                    val product = onlineUiState.productsList[index]
+                                    product.let {
+                                        CartItems(
+                                            id = it.id,
+                                            name = it.name,
+                                            price = it.price,
+                                            quantity = it.quantity,
+                                            image = it.image,
+                                            units = it.units,
+                                            viewModel = viewModel,
+                                            flagCart = "online"
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
-                    if (onlineUiState.productsList!= emptyList<Product>()){
-                        val shipping = "1.50"
-                        if(anyToDouble(onlineUiState.totalPrice)!! > 1.5){
-                            CheckoutBox(
-                                "Riepilogo ordine",
-                                (String.format("%.2f",(onlineUiState.totalPrice - shipping.toDouble()))).replace(',', '.') + "€",
-                                shipping + "€",
-                                (String.format("%.2f", onlineUiState.totalPrice)).replace(',', '.') + "€",
-                                "Checkout",
-                                onCheckoutClick = {onCheckoutClick(onlineUiState.totalPrice.toString())},
-                            )
+                        if (onlineUiState.productsList != emptyList<Product>()) {
+                            val shipping = "1.50"
+                            if (anyToDouble(onlineUiState.totalPrice)!! > 1.5) {
+                                CheckoutBox(
+                                    "Riepilogo ordine",
+                                    (String.format(
+                                        "%.2f",
+                                        (onlineUiState.totalPrice - shipping.toDouble())
+                                    )).replace(',', '.') + "€",
+                                    shipping + "€",
+                                    (String.format("%.2f", onlineUiState.totalPrice)).replace(
+                                        ',',
+                                        '.'
+                                    ) + "€",
+                                    "Checkout",
+                                    onCheckoutClick = { onCheckoutClick(onlineUiState.totalPrice.toString()) },
+                                )
 
+                            }
                         }
                     }
-
                 }
             }
         }

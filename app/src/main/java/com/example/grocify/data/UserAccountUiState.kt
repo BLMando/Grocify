@@ -1,6 +1,7 @@
 package com.example.grocify.data
 
 import com.example.grocify.model.Address
+import com.example.grocify.model.Order
 import com.example.grocify.model.PaymentMethod
 import com.example.grocify.model.User
 
@@ -45,7 +46,8 @@ data class UserAddressesUiState(
 )
 
 data class UserOrdersUiState(
-    val isReviewClicked: Boolean = false
+    val isReviewClicked: Boolean = false,
+    val orders:  List<Order> = emptyList()
 )
 
 data class UserPaymentMethodsUiState(

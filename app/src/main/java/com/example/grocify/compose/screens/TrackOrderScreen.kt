@@ -42,6 +42,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +59,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,12 +71,25 @@ import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.data.TrackOrderUiState
+import com.example.grocify.viewmodels.TrackOrderViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackOrderScreen(
-    onBackClick: () -> Unit
+    viewModel: TrackOrderViewModel = viewModel(),
+    onBackClick: () -> Unit,
+    orderId: String
 ){
+
+    val uiState = viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getCurrentOrder(orderId)
+        viewModel.getUserName(orderId)
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -83,9 +99,9 @@ fun TrackOrderScreen(
                     .shadow(10.dp, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)),
                 title = {
                     Text(
-                        text= "Stato dell'ordine #1234",
+                        text= "Stato dell'ordine",
                         style = TextStyle(
-                            fontSize = 26.sp,
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
                         )
@@ -111,32 +127,60 @@ fun TrackOrderScreen(
             ){
                 Column (
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = 50.dp),
+                        .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    TrackingState(Icons.Filled.LocalShipping,"Ordine in corso di elaborazione","Stiamo preparando il tuo ordine. 22 Aprile 2024, 15:30",true)
-                    TrackingState(Icons.Filled.AccessTimeFilled,"In preparazione","Stiamo impacchettando la tua spesa. 22 Aprile 2024, 15:50",true)
-                    TrackingState(Icons.Filled.Map,"In consegna","La tua spesa è in arrivo con un nostro driver",false)
-                    TrackingState(Icons.Filled.CheckCircle,"Consegnato","La tua spesa è stata consegnata. 22 Aprile 2024, 16:30",false)
+
+                    Row(
+                       Modifier
+                           .fillMaxWidth()
+                           .padding(start = 30.dp, bottom = 30.dp),
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Text(
+                            text = "N° $orderId",
+                            style = TextStyle(
+                                fontSize = 20.sp,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    }
+
+                    TrackingState(
+                        Icons.Filled.LocalShipping,
+                        "Ordine in corso di elaborazione",
+                        "Stiamo preparando il tuo ordine. ${uiState.value.order.date}, ${uiState.value.order.time}",
+                        true
+                    )
+                    TrackingState(
+                        Icons.Filled.AccessTimeFilled,
+                        "In preparazione",
+                        "Stiamo impacchettando la tua spesa. 22 Aprile 2024, 15:50",
+                        uiState.value.order.status == "in preparazione" || uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
+                    )
+                    TrackingState(
+                        Icons.Filled.Map,
+                        "In consegna",
+                        "La tua spesa è in arrivo con un nostro driver",
+                        uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
+                    )
+                    TrackingState(
+                        Icons.Filled.CheckCircle,
+                        "Consegnato",
+                        "La tua spesa è stata consegnata, apri il QRCode in basso. 22 Aprile 2024, 16:30",
+                        uiState.value.order.status == "consegnato"
+                    )
                 }
 
-
-                SwipeUp()
-                QRCodeInfo()
+                QRCodeInfo(uiState.value,orderId)
             }
         }
     )
 }
 
-@Composable
-fun SwipeUp() {
-
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QRCodeInfo() {
+fun QRCodeInfo(state: TrackOrderUiState, orderId: String) {
 
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -152,12 +196,13 @@ fun QRCodeInfo() {
     )
 
     Column(
-        Modifier.fillMaxWidth()
+        Modifier
+            .fillMaxWidth()
             .padding(bottom = 20.dp)
             .pointerInput(Unit) {
                 detectDragGestures(
                     onDrag = { _, _ -> /* Handle drag if needed */ },
-                    onDragEnd = {showBottomSheet = true},
+                    onDragEnd = { showBottomSheet = true },
                 )
             },
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -211,7 +256,7 @@ fun QRCodeInfo() {
                         style = TextStyle(fontSize = 18.sp)
                     )
                     Text(
-                        text = "Mattia Mandorlini",
+                        text = "${state.name} ${state.surname}",
                         style = TextStyle(fontSize = 18.sp)
                     )
                 }
@@ -222,11 +267,11 @@ fun QRCodeInfo() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ){
                     Text(
-                        text = "Quantità:",
+                        text = "Numero di prodotti:",
                         style = TextStyle(fontSize = 18.sp)
                     )
                     Text(
-                        text = "6 prodotti",
+                        text = "${state.order.cart.size}",
                         style = TextStyle(fontSize = 18.sp)
                     )
                 }
@@ -241,7 +286,7 @@ fun QRCodeInfo() {
                         style = TextStyle(fontSize = 18.sp)
                     )
                     Text(
-                        text = "$145.00",
+                        text = "${state.order.totalPrice}€",
                         style = TextStyle(fontSize = 18.sp)
                     )
                 }
@@ -261,7 +306,7 @@ fun QRCodeInfo() {
                         modifier = Modifier.padding(top = 10.dp)
                     )
                     Image(
-                        bitmap = qrCodeGenerator().asImageBitmap(),
+                        bitmap = qrCodeGenerator(orderId).asImageBitmap(),
                         contentDescription = "QR Code"
                     )
                 }
@@ -269,11 +314,11 @@ fun QRCodeInfo() {
         }
 }
 
-fun qrCodeGenerator(): Bitmap {
+fun qrCodeGenerator(orderId: String): Bitmap {
     val mfw = MultiFormatWriter()
 
     try {
-        val bitMatrix: BitMatrix = mfw.encode("Prova", BarcodeFormat.QR_CODE, 600, 600)
+        val bitMatrix: BitMatrix = mfw.encode(orderId, BarcodeFormat.QR_CODE, 600, 600)
         val barcodeEncoder = BarcodeEncoder()
 
         return barcodeEncoder.createBitmap(bitMatrix)

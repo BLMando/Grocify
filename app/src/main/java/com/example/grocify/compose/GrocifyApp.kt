@@ -78,7 +78,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                         navController.navigate(Screen.CategoryItems.createRoute(
                             categoryId = it
                         ))},
-                    onGiftClick = {navController.navigate(Screen.CheckoutScreen.route)},
+                    onGiftClick = onGiftClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick
                 )
@@ -163,7 +163,10 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.UserOrders.route){
                 UserOrdersScreen(
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onTrackOrderClick = { navController.navigate(Screen.TrackOrderScreen.createRoute(
+                        orderId = it
+                    )) }
                 )
             }
 
@@ -173,6 +176,14 @@ fun GrocifyNavHost(navController: NavHostController) {
             ) { backStackEntry ->
                 val flagCart = backStackEntry.arguments?.getString("flagCart")
                 val totalPrice = backStackEntry.arguments?.getString("totalPrice")
+                val onConfirmClick: (String, String) -> Unit = { _ , orderId ->
+                    navController.navigate(
+                        Screen.OrderSuccessScreen.createRoute(
+                            flagCart = flagCart!!,
+                            orderId = orderId
+                        )
+                    )
+                }
                 CheckoutScreen(
                     flagCart = flagCart!!,
                     totalPrice = totalPrice!!,
@@ -182,26 +193,34 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
                     onVirtualCartClick = onVirtualCartClick,
-                    onConfirmClick = { navController.navigate(Screen.OrderSuccessScreen.createRoute(
-                        flagCart = it,
-                    ))},
+                    onConfirmClick = onConfirmClick
                 )
             }
+
             composable(
                 route = Screen.OrderSuccessScreen.route,
                 arguments = Screen.OrderSuccessScreen.navArguments
             )
             { backStackEntry ->
                 val flagCart = backStackEntry.arguments?.getString("flagCart")
+                val orderId = backStackEntry.arguments?.getString("orderId")
                 OrderSuccessScreen(
                     flagCart = flagCart!!,
+                    orderId = orderId!!,
                     onHomeClick = onCatalogClick,
-                    onTrackOrder = { navController.navigate(Screen.TrackOrderScreen.route) }
+                    onTrackOrderClick = { navController.navigate(Screen.TrackOrderScreen.createRoute(
+                        orderId = orderId
+                    )) }
                 )
             }
 
-            composable(route = Screen.TrackOrderScreen.route){
+            composable(
+                route = Screen.TrackOrderScreen.route,
+                arguments = Screen.TrackOrderScreen.navArguments
+            ){ backStackEntry ->
+                val orderId = backStackEntry.arguments?.getString("orderId")
                 TrackOrderScreen(
+                    orderId = orderId!!,
                     onBackClick = onCatalogClick
                 )
             }
@@ -214,7 +233,9 @@ fun GrocifyNavHost(navController: NavHostController) {
             startDestination = Screen.HomeDriverScreen.route
         ){
             composable(route = Screen.HomeDriverScreen.route){
-                HomeDriverScreen()
+                HomeDriverScreen(
+                    onGroceryClick = {}
+                )
             }
 
             composable(route = Screen.MapScreen.route){
@@ -226,6 +247,8 @@ fun GrocifyNavHost(navController: NavHostController) {
         }
         //END DRIVER SCREENS
 
+
+        //ADMIN SCREENS
         navigation(
             route = "admin",
             startDestination = Screen.HomeAdminScreen.route
@@ -234,7 +257,6 @@ fun GrocifyNavHost(navController: NavHostController) {
                 HomeAdminScreen()
             }
         }
-
-
+        //END ADMIN SCREENS
     }
 }

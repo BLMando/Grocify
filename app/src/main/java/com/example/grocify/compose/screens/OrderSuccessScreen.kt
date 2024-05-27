@@ -30,8 +30,9 @@ import com.example.grocify.R
 @Composable
 fun OrderSuccessScreen(
     flagCart: String,
+    orderId: String,
     onHomeClick: () -> Unit,
-    onTrackOrder: () -> Unit,
+    onTrackOrderClick: (orderId: String) -> Unit,
 ){
     Column (
         Modifier
@@ -39,75 +40,89 @@ fun OrderSuccessScreen(
             .background(Color.White)
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.Center
     ){
-
-        Text(
-            text = "Perfetto!",
-            style = TextStyle(
-                fontSize = 40.sp,
-                textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.4f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Perfetto!",
+                style = TextStyle(
+                    fontSize = 40.sp,
+                    textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.Bold
+                ),
+                modifier = Modifier.padding(bottom = 40.dp)
             )
-        )
-        Column (
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ){
+
             Image(
                 painter = painterResource(id = R.drawable.icon),
                 contentDescription = "app icon",
-                modifier = Modifier.size(160.dp).padding(bottom = 20.dp)
+                modifier = Modifier.size(160.dp)
             )
+        }
+
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.4f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
             Text(
                 text = "Il tuo ordine è stato effettuato con successo!",
                 style = TextStyle(
                     fontSize = 30.sp,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+
             )
-        }
 
-        Row (
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            Button(
-                onClick = onHomeClick,
-                contentPadding = PaddingValues(
-                    start = 20.dp,
-                    end = 20.dp,
-                    top = 15.dp,
-                    bottom = 15.dp
-                )
+            Row (
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                Text(
-                    text = "Ritorna al catalogo",
-
-                    )
-            }
-            if(flagCart == "online")
-                OutlinedButton(
-                    onClick = onTrackOrder,
+                Button(
+                    onClick = onHomeClick,
                     contentPadding = PaddingValues(
                         start = 20.dp,
                         end = 20.dp,
                         top = 15.dp,
                         bottom = 15.dp
-                    ),
-                    border = BorderStroke(
-                        1.dp,
-                        Color.Black
                     )
                 ) {
                     Text(
-                        text = "Monitora l'ordine",
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            color = Color.Black
-                        )
+                        text = "Ritorna al catalogo"
                     )
                 }
+                if(flagCart == "online")
+                    OutlinedButton(
+                        onClick = { onTrackOrderClick(orderId) },
+                        contentPadding = PaddingValues(
+                            start = 20.dp,
+                            end = 20.dp,
+                            top = 15.dp,
+                            bottom = 15.dp
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            Color.Black
+                        )
+                    ) {
+                        Text(
+                            text = "Monitora l'ordine",
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = Color.Black
+                            )
+                        )
+                    }
+            }
         }
     }
 }

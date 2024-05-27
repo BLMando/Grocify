@@ -44,17 +44,29 @@ sealed class Screen(
     }
 
     data object OrderSuccessScreen: Screen(
-        route = "order_success/{flagCart}",
+        route = "order_success/{flagCart}/{orderId}",
         navArguments = listOf(
             navArgument("flagCart") {
+                type = NavType.StringType
+            },
+            navArgument("orderId") {
                 type = NavType.StringType
             }
         )
     ){
-        fun createRoute(flagCart: String) = "order_success/${flagCart}"
+        fun createRoute(flagCart: String,orderId: String) = "order_success/${flagCart}/${orderId}"
     }
 
-    data object TrackOrderScreen: Screen("track_order")
+    data object TrackOrderScreen: Screen(
+        route = "track_order/{orderId}",
+        navArguments = listOf(
+            navArgument("orderId") {
+                type = NavType.StringType
+            }
+        )
+    ){
+        fun createRoute(orderId:String) = "track_order/${orderId}"
+    }
     //END USER ROUTES
 
 

@@ -1,8 +1,8 @@
 package com.example.grocify.compose.screens
 
 
-import androidx.compose.foundation.clickable
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,12 +39,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.components.CheckoutBox
 import com.example.grocify.components.UserBottomNavigation
-import com.example.grocify.ui.theme.BlueLight
-
-import com.example.grocify.viewmodels.CheckoutViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.data.CheckoutUiState
+import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.util.anyToDouble
+import com.example.grocify.viewmodels.CheckoutViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,18 +57,20 @@ fun CheckoutScreen(
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
     onVirtualCartClick: () -> Unit,
-    onConfirmClick: (flagCart: String) -> Unit,
+    onConfirmClick: (flagCart:String, orderId:String) -> Unit,
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getCurrentInfo()
-        Log.v("checkout", flagCart)
-        Log.v("checkout", totalPrice)
     }
 
-
+    LaunchedEffect(key1 = uiState.value.orderId) {
+        if(uiState.value.orderId.isNotEmpty()){
+            onConfirmClick(flagCart,uiState.value.orderId)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -102,40 +102,41 @@ fun CheckoutScreen(
                 onPhysicalCartClick = {},
                 onVirtualCartClick = onVirtualCartClick
             )
-        },
-        content = { innerPadding ->
-            Column (
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .padding(innerPadding),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Informazioni",
-                        style = TextStyle(
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                        ),
-                        modifier = Modifier.padding(start=15.dp,top=15.dp, bottom = 10.dp)
-                    )
-                    PaymentOptionsCard(onPaymentMethodClick,uiState.value)
-                    DeliveryOptionCard(onAddressClick,uiState.value)
-                }
-
-                val shipping = "1.50"
-                CheckoutBox(
-                    "Riepilogo ordine",
-                    if(flagCart == "online") (String.format("%.2f",(anyToDouble(totalPrice)!! - anyToDouble(shipping)!!))).replace(',', '.') + "€" else null,
-                    if(flagCart == "online") shipping + "€" else null,
-                    (String.format("%.2f", anyToDouble(totalPrice))).replace(',', '.') + "€",
-                    "Conferma",
-                    {onConfirmClick(flagCart)},
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "Informazioni",
+                    style = TextStyle(
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    modifier = Modifier.padding(start = 15.dp, top = 15.dp, bottom = 10.dp)
                 )
+                PaymentOptionsCard(onPaymentMethodClick, uiState.value)
+                DeliveryOptionCard(onAddressClick, uiState.value)
             }
 
+            val shipping = "1.50"
+            CheckoutBox(
+                "Riepilogo ordine",
+                if (flagCart == "online") (String.format("%.2f", (anyToDouble(totalPrice)!! - anyToDouble(shipping)!!))).replace(',', '.') + "€" else null,
+                if (flagCart == "online") shipping + "€" else null,
+                (String.format("%.2f", anyToDouble(totalPrice))).replace(',', '.') + "€",
+                "Conferma",
+                buttonEnabled = uiState.value.result.isEmpty() && uiState.value.resultAddress.isEmpty() && uiState.value.resultPaymentMethod.isEmpty()
+            ) {
+                viewModel.createNewOrder(flagCart,anyToDouble(totalPrice)!!)
+            }
         }
-    )
+
+    }
 }
 
 @Composable
@@ -182,7 +183,7 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if(uiState.result.isEmpty()){
+                if(uiState.resultAddress.isEmpty()){
                     uiState.currentAddress?.let {
                         Text(
                             text = it.name
@@ -193,7 +194,7 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
                     )
                 }else{
                     Text(
-                        text = uiState.result
+                        text = uiState.resultAddress
                     )
                 }
             }
@@ -245,7 +246,7 @@ fun PaymentOptionsCard(onPaymentMethodClick: () -> Unit, uiState: CheckoutUiStat
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if(uiState.result.isEmpty()){
+                if(uiState.resultPaymentMethod.isEmpty()){
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ){
@@ -270,7 +271,7 @@ fun PaymentOptionsCard(onPaymentMethodClick: () -> Unit, uiState: CheckoutUiStat
                     }
                 }else{
                     Text(
-                        text = uiState.result
+                        text = uiState.resultPaymentMethod
                     )
                 }
             }

@@ -119,6 +119,7 @@ fun CategoryItemsScreen(
         },
         bottomBar = {
             UserBottomNavigation(
+                ref = "catalog",
                 onCatalogClick = onCatalogClick,
                 onGiftClick = onGiftClick,
                 onPhysicalCartClick = onPhysicalCartClick,
