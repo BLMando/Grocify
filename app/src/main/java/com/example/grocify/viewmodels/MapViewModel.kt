@@ -102,9 +102,6 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         mapFragment.getMapAsync { map ->
             tomTomMap = map
             enableUserLocation()
-
-            //tomTomMap.addMapLongClickListener(mapLongClickListener)
-
             mapFragment.zoomControlsView.isVisible = true
             mapFragment.scaleView.units = UnitSystem.Metric
             mapFragment.logoView.visibilityPolicy = LogoView.VisibilityPolicy.Invisible
@@ -194,22 +191,14 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         tomTomMap.enableLocationMarker(locationMarker)
     }
 
-
-    /*private val mapLongClickListener = MapLongClickListener { geoPoint ->
-        tomTomMap.clear()
-        calculateRouteTo(geoPoint)
-        true
-    }*/
-
     private fun isNavigationRunning(): Boolean = tomTomNavigation.navigationSnapshot != null
-
 
     /**
      * Crea la rotta a partire dalla posizione correte fino alla destinazione selezionata
      */
     suspend fun calculateRouteTo() {
         val destination = getUserLocation()
-        Log.d("MapViewModel", "destination: $destination")
+        Log.d("MapViewModel", "Destination: ${tomTomMap.currentLocation?.position}")
         val userLocation = tomTomMap.currentLocation?.position ?: return
         val itinerary = Itinerary(origin = userLocation, destination = destination!!)
         routePlanningOptions = RoutePlanningOptions(
@@ -222,6 +211,29 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             vehicle = Vehicle.Car()
         )
         routePlanner.planRoute(routePlanningOptions, routePlanningCallback)
+    }
+
+    private suspend fun getUserLocation(): GeoPoint? = withContext(Dispatchers.Main) {
+        val deferred = viewModelScope.async(Dispatchers.IO) {
+            try {
+                val response = RetrofitObject.apiService.getUserLocation("Strada provinciale montottonese sud 18", apiKey)
+                if (response.isSuccessful && response.body() != null) {
+                    val lat = response.body()!!.results[0].entryPoints[0].position.lat
+                    val lon = response.body()!!.results[0].entryPoints[0].position.lon
+                    GeoPoint(lat, lon)
+                } else {
+                    Log.d("MapViewModel", "Not successful")
+                    null
+                }
+            } catch (e: IOException) {
+                Log.d("MapViewModel", "No internet connection")
+                null
+            } catch (e: HttpException) {
+                Log.d("MapViewModel", "Unexpected response")
+                null
+            }
+        }
+        deferred.await()
     }
 
     /**
@@ -407,37 +419,13 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     private fun setLocationDialogState() {
-        _uiState.update { it.copy(locationAcquired = false) }
-    }
-
-    private suspend fun getUserLocation(): GeoPoint? = withContext(Dispatchers.Main) {
-        val deferred = viewModelScope.async(Dispatchers.IO) {
-            try {
-                val response = RetrofitObject.apiService.getUserLocation("Strada provinciale montottonese sud 18", apiKey)
-                if (response.isSuccessful && response.body() != null) {
-                    Log.d("MapViewModel", "Successful")
-                    val lat = response.body()!!.results[0].entryPoints[0].position.lat
-                    val lon = response.body()!!.results[0].entryPoints[0].position.lon
-                    GeoPoint(lat, lon)
-                } else {
-                    Log.d("MapViewModel", "Not successful")
-                    null
-                }
-            } catch (e: IOException) {
-                Log.d("MapViewModel", "No internet connection")
-                null
-            } catch (e: HttpException) {
-                Log.d("MapViewModel", "Unexpected response")
-                null
-            }
-        }
-        deferred.await()
+        _uiState.update { it.copy(locationAcquired = true) }
     }
 
     private fun resetMapSize() = run { _uiState.update { it.copy(mapHeight = 600.dp, mapWidth = 400.dp) } }
 
     companion object {
-        private const val ZOOM_TO_ROUTE_PADDING = 100
+        private const val ZOOM_TO_ROUTE_PADDING = 200
     }
 
 }

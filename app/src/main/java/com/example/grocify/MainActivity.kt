@@ -18,9 +18,7 @@ class MainActivity : AppCompatActivity() {
 
         setContent {
             GrocifyTheme {
-              MapScreen(context = this) {
-                  
-              }
+              GrocifyApp()
             }
         }
     }

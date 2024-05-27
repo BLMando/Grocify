@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,7 +38,9 @@ import com.example.grocify.ui.theme.BlueDark
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeDriverScreen() {
+fun HomeDriverScreen(
+    onGroceryClick: () -> Unit
+) {
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
@@ -65,7 +66,7 @@ fun HomeDriverScreen() {
             ) {
                 items(5){
                     Spacer(modifier = Modifier.size(20.dp))
-                    OrderItem()
+                    OrderItem(onGroceryClick)
                     Spacer(modifier = Modifier.size(10.dp))
                 }
             }
@@ -74,7 +75,7 @@ fun HomeDriverScreen() {
 }
 
 @Composable
-fun OrderItem(){
+fun OrderItem(onGroceryClick: () -> Unit) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -83,15 +84,13 @@ fun OrderItem(){
             defaultElevation = 6.dp
         ),
         modifier = Modifier
-            .height(IntrinsicSize.Min)
-            .width(IntrinsicSize.Min)
+            .height(IntrinsicSize.Max)
+            .fillMaxWidth(0.9f)
             .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
             .clip(RoundedCornerShape(20.dp))
     ) {
         Column(
             modifier = Modifier
-                .height(IntrinsicSize.Min)
-                .width(IntrinsicSize.Min)
                 .padding(15.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -166,13 +165,13 @@ fun OrderItem(){
             }
 
             Button(
-                onClick = { /*TODO*/ },
-                shape = RoundedCornerShape(50),
+                onClick = onGroceryClick,
+                shape = RoundedCornerShape(25),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = BlueDark
                 ),
                 modifier = Modifier
-                    .width(325.dp)
+                    .fillMaxWidth()
             ) {
                 Icon(
                     imageVector = Icons.Filled.Visibility,
