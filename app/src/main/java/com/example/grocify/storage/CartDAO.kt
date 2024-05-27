@@ -10,15 +10,15 @@ interface CartDAO {
     @Insert
     suspend fun insertCart(vararg cart: Cart)
 
-    @Query("SELECT * FROM Carts WHERE type = :type")
-    suspend fun getCart(type: String): MutableList<Cart>
+    @Query("SELECT * FROM Carts WHERE  type = :type AND userId = :userId")
+    suspend fun getCart(type: String, userId: String): MutableList<Cart>
 
-    @Query("SELECT totalPrice FROM Carts WHERE type = :type")
-    suspend fun getTotalPrice(type: String): Double
+    @Query("SELECT totalPrice FROM Carts WHERE  type = :type AND userId = :userId")
+    suspend fun getTotalPrice(type: String, userId: String): Double
 
-    @Query("UPDATE Carts SET totalPrice = totalPrice + :value WHERE type = :type")
-    fun addValueToTotalPrice(type: String, value: Double)
+    @Query("UPDATE Carts SET totalPrice = totalPrice + :value WHERE  type = :type AND userId = :userId")
+    fun addValueToTotalPrice(type: String, userId: String, value: Double)
 
-    @Query("DELETE FROM Carts WHERE  type = :type")
-    fun deleteCart(type: String)
+    @Query("DELETE FROM Carts WHERE type = :type AND userId = :userId")
+    fun deleteCart(type: String, userId: String)
 }
