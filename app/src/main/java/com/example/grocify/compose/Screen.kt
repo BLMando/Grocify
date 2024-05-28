@@ -72,7 +72,17 @@ sealed class Screen(
 
     //DRIVER ROUTES
     data object HomeDriverScreen: Screen("home_driver")
-    data object OrderDetailsScreen: Screen("order_details")
+    data object OrderDetailsScreen: Screen(
+        route = "order_details/{orderId}",
+        navArguments = listOf(
+            navArgument("orderId") {
+                type = NavType.StringType
+            }
+        )
+    ){
+        fun createRoute(orderId:String) = "order_details/${orderId}"
+    }
+
     data object MapScreen:  Screen("map")
     //END DRIVER ROUTES
 

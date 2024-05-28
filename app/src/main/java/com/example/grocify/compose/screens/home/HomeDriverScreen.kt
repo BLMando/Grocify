@@ -1,5 +1,6 @@
 package com.example.grocify.compose.screens.home
 
+import android.app.Activity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -21,9 +23,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,20 +39,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.grocify.model.Order
 import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.viewmodels.HomeDriverViewModel
+import com.google.android.gms.auth.api.identity.Identity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeDriverScreen(
-    onGroceryClick: () -> Unit
+    context: Activity,
+    onLogOutClick: () -> Unit,
+    onGroceryClick: (orderId: String) -> Unit
 ) {
+    val viewModel: HomeDriverViewModel = viewModel(factory = viewModelFactory {
+        addInitializer(HomeDriverViewModel::class) {
+            HomeDriverViewModel(context.application, Identity.getSignInClient(context))
+        }
+    })
+
+    val uiState = viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getOrders()
+    }
+
+
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
                 modifier = Modifier.shadow(10.dp, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)),
                 title = {
                     Text(
-                        text = "Ordini del 4 Marzo",
+                        text = "Gli ordini di oggi",
                         style = TextStyle(
                             fontSize = 30.sp,
                             fontWeight = FontWeight(500),
@@ -55,6 +80,16 @@ fun HomeDriverScreen(
                             textAlign = TextAlign.Center
                         ),
                     )
+                },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.signOut(); onLogOutClick() }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Logout,
+                            contentDescription = "Profile icon"
+                        )
+                    }
                 }
             )
         },
@@ -64,9 +99,9 @@ fun HomeDriverScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 contentPadding = innerPadding
             ) {
-                items(5){
+                items(uiState.value.orders.size){
                     Spacer(modifier = Modifier.size(20.dp))
-                    OrderItem(onGroceryClick)
+                    OrderItem({ onGroceryClick(uiState.value.orders[it].orderId) },uiState.value.orders[it])
                     Spacer(modifier = Modifier.size(10.dp))
                 }
             }
@@ -75,7 +110,7 @@ fun HomeDriverScreen(
 }
 
 @Composable
-fun OrderItem(onGroceryClick: () -> Unit) {
+fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -102,12 +137,12 @@ fun OrderItem(onGroceryClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "#12345",
+                    text = order.orderId,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
                 Text(
-                    text = "Ora: 17:30",
+                    text = "Ora: ${order.time}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
@@ -125,7 +160,7 @@ fun OrderItem(onGroceryClick: () -> Unit) {
                     fontSize = 15.sp,
                 )
                 Text(
-                    text = "Porto San Giorio, Via Cavour",
+                    text = order.destination,
                     fontSize = 15.sp
                 )
             }
@@ -142,7 +177,7 @@ fun OrderItem(onGroceryClick: () -> Unit) {
                     fontSize = 15.sp
                 )
                 Text(
-                    text = "12",
+                    text = order.cart.size.toString(),
                     fontSize = 15.sp
                 )
             }
@@ -159,7 +194,7 @@ fun OrderItem(onGroceryClick: () -> Unit) {
                     fontSize = 15.sp
                 )
                 Text(
-                    text = "50.00$",
+                    text = "${order.totalPrice}€",
                     fontSize = 15.sp
                 )
             }

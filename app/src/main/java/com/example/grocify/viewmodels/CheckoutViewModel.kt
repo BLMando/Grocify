@@ -1,7 +1,6 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.CheckoutUiState
@@ -160,6 +159,21 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                         "orderId",orderId
                     )
                     _uiState.update { it.copy(orderId = orderId) }
+                }
+        }
+    }
+
+    fun userHasRunningOrder(){
+        viewModelScope.launch {
+            //controllo se l'utente ha già un ordine in corso
+            db.collection("orders")
+                .whereEqualTo("userId", auth.currentUser!!.uid)
+                .whereNotEqualTo("status", "concluso")
+                .get()
+                .addOnSuccessListener { documents ->
+                        _uiState.update { it.copy(
+                            userHasRunningOrder = !documents.isEmpty
+                        ) }
                 }
         }
     }

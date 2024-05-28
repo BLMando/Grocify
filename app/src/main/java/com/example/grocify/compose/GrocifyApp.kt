@@ -16,6 +16,7 @@ import com.example.grocify.compose.screens.CategoryItemsScreen
 import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.MapScreen
+import com.example.grocify.compose.screens.OrderDetailsScreen
 import com.example.grocify.compose.screens.OrderSuccessScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
@@ -232,9 +233,25 @@ fun GrocifyNavHost(navController: NavHostController) {
             route = "driver",
             startDestination = Screen.HomeDriverScreen.route
         ){
+
             composable(route = Screen.HomeDriverScreen.route){
                 HomeDriverScreen(
-                    onGroceryClick = {}
+                    context = activity,
+                    onLogOutClick = { navController.navigate(Screen.SignInScreen.route) },
+                    onGroceryClick = {navController.navigate(Screen.OrderDetailsScreen.createRoute(
+                        orderId = it
+                    ))}
+                )
+            }
+
+            composable(
+                route = Screen.OrderDetailsScreen.route,
+                arguments = Screen.OrderDetailsScreen.navArguments
+            ){ backStackEntry ->
+                val orderId = backStackEntry.arguments?.getString("orderId")
+                OrderDetailsScreen(
+                    orderId = orderId!!,
+                    onBackClick = {navController.popBackStack()}
                 )
             }
 
@@ -245,6 +262,8 @@ fun GrocifyNavHost(navController: NavHostController) {
                 )
             }
         }
+
+
         //END DRIVER SCREENS
 
 

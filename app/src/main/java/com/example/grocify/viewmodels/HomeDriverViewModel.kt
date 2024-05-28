@@ -3,9 +3,9 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.UserOrdersUiState
+import com.example.grocify.data.HomeDriverUiState
 import com.example.grocify.model.Order
-import com.example.grocify.model.Review
+import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -14,26 +14,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.CancellationException
 
-class UserOrdersViewModel (application: Application): AndroidViewModel(application) {
+class HomeDriverViewModel(application: Application,private val mOneTapClient: SignInClient):AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(UserOrdersUiState())
-    val uiState: StateFlow<UserOrdersUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeDriverUiState())
+    val uiState:StateFlow<HomeDriverUiState> = _uiState.asStateFlow()
 
-    private val db = Firebase.firestore
     private val auth = Firebase.auth
-    fun setReviewIconClicked(value: Boolean) = run {
-        _uiState.update { currentState ->
-            currentState.copy(
-                isReviewClicked = value
-            )
-        }
-    }
+    private val db = Firebase.firestore
 
-    fun getAllOrders(){
+    fun getOrders(){
+        val currentDate = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
         viewModelScope.launch {
             db.collection("orders")
-                .whereEqualTo("userId",auth.currentUser!!.uid)
+                .whereEqualTo("date", currentDate.format(formatter) )
                 .get()
                 .addOnSuccessListener { documents ->
                     val ordersList:MutableList<Order> = mutableListOf()
@@ -49,20 +48,17 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
         }
     }
 
-    fun addOrderReview(orderId: String, userId: String, text: String, rating: Float){
+    fun signOut(){
         viewModelScope.launch {
-           db.collection("orders_reviews")
-               .add(
-                   Review(
-                       orderId = orderId,
-                       userId = userId,
-                       review = text,
-                       rating = rating
-                   )
-               ).addOnSuccessListener {
-                   _uiState.update { it.copy(hasReview = true) }
-               }
+            try {
+                mOneTapClient.signOut()
+                auth.signOut()
+            }catch(e: Exception){
+                e.printStackTrace()
+                if(e is CancellationException) throw  e
+            }
         }
     }
+
 
 }

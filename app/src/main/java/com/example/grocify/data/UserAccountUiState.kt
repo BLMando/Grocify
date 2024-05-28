@@ -47,6 +47,7 @@ data class UserAddressesUiState(
 
 data class UserOrdersUiState(
     val isReviewClicked: Boolean = false,
+    val hasReview: Boolean = false,
     val orders:  List<Order> = emptyList()
 )
 

@@ -27,6 +27,8 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +54,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.AndroidViewModel
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -66,61 +70,6 @@ import com.example.grocify.viewmodels.CartViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@Composable
-fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composable () -> Unit ){
-
-    val painter = // You can customize image loading parameters here if needed
-        rememberAsyncImagePainter(
-            ImageRequest.Builder(LocalContext.current).data(data = image).apply(block = fun ImageRequest.Builder.() {
-                // You can customize image loading parameters here if needed
-            }).build()
-        )
-    Row (
-        Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 10.dp)
-            .height(100.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ){
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start =10.dp)
-        ){
-            Image(
-                painter = painter,
-                contentDescription = "food",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(85.dp)
-                    .padding(2.dp)
-                    .clip(RoundedCornerShape(15.dp))
-            )
-            Column (Modifier.padding(start = 10.dp)) {
-                Text(
-                    text = name.toString(),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    ),
-                    modifier = Modifier.padding(bottom = 5.dp)
-                )
-
-
-                Text(
-                    text = "Quantità: $quantity",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Light,
-                        fontSize = 18.sp
-                    )
-                )
-            }
-        }
-
-        content()
-    }
-}
 
 
 
@@ -204,11 +153,11 @@ fun ItemsQuantitySelector(units: Int, id: String, price: Double, viewModel: Cart
 fun CartItems(
     id: String,
     name: String,
-    price: Double,
-    quantity: String,
+    price: Double = 0.0,
+    quantity: String = "",
     image: String,
     units: Int,
-    viewModel: CartViewModel,
+    viewModel: AndroidViewModel,
     flagCart: String
 ) {
     Card(
@@ -236,10 +185,9 @@ fun CartItems(
             ) {
                 SubcomposeAsyncImage(
                     model = image,
-                    contentDescription = name.toString(),
+                    contentDescription = name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        //.padding()
                         .width(170.dp)
                         .height(80.dp)
                         .clip(RoundedCornerShape(20.dp))
@@ -266,36 +214,62 @@ fun CartItems(
                         horizontalAlignment = Alignment.Start
                     ) {
                         Text(
-                            text = checkName(name.toString()),
+                            text = checkName(name),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             modifier = Modifier.padding(bottom = 10.dp)
                         )
-                        Text(
-                            //text = quantity.toString() + "  " + (String.format("%.2f", anyToDouble(price)) + "€").replace(',', '.'),
-                            text = (String.format("%.2f", anyToDouble(price)) + "€").replace(',', '.'),
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Light,
-
+                        if(price != 0.0)
+                            Text(
+                                text = (String.format("%.2f", anyToDouble(price)) + "€").replace(',', '.'),
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Light
+                            )
+                        else
+                            Text(
+                                text = ("$units x $quantity"),
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.Light
                             )
                     }
+
                     Row(
                         modifier = Modifier.padding(end = 5.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Absolute.Right
                     ) {
-
-                        ItemsQuantitySelector(units, id, price, viewModel, flagCart)
-                        IconButton(
-                            onClick = { viewModel.removeFromCart(id, price, units, flagCart) },
-                            Modifier
-                                .padding(5.dp)
-                                .size(18.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.Delete,
-                                contentDescription = "Localized description",
-                                tint = Color.Red,
+                        if(flagCart.isNotEmpty()) {
+                            ItemsQuantitySelector(
+                                units,
+                                id,
+                                price,
+                                viewModel as CartViewModel,
+                                flagCart
+                            )
+                            IconButton(
+                                onClick = { viewModel.removeFromCart(id, price, units, flagCart) },
+                                Modifier
+                                    .padding(5.dp)
+                                    .size(18.dp)
+                            ) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    contentDescription = "Localized description",
+                                    tint = Color.Red,
+                                )
+                            }
+                        }else{
+                            val checkedState = rememberSaveable { mutableStateOf(true) }
+                            Checkbox(
+                                checked = checkedState.value,
+                                onCheckedChange = { checkedState.value = it },
+                                modifier = Modifier
+                                    .padding(end = 10.dp),
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = BlueLight,
+                                    uncheckedColor = BlueLight,
+                                    checkmarkColor = Color.White,
+                                )
                             )
                         }
                     }

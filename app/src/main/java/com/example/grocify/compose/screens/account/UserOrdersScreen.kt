@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.ThumbUpAlt
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.data.UserOrdersUiState
 import com.example.grocify.model.Order
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.viewmodels.UserOrdersViewModel
@@ -138,6 +140,7 @@ fun UserOrdersScreen(
                 OrderCard(
                     viewModel = null,
                     currentOrder.first(),
+                    uiState.value,
                     Icons.Filled.DepartureBoard,
                     true,
                     onTrackOrderClick
@@ -175,6 +178,7 @@ fun UserOrdersScreen(
                         OrderCard(
                             viewModel = viewModel,
                             pastOrders[it],
+                            uiState.value,
                             iconState = Icons.Filled.Done,
                             actualOrder = false
                         ) { }
@@ -189,12 +193,16 @@ fun UserOrdersScreen(
 fun OrderCard(
     viewModel: UserOrdersViewModel?,
     order: Order,
+    uiState: UserOrdersUiState,
     iconState: ImageVector,
     actualOrder: Boolean,
     onTrackOrderClick: (orderId: String) -> Unit
 ){
-    val optionButtonIcon = if(actualOrder) Icons.Filled.LocalShipping else Icons.Filled.RateReview
-    val optionButtonText = if(actualOrder) "Traccia l'ordine" else "Recensisci"
+    val optionButtonIcon = if(actualOrder) Icons.Filled.LocalShipping
+    else if(uiState.hasReview) Icons.Filled.ThumbUpAlt else Icons.Filled.RateReview
+
+    val optionButtonText = if(actualOrder) "Traccia l'ordine" else if(uiState.hasReview) "Grazie!" else "Recensisci"
+
     val spotColor = if (actualOrder) BlueDark else Color.Black
 
     Card(
@@ -265,7 +273,7 @@ fun OrderCard(
                         Modifier.padding(end = 5.dp),
                     )
                     Text(
-                        order.status,
+                        order.status.replaceFirstChar {it.uppercase() },
                         style = TextStyle(
                             fontSize = 14.sp,
                         )
@@ -284,11 +292,10 @@ fun OrderCard(
                         )
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                         .clickable {
-                            if (!actualOrder)
+                            if (!actualOrder && !uiState.hasReview)
                                 viewModel?.setReviewIconClicked(true)
-                            else {
+                            else if(actualOrder)
                                 onTrackOrderClick(order.orderId)
-                            }
                         }
                 ){
                     Icon(
