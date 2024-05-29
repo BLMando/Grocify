@@ -165,7 +165,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
 
     fun userHasRunningOrder(){
         viewModelScope.launch {
-            //controllo se l'utente ha già un ordine in corso
+            //
             db.collection("orders")
                 .whereEqualTo("userId", auth.currentUser!!.uid)
                 .whereNotEqualTo("status", "concluso")
