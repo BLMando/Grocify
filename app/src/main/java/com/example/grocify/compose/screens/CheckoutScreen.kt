@@ -24,6 +24,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -78,6 +79,7 @@ fun CheckoutScreen(
         viewModel.getCurrentInfo()
         viewModel.userHasRunningOrder()
     }
+
 
     LaunchedEffect(key1 = uiState.value.orderId) {
         if(uiState.value.orderId.isNotEmpty()){
@@ -148,13 +150,13 @@ fun CheckoutScreen(
                 viewModel.createNewOrder(flagCart,anyToDouble(totalPrice)!!)
             }
 
-            ExistingRunningOrderDialog(uiState.value.userHasRunningOrder,viewModel)
+            ExistingRunningOrderDialog(uiState.value.userHasRunningOrder)
         }
     }
 }
 
 @Composable
-fun ExistingRunningOrderDialog(userHasRunningOrder: Boolean?,viewModel: CheckoutViewModel) {
+fun ExistingRunningOrderDialog(userHasRunningOrder: Boolean?) {
 
     var dialogState by remember {
         mutableStateOf(true)
@@ -258,19 +260,17 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
                     Modifier.size(15.dp)
                 )
             }
-            Row(
+            Column(
                 Modifier
                     .fillMaxWidth()
                     .padding(15.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
-                if(uiState.resultAddress.isEmpty()){
-                    uiState.currentAddress?.let {
-                        Text(
-                            text = it.name
-                        )
-                    }
+                if (uiState.resultAddress.isEmpty()) {
+                    Text(
+                        text = "${uiState.currentAddress?.name}, ${uiState.currentAddress?.city}"
+                    )
                     Text(
                         text = "${uiState.currentAddress?.address}, ${uiState.currentAddress?.civic}"
                     )
@@ -280,6 +280,7 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
                     )
                 }
             }
+
         }
     }
 }

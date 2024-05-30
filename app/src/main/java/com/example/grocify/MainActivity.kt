@@ -1,6 +1,9 @@
 package com.example.grocify
 
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -14,11 +17,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         installSplashScreen()
+        createCommunicationChannel()
 
         setContent {
             GrocifyTheme {
                 GrocifyApp()
             }
         }
+    }
+
+    private fun createCommunicationChannel() {
+        val channel = NotificationChannel(
+            "OrderStatusChannel",
+            "OrderStatus",
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
     }
 }

@@ -3,8 +3,7 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.HomeDriverUiState
-import com.example.grocify.model.Order
+import com.example.grocify.data.HomeAdminUiState
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -14,17 +13,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.CancellationException
 
-class HomeDriverViewModel(application: Application,private val mOneTapClient: SignInClient):AndroidViewModel(application) {
+class HomeAdminViewModel(application: Application,private val mOneTapClient: SignInClient): AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(HomeDriverUiState())
-    val uiState:StateFlow<HomeDriverUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(HomeAdminUiState())
+    val uiState: StateFlow<HomeAdminUiState> = _uiState.asStateFlow()
 
     private val auth = Firebase.auth
     private val db = Firebase.firestore
+
+    fun getAllReviews(){
+        viewModelScope.launch {
+            db.collection("orders_reviews")
+                .orderBy("")
+        }
+    }
+
 
     fun getSignedInUserName() {
         val currentUser = auth.currentUser?.uid
@@ -42,29 +47,6 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
         }
     }
 
-    fun getOrders(){
-        val currentDate = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
-        viewModelScope.launch {
-            db.collection("orders")
-                .whereEqualTo("date", currentDate.format(formatter) )
-                .whereEqualTo("status", "in attesa")
-                .get()
-                .addOnSuccessListener { documents ->
-                    val ordersList:MutableList<Order> = mutableListOf()
-                    for (document in documents) {
-                        document.toObject(Order::class.java).let { order ->
-                            ordersList.add(order)
-                        }
-                    }
-                    _uiState.update { currentState ->
-                        currentState.copy(orders = ordersList.toList())
-                    }
-                }
-        }
-    }
-
     fun signOut(){
         viewModelScope.launch {
             try {
@@ -76,6 +58,4 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
             }
         }
     }
-
-
 }

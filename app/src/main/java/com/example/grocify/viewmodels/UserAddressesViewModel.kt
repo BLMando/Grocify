@@ -27,12 +27,13 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-    fun addNewAddress(addressName:String, address: String, civic: String){
+    fun addNewAddress(addressName:String, address: String, city:String, civic: String){
 
         //CONTROLLO DELL'INPUT
         val addressNameStatus = isNotEmpty(addressName)
         val addressStatus = isNotEmpty(address)
         val civicStatus = isNotEmpty(civic)
+        val cityStatus = isNotEmpty(city)
 
         if(!addressNameStatus){
             _uiState.update {
@@ -66,6 +67,22 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
             }
         }
 
+        if(!cityStatus){
+            _uiState.update {
+                it.copy(
+                    cityError = "Inserisci una città",
+                    isCityValid = false
+                )
+            }
+        }else{
+            _uiState.update {
+                it.copy(
+                    cityError = "",
+                    isCityValid = true
+                )
+            }
+        }
+
         if(!civicStatus){
             _uiState.update {
                 it.copy(
@@ -83,7 +100,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
         }
         //FINE CONTROLLO DELL'INPUT
 
-        if(addressNameStatus && addressStatus && civicStatus) {
+        if(addressNameStatus && addressStatus && civicStatus && cityStatus) {
             //se tutti i campi sono validi, procedo con l'inserimento
 
             val userDetailsRef = db.collection("users_details")
@@ -91,6 +108,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
             val addressObject = Address(
                 name = addressName,
                 address = address,
+                city = city,
                 civic = civic.toInt(),
                 selected = false
             )
@@ -152,6 +170,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
                                     Address(
                                         name = address["name"] as String,
                                         address = address["address"] as String,
+                                        city = address["city"] as String,
                                         civic = (address["civic"] as Long).toInt(),
                                         selected = address["selected"] as Boolean
                                     )
@@ -249,6 +268,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
             //CONTROLLO DELL'INPUT
             val addressNameStatus = isNotEmpty(address.name)
             val addressStatus = isNotEmpty(address.address)
+            val cityStatus = isNotEmpty(address.city)
             val civicStatus = isNotEmpty(address.civic.toString())
 
             if(!addressNameStatus){
@@ -263,6 +283,22 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
                     it.copy(
                         addressNameError = "",
                         isAddressNameValid = true
+                    )
+                }
+            }
+
+            if(!cityStatus){
+                _uiState.update {
+                    it.copy(
+                        cityError = "Inserisci una città",
+                        isCityValid = false
+                    )
+                }
+            }else{
+                _uiState.update {
+                    it.copy(
+                        cityError = "",
+                        isCityValid = true
                     )
                 }
             }
@@ -300,7 +336,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
             }
             //FINE CONTROLLO DELL'INPUT
 
-            if(addressNameStatus && addressStatus && civicStatus) {
+            if(addressNameStatus && addressStatus && civicStatus && cityStatus) {
                 val userDetailsRef = db.collection("users_details")
                 userDetailsRef
                     .whereEqualTo("uid", auth.currentUser!!.uid)
@@ -373,7 +409,5 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
     fun resetFABField() = run { _uiState.update { it.copy(
         addressToUpdate = null
     ) } }
-
-
 
 }

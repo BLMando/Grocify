@@ -65,6 +65,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                             val addressClass = Address(
                                 name = selectedAddress[0]["name"] as String,
                                 address = selectedAddress[0]["address"] as String,
+                                city = selectedAddress[0]["city"] as String,
                                 civic = (selectedAddress[0]["civic"] as Long).toInt(),
                                 selected = selectedAddress[0]["selected"] as Boolean
                             )
@@ -145,7 +146,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                 cart = lightProducts,
                 userId = auth.currentUser!!.uid,
                 status = if(flagCart == "online") "in attesa" else "concluso",
-                destination = "${_uiState.value.currentAddress!!.address} ${_uiState.value.currentAddress!!.civic}",
+                destination = "${_uiState.value.currentAddress.city}, ${_uiState.value.currentAddress.address} ${_uiState.value.currentAddress.civic}",
                 totalPrice = roundedTotalPrice.toDouble(),
                 type = flagCart,
                 date = dateTime[0],
@@ -168,7 +169,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
 
     fun userHasRunningOrder(){
         viewModelScope.launch {
-            //controllo se l'utente ha già un ordine in corso
+            //
             db.collection("orders")
                 .whereEqualTo("userId", auth.currentUser!!.uid)
                 .whereNotEqualTo("status", "concluso")

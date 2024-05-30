@@ -15,6 +15,8 @@ import com.example.grocify.R
 import com.example.grocify.api.RetrofitObject
 import com.example.grocify.data.MapUiState
 import com.example.grocify.databinding.MapLayoutBinding
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.tomtom.sdk.common.measures.UnitSystem
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStore
 import com.tomtom.sdk.datamanagement.navigationtile.NavigationTileStoreConfiguration
@@ -31,7 +33,6 @@ import com.tomtom.sdk.map.display.camera.CameraChangeListener
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.camera.CameraTrackingMode
 import com.tomtom.sdk.map.display.common.screen.Padding
-import com.tomtom.sdk.map.display.gesture.MapLongClickListener
 import com.tomtom.sdk.map.display.location.LocationMarkerOptions
 import com.tomtom.sdk.map.display.route.Instruction
 import com.tomtom.sdk.map.display.route.RouteOptions
@@ -66,7 +67,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
@@ -76,6 +76,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
+
+    private val db = Firebase.firestore
 
     private lateinit var mapFragment: MapFragment
     private lateinit var navigationFragment: NavigationFragment
@@ -196,11 +198,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     /**
      * Crea la rotta a partire dalla posizione correte fino alla destinazione selezionata
      */
-    suspend fun calculateRouteTo() {
-        val destination = getUserLocation()
-        Log.d("MapViewModel", "Destination: ${tomTomMap.currentLocation?.position}")
-        val userLocation = tomTomMap.currentLocation?.position ?: return
-        val itinerary = Itinerary(origin = userLocation, destination = destination!!)
+    suspend fun calculateRouteTo(userLocation:String) {
+        val destination = getUserLocation(userLocation)
+        val driverLocation = tomTomMap.currentLocation?.position ?: return
+        val itinerary = Itinerary(origin = driverLocation, destination = destination!!)
         routePlanningOptions = RoutePlanningOptions(
             itinerary = itinerary,
             guidanceOptions = GuidanceOptions(
@@ -213,13 +214,13 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         routePlanner.planRoute(routePlanningOptions, routePlanningCallback)
     }
 
-    private suspend fun getUserLocation(): GeoPoint? = withContext(Dispatchers.Main) {
+    private suspend fun getUserLocation(userLocation: String): GeoPoint? = withContext(Dispatchers.Main) {
         val deferred = viewModelScope.async(Dispatchers.IO) {
             try {
-                val response = RetrofitObject.apiService.getUserLocation("Strada provinciale montottonese sud 18", apiKey)
+                val response = RetrofitObject.apiService.getUserLocation(userLocation, apiKey)
                 if (response.isSuccessful && response.body() != null) {
-                    val lat = response.body()!!.results[0].entryPoints[0].position.lat
-                    val lon = response.body()!!.results[0].entryPoints[0].position.lon
+                    val lat = response.body()!!.results[0].position.lat
+                    val lon = response.body()!!.results[0].position.lon
                     GeoPoint(lat, lon)
                 } else {
                     Log.d("MapViewModel", "Not successful")
@@ -368,7 +369,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         }
     }
 
-    fun stopNavigation() {
+    private fun stopNavigation() {
         resetMapSize()
         navigationFragment.stopNavigation()
         mapFragment.currentLocationButton.visibilityPolicy =
@@ -380,7 +381,6 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         navigationFragment.removeNavigationListener(navigationListener)
         tomTomNavigation.removeProgressUpdatedListener(progressUpdatedListener)
         tomTomNavigation.removeActiveRouteChangedListener(activeRouteChangedListener)
-        tomTomMap.clear()
         initLocationProvider()
         enableUserLocation()
     }
@@ -413,6 +413,15 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     ) == PackageManager.PERMISSION_GRANTED
 
 
+    fun setOrderConclude(orderId: String) {
+        db.collection("orders")
+            .whereEqualTo("orderId", orderId)
+            .get()
+            .addOnSuccessListener { document ->
+                val order = document.documents[0].reference
+                order.update("status", "concluso")
+            }
+    }
 
     fun setDialogState(openDialog: Boolean) {
         _uiState.update { it.copy(openDialog = openDialog) }

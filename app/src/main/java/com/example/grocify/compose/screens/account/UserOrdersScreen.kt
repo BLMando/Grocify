@@ -1,5 +1,6 @@
 package com.example.grocify.compose.screens.account
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -59,7 +60,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.data.UserOrdersUiState
 import com.example.grocify.model.Order
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.viewmodels.UserOrdersViewModel
@@ -76,6 +76,10 @@ fun UserOrdersScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getAllOrders()
+    }
+
+    LaunchedEffect(key1 = uiState.value.ordersReviewed) {
+        viewModel.getOrdersReviewed()
     }
 
     Scaffold(
@@ -139,8 +143,8 @@ fun UserOrdersScreen(
             else
                 OrderCard(
                     viewModel = null,
-                    currentOrder.first(),
-                    uiState.value,
+                    currentOrder[0],
+                    false,
                     Icons.Filled.DepartureBoard,
                     true,
                     onTrackOrderClick
@@ -178,13 +182,13 @@ fun UserOrdersScreen(
                         OrderCard(
                             viewModel = viewModel,
                             pastOrders[it],
-                            uiState.value,
+                            hasReview = uiState.value.ordersReviewed.contains(pastOrders[it].orderId),
                             iconState = Icons.Filled.Done,
                             actualOrder = false
                         ) { }
-                        OrderDialog(pastOrders[it].orderId,pastOrders[it].userId, uiState.value.isReviewClicked, viewModel)
                     }
                 }
+                OrderDialog(uiState.value.orderReview, uiState.value.isReviewClicked, viewModel!!)
             }
         }
     }
@@ -193,17 +197,17 @@ fun UserOrdersScreen(
 fun OrderCard(
     viewModel: UserOrdersViewModel?,
     order: Order,
-    uiState: UserOrdersUiState,
+    hasReview: Boolean,
     iconState: ImageVector,
     actualOrder: Boolean,
     onTrackOrderClick: (orderId: String) -> Unit
 ){
     val optionButtonIcon = if(actualOrder) Icons.Filled.LocalShipping
-    else if(uiState.hasReview) Icons.Filled.ThumbUpAlt else Icons.Filled.RateReview
+    else if (hasReview) Icons.Filled.ThumbUpAlt else Icons.Filled.RateReview
 
-    val optionButtonText = if(actualOrder) "Traccia l'ordine" else if(uiState.hasReview) "Grazie!" else "Recensisci"
-
+    val optionButtonText = if(actualOrder) "Traccia l'ordine" else if(hasReview) "Grazie!" else "Recensisci"
     val spotColor = if (actualOrder) BlueDark else Color.Black
+
 
     Card(
         colors = CardDefaults.cardColors(
@@ -292,9 +296,10 @@ fun OrderCard(
                         )
                         .padding(horizontal = 8.dp, vertical = 2.dp)
                         .clickable {
-                            if (!actualOrder && !uiState.hasReview)
+                            if (!actualOrder && !hasReview) {
                                 viewModel?.setReviewIconClicked(true)
-                            else if(actualOrder)
+                                viewModel?.setOrderReviewId(order)
+                            }else if (actualOrder)
                                 onTrackOrderClick(order.orderId)
                         }
                 ){
@@ -318,14 +323,20 @@ fun OrderCard(
 
 @Composable
 fun OrderDialog(
-    orderId: String,
-    userId: String,
+    order: Order,
     fabState: Boolean,
     viewModel: UserOrdersViewModel
 ){
 
     var rating by rememberSaveable { mutableFloatStateOf(1f) } //default rating will be 1
     var text by rememberSaveable { mutableStateOf("") }
+
+    LaunchedEffect(key1 = fabState) {
+        if (!fabState) {
+            rating = 1F
+            text = ""
+        }
+    }
 
     if (fabState) {
         AlertDialog(
@@ -361,14 +372,14 @@ fun OrderDialog(
                             .padding(top = 20.dp),
                         singleLine = false,
                         label = {
-                            Text(text = "Inserisci un commento",)
+                            Text(text = "Inserisci un commento")
                         }
                     )
                 }
             },
             dismissButton = {
                 Button(
-                    onClick = {viewModel.addOrderReview(orderId,userId,text,rating)
+                    onClick = {viewModel.addOrderReview(order.orderId,order.userId,text,rating)
                               viewModel.setReviewIconClicked(false) },
                     Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 10.dp),
