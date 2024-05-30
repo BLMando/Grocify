@@ -1,6 +1,7 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.UserOrdersUiState
@@ -14,6 +15,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class UserOrdersViewModel (application: Application): AndroidViewModel(application) {
 
@@ -26,6 +29,14 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
         _uiState.update { currentState ->
             currentState.copy(
                 isReviewClicked = value
+            )
+        }
+    }
+
+    fun setOrderReviewId(order: Order){
+        _uiState.update { currentState ->
+            currentState.copy(
+                orderReview = order
             )
         }
     }
@@ -50,18 +61,40 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
     }
 
     fun addOrderReview(orderId: String, userId: String, text: String, rating: Float){
+        Log.d("OrderReview", "addOrderReview: $orderId")
         viewModelScope.launch {
-           db.collection("orders_reviews")
+            db.collection("orders_reviews")
                .add(
                    Review(
                        orderId = orderId,
                        userId = userId,
                        review = text,
-                       rating = rating
+                       rating = rating,
+                       date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
                    )
                ).addOnSuccessListener {
-                   _uiState.update { it.copy(hasReview = true) }
+                   _uiState.update { currentState ->
+                       currentState.copy(
+                           ordersReviewed = _uiState.value.ordersReviewed + orderId
+                       ) }
+
                }
+        }
+    }
+
+    fun getOrdersReviewed() {
+        viewModelScope.launch {
+            db.collection("orders_reviews")
+                .get()
+                .addOnSuccessListener { ordersReviewed ->
+                    val listOrderId = mutableListOf<String>()
+                    for (orderReviewed in ordersReviewed)
+                        listOrderId.add(orderReviewed.toObject(Review::class.java).orderId)
+
+                    _uiState.update { currentState ->
+                        currentState.copy(ordersReviewed = listOrderId.toList())
+                    }
+                }
         }
     }
 

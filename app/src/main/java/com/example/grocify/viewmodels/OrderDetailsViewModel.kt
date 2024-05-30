@@ -1,6 +1,7 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.OrderDetailsUiState
@@ -39,5 +40,26 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
                     _uiState.update { it.copy(products = productList)}
                 }
         }
+    }
+
+    fun markProduct(productId: String, orderId: String){
+        val listBoolean = mutableListOf<Boolean>()
+        viewModelScope.launch {
+            db.collection("orders")
+                .whereEqualTo("orderId", orderId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    val order = documents.documents[0].data
+                    val cart: List<HashMap<String, Any>> = order?.get("cart") as List<HashMap<String, Any>>
+                    for (product in cart){
+                        if(product["id"] == productId)
+                            listBoolean.add(true)
+                        else
+                            listBoolean.add(false)
+                    }
+                    _uiState.update { it.copy(isProductsMarked = listBoolean) }
+                }
+        }
+
     }
 }

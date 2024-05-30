@@ -1,6 +1,8 @@
 package com.example.grocify.compose
 
 import android.app.Activity
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -29,12 +31,14 @@ import com.example.grocify.compose.screens.account.UserPaymentsScreen
 import com.example.grocify.compose.screens.account.UserProfileScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun GrocifyApp(){
     val navController = rememberNavController()
     GrocifyNavHost(navController = navController)
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun GrocifyNavHost(navController: NavHostController) {
@@ -74,6 +78,7 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
+                    context = activity,
                     onAccountClick = { navController.navigate(Screen.UserAccount.route) },
                     onCategoryClick = {
                         navController.navigate(Screen.CategoryItems.createRoute(
@@ -249,21 +254,36 @@ fun GrocifyNavHost(navController: NavHostController) {
                 arguments = Screen.OrderDetailsScreen.navArguments
             ){ backStackEntry ->
                 val orderId = backStackEntry.arguments?.getString("orderId")
+                val onProceedClick: (String, String) -> Unit = { destination , _ ->
+                    navController.navigate(
+                        Screen.MapScreen.createRoute(
+                            destination = destination,
+                            orderId = orderId!!,
+                        )
+                    )
+                }
                 OrderDetailsScreen(
+                    activity = activity,
                     orderId = orderId!!,
-                    onBackClick = {navController.popBackStack()}
+                    onBackClick = {navController.popBackStack()},
+                    onProceedClick = onProceedClick
                 )
             }
 
-            composable(route = Screen.MapScreen.route){
+            composable(
+                route = Screen.MapScreen.route,
+                arguments = Screen.MapScreen.navArguments
+            ){ backStackEntry ->
+                val destination = backStackEntry.arguments?.getString("destination")
+                val orderId = backStackEntry.arguments?.getString("orderId")
                 MapScreen(
                     context = activity,
+                    destination = destination,
+                    orderId = orderId,
                     onBackClick = { navController.popBackStack() }
                 )
             }
         }
-
-
         //END DRIVER SCREENS
 
 
@@ -273,7 +293,10 @@ fun GrocifyNavHost(navController: NavHostController) {
             startDestination = Screen.HomeAdminScreen.route
         ){
             composable(route = Screen.HomeAdminScreen.route){
-                HomeAdminScreen()
+                HomeAdminScreen(
+                    context = activity,
+                    onLogOutClick = { navController.navigate(Screen.SignInScreen.route) }
+                )
             }
         }
         //END ADMIN SCREENS

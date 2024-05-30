@@ -52,7 +52,8 @@ fun CartItems(
     image: String,
     units: Int,
     viewModel: AndroidViewModel,
-    flagCart: String
+    flagCart: String,
+    productMarked: Boolean = false,
 ) {
     Card(
         colors = CardDefaults.cardColors(
@@ -153,10 +154,10 @@ fun CartItems(
                             )
                         }
                     }else{
-                        val checkedState = rememberSaveable { mutableStateOf(true) }
                         Checkbox(
-                            checked = checkedState.value,
-                            onCheckedChange = { checkedState.value = it },
+                            checked = productMarked,
+                            enabled = productMarked,
+                            onCheckedChange = {  },
                             modifier = Modifier
                                 .padding(end = 10.dp),
                             colors = CheckboxDefaults.colors(

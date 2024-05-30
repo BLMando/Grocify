@@ -30,6 +30,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidViewBinding
@@ -53,25 +55,28 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.BuildConfig
 import com.example.grocify.R
 import com.example.grocify.databinding.MapLayoutBinding
+import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.MapViewModel
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.ui.MapFragment
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import java.time.LocalTime
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    context: Activity,
     viewModel: MapViewModel = viewModel(),
-    onBackClick: () -> Unit
+    context: Activity,
+    onBackClick: () -> Unit,
+    destination: String?,
+    orderId: String?
 ){
     val contextCompose = LocalContext.current
+    val scanner = GmsBarcodeScanning.getClient(context)
     val uiState = viewModel.uiState.collectAsState()
     val fragmentManager = (LocalContext.current as? FragmentActivity)?.supportFragmentManager
 
@@ -97,7 +102,7 @@ fun MapScreen(
 
     LaunchedEffect(key1 = uiState.value.locationAcquired) {
         if(uiState.value.locationAcquired) {
-            viewModel.calculateRouteTo()
+            viewModel.calculateRouteTo(destination!!)
         }
     }
 
@@ -159,7 +164,7 @@ fun MapScreen(
                     .height(uiState.value.mapHeight)
                     .width(uiState.value.mapWidth)
             ) {
-                TomTomMapContainer(viewModel,uiState.value.binding,context)
+                TomTomMapContainer(viewModel,uiState.value.binding)
             }
 
             Button(
@@ -194,7 +199,9 @@ fun MapScreen(
 
     Dialog(
         uiState.value.openDialog,
-        viewModel
+        orderId!!,
+        viewModel,
+        scanner
     )
 
     LocationDialog(uiState.value.locationAcquired)
@@ -202,7 +209,7 @@ fun MapScreen(
 
 
 @Composable
-fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?,context: Activity) {
+fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?) {
 
     val fragmentManager = (LocalContext.current as? FragmentActivity)?.supportFragmentManager
 
@@ -242,8 +249,10 @@ fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?,context:
 
 @Composable
 fun Dialog(
-    state:Boolean,
+    state: Boolean,
+    orderId: String,
     viewModel: MapViewModel,
+    scanner: GmsBarcodeScanner,
 ) {
     if (state) {
         AlertDialog(
@@ -253,38 +262,57 @@ fun Dialog(
                     text = "Sei arrivato a destinazione",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    )
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                    ),
+                    modifier = Modifier
+                        .padding(top = 5.dp)
+                        .fillMaxWidth(),
+
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             },
             icon = {
-                Icon(imageVector = Icons.Filled.LocationOn, contentDescription ="dialog icon" )
+                Icon(
+                    imageVector = Icons.Filled.QrCodeScanner,
+                    contentDescription ="dialog icon",
+                    tint = BlueMedium,
+                    modifier = Modifier
+                        .padding(top = 35.dp)
+                        .height(70.dp)
+                        .fillMaxWidth(),
+                )
             },
             text = {
                 Column (
                     Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally
                 ){
                     Text(
-                        text = "15:30",
-                        style = TextStyle(
-                            fontSize = 20.sp
-                        ),
-                        modifier = Modifier.padding(bottom = 10.dp)
+                        text = LocalTime.now().toString(),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 10.dp, start = 25.dp, end = 25.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     Text(
                         text = "Scansiona il QR code del cliente per confermare la ricezione dell'ordine",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Light,
-                            fontSize = 15.sp,
-                            textAlign = TextAlign.Center
-                        )
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(top = 10.dp, start = 25.dp, end = 25.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.setDialogState(false) },
+                    onClick = { scanner.startScan().addOnSuccessListener {
+                        viewModel.setOrderConclude(orderId)
+                        viewModel.setDialogState(false)
+                    }},
                     Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -293,11 +321,6 @@ fun Dialog(
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp
                         )
-                    )
-                    Icon(
-                        imageVector = Icons.Filled.QrCodeScanner,
-                        contentDescription = "button icon",
-                        modifier = Modifier.padding(start = 10.dp)
                     )
                 }
             },
@@ -322,15 +345,26 @@ fun LocationDialog(
                     text = "Geolocalizzazione in corso...",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
+                        fontSize = 20.sp,
+                        textAlign = TextAlign.Center,
+                    ),
+                    modifier = Modifier
+                        .padding(top = 5.dp)
+                        .fillMaxWidth(),
+
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.LocationOn,
                     contentDescription ="dialog icon",
-                    modifier = Modifier.size(30.dp)
+                    tint = BlueMedium,
+                    modifier = Modifier
+                        .padding(top = 30.dp)
+                        .height(55.dp)
+                        .fillMaxWidth(),
                 )
             },
             text = {

@@ -39,6 +39,8 @@ data class UserAddressesUiState(
     val isUDSuccessful: Boolean = false,
     val addressNameError: String = "",
     val isAddressNameValid: Boolean = true,
+    val cityError: String = "",
+    val isCityValid: Boolean = true,
     val addressError: String = "",
     val isAddressValid: Boolean = true,
     val civicError: String = "",
@@ -47,8 +49,9 @@ data class UserAddressesUiState(
 
 data class UserOrdersUiState(
     val isReviewClicked: Boolean = false,
-    val hasReview: Boolean = false,
-    val orders:  List<Order> = emptyList()
+    val ordersReviewed: List<String> = emptyList(),
+    val orders:  List<Order> = emptyList(),
+    val orderReview: Order = Order()
 )
 
 data class UserPaymentMethodsUiState(

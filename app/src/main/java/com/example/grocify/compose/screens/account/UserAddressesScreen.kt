@@ -251,7 +251,7 @@ fun AddressCard(address: Address,viewModel: UserAddressesViewModel){
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    address.name,
+                    "${address.name}, ${address.city}",
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -321,11 +321,13 @@ fun AddressCard(address: Address,viewModel: UserAddressesViewModel){
 fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewModel){
 
     var addressName by rememberSaveable { mutableStateOf("")}
+    var city by rememberSaveable { mutableStateOf("")}
     var address by  rememberSaveable { mutableStateOf("") }
     var civic by  rememberSaveable { mutableStateOf("") }
 
     //variabili che permettono di effettuare la modifica dell'indirizzo a partire dai dati attuali
     var addressNameChange by rememberSaveable { mutableStateOf(false) }
+    var cityChange by rememberSaveable { mutableStateOf(false)}
     var addressChange by rememberSaveable { mutableStateOf(false) }
     var civicChange by rememberSaveable { mutableStateOf(false) }
 
@@ -334,6 +336,8 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
             viewModel.setFABClicked(false)
             addressName = ""
             addressNameChange = false
+            city = ""
+            cityChange = false
             address = ""
             addressChange = false
             civic = ""
@@ -385,6 +389,39 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
                         },
                         trailingIcon = {
                             if (!uiState.isAddressNameValid)
+                                Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
+                        }
+                    )
+
+                    OutlinedTextField(
+                        value = if(uiState.addressToUpdate != null && !cityChange) uiState.addressToUpdate.city else city,
+                        singleLine = true,
+                        label = { Text(text = "Città",color = Color.Black) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        onValueChange = {
+                            city = it
+                            cityChange = true
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BlueLight,
+                            unfocusedBorderColor = Color(0, 0, 0, 50)
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Black
+                        ),
+                        isError = !uiState.isCityValid,
+                        supportingText = {
+                            if (!uiState.isCityValid)
+                                Text(
+                                    text = uiState.cityError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isCityValid)
                                 Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
                         }
                     )
@@ -475,7 +512,7 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
             dismissButton = {
                 if(uiState.addressToUpdate == null)
                     Button(
-                        onClick = { viewModel.addNewAddress(addressName,address,civic)  },
+                        onClick = { viewModel.addNewAddress(addressName,address,city,civic)  },
                         Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(vertical = 10.dp),
                         shape = RoundedCornerShape(25)
@@ -492,11 +529,13 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
                     //creo un nuovo indirizzo con i dati modificati
                     val _civic = if(!civicChange) uiState.addressToUpdate.civic else civic.toInt()
                     val _address = if(!addressChange) uiState.addressToUpdate.address else address
+                    val _city = if(!cityChange) uiState.addressToUpdate.city else city
                     val _addressName = if(!addressNameChange) uiState.addressToUpdate.name else addressName
 
                     val newAddress = Address(
                         _addressName,
                         _address,
+                        _city,
                         _civic,
                         uiState.addressToUpdate.selected
                     )

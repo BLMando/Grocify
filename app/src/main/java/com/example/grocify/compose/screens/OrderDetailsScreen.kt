@@ -1,10 +1,10 @@
 package com.example.grocify.compose.screens
 
-
-import androidx.compose.foundation.Image
+import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,9 +13,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DoneOutline
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -28,33 +30,26 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.grocify.R
 import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import com.example.grocify.components.CartItems
+import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.OrderDetailsViewModel
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,10 +57,13 @@ import com.example.grocify.viewmodels.OrderDetailsViewModel
 fun OrderDetailsScreen(
     viewModel: OrderDetailsViewModel = viewModel(),
     orderId: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onProceedClick: (destination: String, orderId: String) -> Unit,
+    activity: Activity
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
+    val scanner = GmsBarcodeScanning.getClient(activity)
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getOrderProducts(orderId)
@@ -105,7 +103,7 @@ fun OrderDetailsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "hide_password"
+                            contentDescription = "back icon"
                         )
                     }
                 }
@@ -114,48 +112,26 @@ fun OrderDetailsScreen(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {},
+                onClick = {
+                    viewModel.markProduct("SEm421YizewY7YBtq8cY",orderId)
+                    scanner
+                        .startScan()
+                        .addOnSuccessListener { barcode ->
+                           Log.d("Barcode OK", barcode.rawValue.toString())
+                        }
+                        .addOnFailureListener { Log.d("Barcode Fail", it.message.toString()) }},
                 containerColor = BlueDark,
             )
             {
-            Image(
-                painterResource(id = R.drawable.bar_code),
-                contentDescription = "bar code scanner",
-                colorFilter = ColorFilter.tint(Color.White),
-                modifier = Modifier
+                Icon(imageVector = Icons.Filled.QrCodeScanner,
+                    contentDescription =
+                    "scan",
+                    tint = Color.White,
+                    modifier = Modifier
                     .size(30.dp)
-            )
+                )
         } },
         content = { innerPadding ->
-           /* Dialog(
-                "Ordine completato",
-                true,
-                Icons.Filled.DoneOutline,
-                "Procedi alla spedizione",
-                Icons.AutoMirrored.Filled.ArrowForward
-            ){
-                Column (
-                    Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally
-                ){
-                    Text(
-                        text = "Raggiungi Mattia Mandorlini",
-                        style = TextStyle(
-                            fontSize = 15.sp,
-                            textAlign = TextAlign.Center
-                        ),
-                        modifier = Modifier.padding(bottom = 10.dp)
-                    )
-
-                    Text(
-                        text = "Porto San Giorgio, Via Cavour 12",
-                        style = TextStyle(
-                            fontSize = 15.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                }
-            }*/
-
             Column (
                 Modifier.padding(innerPadding)
             ) {
@@ -184,68 +160,85 @@ fun OrderDetailsScreen(
                             image = uiState.value.products[it].image,
                             units = uiState.value.products[it].units,
                             viewModel = viewModel,
-                            flagCart = ""
+                            flagCart = "",
+                            productMarked = if(uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[it]
                         )
                     }
                 }
             }
+
+            if(uiState.value.isProductsMarked.containsAll(listOf(true)))
+                AlertDialog(
+                    onDismissRequest = {  },
+                    title = {
+                        Text(
+                            text = "Ordine completato",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center,
+                            ),
+                            modifier = Modifier
+                                .padding(top = 5.dp)
+                                .fillMaxWidth(),
+
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Filled.DoneOutline,
+                            contentDescription = "icona",
+                            tint = BlueMedium,
+                            modifier = Modifier
+                                .padding(top = 35.dp)
+                                .height(70.dp)
+                                .fillMaxWidth(),
+                        )
+                    },
+                    text = {
+                        Column (
+                            Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally
+                        ){
+                            Text(
+                                text = "Raggiungi Mattia Mandorlini",
+                                style = TextStyle(
+                                    fontSize = 15.sp,
+                                    textAlign = TextAlign.Center
+                                ),
+                                modifier = Modifier.padding(bottom = 10.dp)
+                            )
+
+                            Text(
+                                text = "Porto San Giorgio, Via Cavour 12",
+                                style = TextStyle(
+                                    fontSize = 15.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = { onProceedClick("Grottazzolina, Strada provinciale montottonese sud 18",orderId) },
+                            Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(vertical = 10.dp),
+                            shape = RoundedCornerShape(25)
+                        ) {
+                            Text(
+                                text = "Procedi",
+                                style = TextStyle(
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp
+                                )
+                            )
+                        }
+                    },
+                    containerColor = Color.White
+                )
         }
     )
 }
 
-@Composable
-fun ListItems(image: String?, name: String?, quantity: Any?, content: @Composable () -> Unit ){
-
-    val painter = // You can customize image loading parameters here if needed
-        rememberAsyncImagePainter(
-            ImageRequest.Builder(LocalContext.current).data(data = image).apply(block = fun ImageRequest.Builder.() {
-                // You can customize image loading parameters here if needed
-            }).build()
-        )
-    Row (
-        Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 10.dp)
-            .height(100.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ){
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start =10.dp)
-        ){
-            Image(
-                painter = painter,
-                contentDescription = "food",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(85.dp)
-                    .padding(2.dp)
-                    .clip(RoundedCornerShape(15.dp))
-            )
-            Column (Modifier.padding(start = 10.dp)) {
-                Text(
-                    text = name.toString(),
-                    style = TextStyle(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 22.sp
-                    ),
-                    modifier = Modifier.padding(bottom = 5.dp)
-                )
-
-
-                Text(
-                    text = "Quantità: $quantity",
-                    style = TextStyle(
-                        fontWeight = FontWeight.Light,
-                        fontSize = 18.sp
-                    )
-                )
-            }
-        }
-
-        content()
-    }
-}
 

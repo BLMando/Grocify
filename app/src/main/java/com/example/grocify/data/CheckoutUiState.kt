@@ -4,7 +4,7 @@ import com.example.grocify.model.Address
 import com.example.grocify.model.PaymentMethod
 
 data class CheckoutUiState(
-    val currentAddress: Address? = null,
+    val currentAddress: Address = Address(),
     val currentPaymentMethod: PaymentMethod? = null,
     val userHasRunningOrder: Boolean? = null,
     val orderId: String = "",

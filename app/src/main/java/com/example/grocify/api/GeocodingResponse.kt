@@ -11,7 +11,7 @@ data class GeocodingResponse(
 
 data class Result(
     val address: Address,
-    val entryPoints: List<EntryPoint>,
+    val entryPoints: List<EntryPoint> = emptyList(),
     val id: String,
     val matchConfidence: MatchConfidence,
     val position: PositionX,
@@ -43,7 +43,7 @@ data class Address(
     val municipality: String,
     val postalCode: String,
     val streetName: String,
-    val streetNumber: String
+    val streetNumber: String = ""
 )
 
 data class EntryPoint(

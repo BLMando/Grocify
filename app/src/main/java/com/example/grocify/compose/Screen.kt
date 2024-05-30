@@ -83,7 +83,19 @@ sealed class Screen(
         fun createRoute(orderId:String) = "order_details/${orderId}"
     }
 
-    data object MapScreen:  Screen("map")
+    data object MapScreen: Screen(
+        route = "map/{destination}/{orderId}",
+        navArguments = listOf(
+            navArgument("destination") {
+                type = NavType.StringType
+            },
+            navArgument("orderId") {
+                type = NavType.StringType
+            }
+        )
+    ){
+        fun createRoute(destination:String, orderId: String) = "map/${destination}/${orderId}"
+    }
     //END DRIVER ROUTES
 
 

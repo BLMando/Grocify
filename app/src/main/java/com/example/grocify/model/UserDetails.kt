@@ -7,10 +7,11 @@ data class UserDetails(
 )
 
 data class Address(
-    val name: String,
-    val address: String,
-    val civic: Int,
-    var selected: Boolean
+    val name: String = "",
+    val address: String = "",
+    val city: String = "",
+    val civic: Int = 0,
+    var selected: Boolean = false
 )
 
 data class PaymentMethod(

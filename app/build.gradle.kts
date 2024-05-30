@@ -77,7 +77,7 @@ dependencies {
 
 
     //ANDROID X COMPOSE LIBRARIES
-    implementation(libs.androidx.core.ktx)
+   implementation(libs.androidx.core.ktx)
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
@@ -118,12 +118,12 @@ dependencies {
 
 
     //BAR CODE LIBRARY
-    implementation("com.google.android.gms:play-services-code-scanner:16.0.0")
+    implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     implementation("com.google.zxing:core:3.4.1")
     implementation("androidx.camera:camera-camera2:1.2.2")
     implementation("androidx.camera:camera-lifecycle:1.2.2")
     implementation("androidx.camera:camera-view:1.2.2")
-    implementation("com.google.mlkit:barcode-scanning:17.1.0")
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
     implementation(libs.androidx.camera.core)
 
     //QRCODE LIBRARY

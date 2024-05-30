@@ -1,6 +1,7 @@
 package com.example.grocify.compose.screens.home
 
 import android.app.Activity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -26,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,13 +36,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.grocify.R
 import com.example.grocify.model.Order
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.viewmodels.HomeDriverViewModel
@@ -62,23 +68,43 @@ fun HomeDriverScreen(
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
+        viewModel.getSignedInUserName()
         viewModel.getOrders()
     }
 
 
     Scaffold (
         topBar = {
-            CenterAlignedTopAppBar(
+            TopAppBar(
                 modifier = Modifier.shadow(10.dp, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)),
                 title = {
                     Text(
-                        text = "Gli ordini di oggi",
-                        style = TextStyle(
-                            fontSize = 30.sp,
-                            fontWeight = FontWeight(500),
-                            color = Color.Black,
-                            textAlign = TextAlign.Center
-                        ),
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight(300),
+                                    color = Color.Black,
+                                ),
+                            ) {
+                                append("Ciao ")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 26.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black,
+                                )
+                            ) {
+                                append(uiState.value.currentUserName)
+                            }
+                        }
+                    ) },
+                navigationIcon = {
+                    Image(
+                        painter = painterResource(id = R.drawable.icon),
+                        contentDescription = "app logo",
+                        modifier = Modifier.padding(start = 20.dp,end=10.dp)
                     )
                 },
                 actions = {
@@ -94,15 +120,30 @@ fun HomeDriverScreen(
             )
         },
         content = { innerPadding ->
-            LazyColumn (
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                contentPadding = innerPadding
+            Column(
+                Modifier.padding(innerPadding)
             ) {
-                items(uiState.value.orders.size){
-                    Spacer(modifier = Modifier.size(20.dp))
-                    OrderItem({ onGroceryClick(uiState.value.orders[it].orderId) },uiState.value.orders[it])
-                    Spacer(modifier = Modifier.size(10.dp))
+                Text(
+                    text = "Gli ordini di oggi",
+                    modifier = Modifier.padding(top = 20.dp, start = 20.dp),
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                )
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    items(uiState.value.orders.size) {
+                        Spacer(modifier = Modifier.size(20.dp))
+                        OrderItem(
+                            { onGroceryClick(uiState.value.orders[it].orderId) },
+                            uiState.value.orders[it]
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                    }
                 }
             }
         }
@@ -148,22 +189,26 @@ fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
                 )
             }
 
-            Row(
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 5.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "Destinazione:",
-                    fontSize = 15.sp,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = order.destination,
-                    fontSize = 15.sp
+                    fontSize = 14.sp
                 )
             }
+
+
 
             Row(
                 modifier = Modifier
@@ -174,11 +219,12 @@ fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
             ) {
                 Text(
                     text = "Numero di articoli:",
-                    fontSize = 15.sp
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = order.cart.size.toString(),
-                    fontSize = 15.sp
+                    fontSize = 14.sp
                 )
             }
 
@@ -191,11 +237,12 @@ fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
             ) {
                 Text(
                     text = "Totale:",
-                    fontSize = 15.sp
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "${order.totalPrice}€",
-                    fontSize = 15.sp
+                    fontSize = 14.sp
                 )
             }
 

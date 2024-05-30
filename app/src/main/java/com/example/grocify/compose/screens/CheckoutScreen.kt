@@ -261,19 +261,17 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
                     Modifier.size(15.dp)
                 )
             }
-            Row(
+            Column(
                 Modifier
                     .fillMaxWidth()
                     .padding(15.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
-                if(uiState.resultAddress.isEmpty()){
-                    uiState.currentAddress?.let {
-                        Text(
-                            text = it.name
-                        )
-                    }
+                if (uiState.resultAddress.isEmpty()) {
+                    Text(
+                        text = "${uiState.currentAddress?.name}, ${uiState.currentAddress?.city}"
+                    )
                     Text(
                         text = "${uiState.currentAddress?.address}, ${uiState.currentAddress?.civic}"
                     )
@@ -283,6 +281,7 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
                     )
                 }
             }
+
         }
     }
 }
