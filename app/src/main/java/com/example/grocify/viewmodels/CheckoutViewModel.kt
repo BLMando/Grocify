@@ -39,7 +39,8 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                 if(documents.isEmpty){
                     _uiState.update {
                         it.copy(
-                            result = "Nessuna opzione di spedizione specificata"
+                            resultPaymentMethod = "Nessun metodo di pagamento aggiunto",
+                            resultAddress = "Nessun indirizzo aggiunto"
                         )
                     }
                 }else{
@@ -54,7 +55,6 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                         }
                     else {
                         val selectedAddress = addresses.filter { it["selected"] as Boolean }
-
                         if(selectedAddress.isEmpty())
                             _uiState.update {
                                 it.copy(
@@ -71,6 +71,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                             )
                             _uiState.update {
                                 it.copy(
+                                    resultAddress = "",
                                     currentAddress = addressClass
                                 )
                             }
@@ -101,6 +102,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                             )
                             _uiState.update {
                                 it.copy(
+                                    resultPaymentMethod = "",
                                     currentPaymentMethod = paymentClass
                                 )
                             }
@@ -120,7 +122,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
         //arrotondo il prezzo finale alla seconda cifra decimale
         val df = DecimalFormat("#.##")
         df.roundingMode = RoundingMode.DOWN
-        val roundedTotalPrice = df.format(totalPrice)
+        val roundedTotalPrice = df.format(totalPrice).replace(',', '.')
 
         viewModelScope.launch{
             //prendo tutti i prodotti dal carrello locale
@@ -155,7 +157,8 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
             ordersRef
                 .add(newOrder)
                 .addOnSuccessListener { document ->
-                    val orderId = document.id.hashCode().toString().replace("-","#")
+                    val hash = if (document.id.hashCode() < 0)  document.id.hashCode() else -document.id.hashCode()
+                    val orderId = hash.toString().replace("-","#")
                     ordersRef.document(document.id).update(
                         "orderId",orderId
                     )

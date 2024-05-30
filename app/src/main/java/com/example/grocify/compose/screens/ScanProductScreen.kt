@@ -42,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.R
 import com.example.grocify.components.CartItems
 import com.example.grocify.components.CheckoutBox
+import com.example.grocify.components.MovingTextAndIconRow
 import com.example.grocify.components.UserBottomNavigation
 import com.example.grocify.model.Product
 import com.example.grocify.ui.theme.BlueDark
@@ -60,14 +61,16 @@ fun ScanProductScreen(
     activity: Activity,
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onPhysicalCartClick: () -> Unit,
+    onVirtualCartClick: () -> Unit,
     onCheckoutClick: (totalPrice: String) -> Unit,
+    onTrackOrderClick: (orderId: String) -> Unit,
 ) {
     val scanner = GmsBarcodeScanning.getClient(activity)
     val storeUiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeProductsList("store")
+        viewModel.checkOrdersStatus()
     }
 
    Scaffold(
@@ -110,14 +113,19 @@ fun ScanProductScreen(
                 ref = "physicalCart",
                 onCatalogClick = onCatalogClick,
                 onGiftClick = onGiftClick,
-                onPhysicalCartClick = onPhysicalCartClick,
-                onVirtualCartClick = {  }
+                onPhysicalCartClick = { },
+                onVirtualCartClick = onVirtualCartClick,
             )
         },
         content = { innerPadding ->
             Column (
                 Modifier.padding(innerPadding)
             ) {
+
+                if(storeUiState.orderId != ""){
+                    MovingTextAndIconRow(storeUiState.orderId, onTrackOrderClick)
+                }
+
                 if (storeUiState.productsList.isEmpty()) {
                     Column(
                         Modifier.fillMaxSize(),

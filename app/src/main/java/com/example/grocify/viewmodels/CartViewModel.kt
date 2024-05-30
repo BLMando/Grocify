@@ -140,4 +140,27 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
             }
         }
     }
+
+    fun checkOrdersStatus(){
+        db.collection("orders")
+            .whereEqualTo("userId", auth.currentUser!!.uid)
+            .whereNotEqualTo("status", "concluso")
+            .addSnapshotListener { documentSnapshot, exception ->
+                if (exception != null) {
+                    return@addSnapshotListener
+                }
+
+                if (documentSnapshot!!.documents.isEmpty()) {
+                    _uiState.update {
+                        it.copy(orderId = "")
+                    }
+                }
+                else {
+                    val orderId = documentSnapshot!!.documents[0].get("orderId").toString()
+                    _uiState.update {
+                        it.copy(orderId = orderId)
+                    }
+                }
+            }
+    }
 }

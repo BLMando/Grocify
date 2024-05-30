@@ -73,8 +73,8 @@ fun GrocifyNavHost(navController: NavHostController) {
             //Bottom navigation route
             val onCatalogClick = { navController.navigate(Screen.HomeUserScreen.route) }
             val onGiftClick = { navController.navigate(Screen.GiftScreen.route) }
-            val onPhysicalCartClick = { navController.navigate(Screen.CartScreen.route) }
-            val onVirtualCartClick = { navController.navigate(Screen.ScanScreen.route) }
+            val onPhysicalCartClick = { navController.navigate(Screen.ScanScreen.route) }
+            val onVirtualCartClick = { navController.navigate(Screen.CartScreen.route) }
 
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
@@ -86,7 +86,11 @@ fun GrocifyNavHost(navController: NavHostController) {
                         ))},
                     onGiftClick = onGiftClick,
                     onPhysicalCartClick = onPhysicalCartClick,
-                    onVirtualCartClick = onVirtualCartClick
+                    onVirtualCartClick = onVirtualCartClick,
+                    onTrackOrderClick = {
+                        navController.navigate(Screen.TrackOrderScreen.createRoute(
+                        orderId = it
+                    )) }
                 )
             }
 
@@ -110,11 +114,15 @@ fun GrocifyNavHost(navController: NavHostController) {
                     activity = activity,
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onPhysicalCartClick = onPhysicalCartClick,
+                    onVirtualCartClick = onVirtualCartClick,
                     onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
                         flagCart = "store",
                         totalPrice = it,
                     ))},
+                    onTrackOrderClick = {
+                        navController.navigate(Screen.TrackOrderScreen.createRoute(
+                            orderId = it
+                        )) },
                 )
             }
 
@@ -122,11 +130,15 @@ fun GrocifyNavHost(navController: NavHostController) {
                 CartScreen(
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
-                    onVirtualCartClick = onVirtualCartClick,
+                    onPhysicalCartClick = onPhysicalCartClick,
                     onCheckoutClick = { navController.navigate(Screen.CheckoutScreen.createRoute(
                         flagCart = "online",
                         totalPrice = it,
                     ))},
+                    onTrackOrderClick = {
+                        navController.navigate(Screen.TrackOrderScreen.createRoute(
+                            orderId = it
+                        )) },
                 )
             }
 

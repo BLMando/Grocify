@@ -34,6 +34,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.components.CartItems
 
 import com.example.grocify.components.CheckoutBox
+import com.example.grocify.components.MovingTextAndIconRow
 import com.example.grocify.components.UserBottomNavigation
 
 import com.example.grocify.model.Product
@@ -47,13 +48,15 @@ fun CartScreen(
     viewModel: CartViewModel = viewModel(),
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
-    onVirtualCartClick: () -> Unit,
+    onPhysicalCartClick: () -> Unit,
     onCheckoutClick: (totalPrice: String) -> Unit,
+    onTrackOrderClick: (orderId: String) -> Unit,
 ) {
     val onlineUiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
         viewModel.initializeProductsList("online")
+        viewModel.checkOrdersStatus()
     }
 
     Scaffold(
@@ -76,8 +79,8 @@ fun CartScreen(
                 ref = "virtualCart",
                 onCatalogClick = onCatalogClick,
                 onGiftClick = onGiftClick,
-                onVirtualCartClick = onVirtualCartClick,
-                onPhysicalCartClick = {}
+                onVirtualCartClick = { },
+                onPhysicalCartClick = onPhysicalCartClick,
             )
         },
         content = { innerPadding ->
@@ -87,6 +90,11 @@ fun CartScreen(
                     .padding(innerPadding),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
+
+                if(onlineUiState.orderId != ""){
+                    MovingTextAndIconRow(onlineUiState.orderId, onTrackOrderClick)
+                }
+
                 if (onlineUiState.productsList.isEmpty()) {
                     Column(
                         Modifier.fillMaxSize(),

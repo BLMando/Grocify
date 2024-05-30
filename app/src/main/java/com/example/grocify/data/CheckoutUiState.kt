@@ -8,7 +8,6 @@ data class CheckoutUiState(
     val currentPaymentMethod: PaymentMethod? = null,
     val userHasRunningOrder: Boolean? = null,
     val orderId: String = "",
-    val result: String = "",
     val resultAddress: String = "",
     val resultPaymentMethod: String = ""
 )

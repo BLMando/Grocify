@@ -7,7 +7,8 @@ import com.example.grocify.model.Review
 
 data class HomeUserUiState(
     val currentUserName: String? = "",
-    val categories: List<Category> = emptyList()
+    val categories: List<Category> = emptyList(),
+    val orderId: String = ""
 )
 
 

@@ -149,13 +149,13 @@ fun TrackOrderScreen(
                     TrackingState(
                         Icons.Filled.LocalShipping,
                         "Ordine in corso di elaborazione",
-                        "Stiamo preparando il tuo ordine. ${uiState.value.order.date}, ${uiState.value.order.time}",
+                        "Ordine effettuato in data ${uiState.value.order.date} alle ore ${uiState.value.order.time}.",
                         true
                     )
                     TrackingState(
                         Icons.Filled.AccessTimeFilled,
                         "In preparazione",
-                        "Stiamo impacchettando la tua spesa. 22 Aprile 2024, 15:50",
+                        "Stiamo preparando la tua spesa. 22 Aprile 2024, 15:50",
                         uiState.value.order.status == "in preparazione" || uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
                     )
                     TrackingState(
@@ -171,8 +171,9 @@ fun TrackOrderScreen(
                         uiState.value.order.status == "consegnato"
                     )
                 }
-
-                QRCodeInfo(uiState.value,orderId)
+                if(uiState.value.order.status == "consegnato"){
+                    QRCodeInfo(uiState.value,orderId)
+                }
             }
         }
     )
@@ -215,10 +216,6 @@ fun QRCodeInfo(state: TrackOrderUiState, orderId: String) {
                 .size(40.dp)
                 .offset { IntOffset(0, offsetY.dp.roundToPx()) },
             tint = BlueLight
-        )
-        Text(
-            text = "Mostra di più",
-            fontSize = 15.sp
         )
     }
 

@@ -25,15 +25,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.R
+import com.example.grocify.viewmodels.OrderSuccessViewModel
 
 @Composable
 fun OrderSuccessScreen(
+    viewModel: OrderSuccessViewModel = viewModel(),
     flagCart: String,
     orderId: String,
     onHomeClick: () -> Unit,
     onTrackOrderClick: (orderId: String) -> Unit,
 ){
+    viewModel.deleteOrder(flagCart)
     Column (
         Modifier
             .fillMaxSize()

@@ -82,6 +82,7 @@ fun HomeUserScreen(
     onPhysicalCartClick: () -> Unit,
     onVirtualCartClick: () -> Unit,
     onAccountClick: () -> Unit,
+    onTrackOrderClick: (orderId: String) -> Unit,
     context: Activity
 ){
 
@@ -90,6 +91,7 @@ fun HomeUserScreen(
     LaunchedEffect(key1 = Unit) {
         viewModel.getSignedInUserName()
         viewModel.getCategories()
+        viewModel.checkOrdersStatus()
     }
 
     PermissionDialog(context = context)
@@ -153,6 +155,11 @@ fun HomeUserScreen(
         Column(
             Modifier.padding(innerPadding),
         ) {
+
+            if(uiState.value.orderId != ""){
+                MovingTextAndIconRow(uiState.value.orderId, onTrackOrderClick)
+            }
+
             Text(
                 text = "Cerca per categoria",
                 Modifier.padding(start = 10.dp, top = 20.dp, bottom = 10.dp),
