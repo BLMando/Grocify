@@ -1,7 +1,6 @@
 package com.example.grocify.compose.screens
 
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -110,7 +109,7 @@ fun CheckoutScreen(
         },
         bottomBar = {
             UserBottomNavigation(
-                ref = "virtualCart",
+                ref = if(flagCart == "online") "virtualCart" else "physicalCart",
                 onCatalogClick = onCatalogClick,
                 onGiftClick = onGiftClick,
                 onPhysicalCartClick = {},
@@ -144,7 +143,7 @@ fun CheckoutScreen(
                 if (flagCart == "online") shipping + "€" else null,
                 (String.format("%.2f", anyToDouble(totalPrice))).replace(',', '.') + "€",
                 "Conferma",
-                buttonEnabled = uiState.value.result.isEmpty() && uiState.value.resultAddress.isEmpty() && uiState.value.resultPaymentMethod.isEmpty() && uiState.value.userHasRunningOrder == false
+                buttonEnabled = uiState.value.resultAddress.isEmpty() && uiState.value.resultPaymentMethod.isEmpty() && uiState.value.userHasRunningOrder == false
             ) {
                 viewModel.createNewOrder(flagCart,anyToDouble(totalPrice)!!)
             }

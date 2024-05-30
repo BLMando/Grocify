@@ -6,7 +6,8 @@ import com.example.grocify.model.Order
 
 data class HomeUserUiState(
     val currentUserName: String? = "",
-    val categories: List<Category> = emptyList()
+    val categories: List<Category> = emptyList(),
+    val orderId: String = ""
 )
 
 

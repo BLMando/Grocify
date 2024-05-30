@@ -1,7 +1,6 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.HomeUserUiState
@@ -58,5 +57,28 @@ class HomeUserViewModel(application: Application): AndroidViewModel(application)
                     }
                 }
         }
+    }
+
+    fun checkOrdersStatus(){
+        db.collection("orders")
+            .whereEqualTo("userId", auth.currentUser!!.uid)
+            .whereNotEqualTo("status", "concluso")
+            .addSnapshotListener { documentSnapshot, exception ->
+                if (exception != null) {
+                    return@addSnapshotListener
+                }
+
+                if (documentSnapshot!!.documents.isEmpty()) {
+                    _uiState.update {
+                        it.copy(orderId = "")
+                    }
+                }
+                else {
+                    val orderId = documentSnapshot!!.documents[0].get("orderId").toString()
+                    _uiState.update {
+                        it.copy(orderId = orderId)
+                    }
+                }
+            }
     }
 }
