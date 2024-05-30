@@ -67,6 +67,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.R
+import com.example.grocify.components.MovingTextAndIconRow
 import com.example.grocify.components.UserBottomNavigation
 import com.example.grocify.model.Category
 import com.example.grocify.ui.theme.BlueMedium

@@ -87,7 +87,7 @@ fun UserBottomNavigation(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable {
-                        onPhysicalCartClick()
+                        onVirtualCartClick()
                     }
                 ){
                     Icon(
@@ -108,7 +108,7 @@ fun UserBottomNavigation(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable {
-                        onVirtualCartClick()
+                        onPhysicalCartClick()
                     }
                 ){
                     Icon(
