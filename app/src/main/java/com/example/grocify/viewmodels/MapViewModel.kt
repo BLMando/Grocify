@@ -217,7 +217,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     private suspend fun getUserLocation(userLocation: String): GeoPoint? = withContext(Dispatchers.Main) {
         val deferred = viewModelScope.async(Dispatchers.IO) {
             try {
-                val response = RetrofitObject.apiService.getUserLocation(userLocation, apiKey)
+                val response = RetrofitObject.geocodingService.getUserLocation(userLocation, apiKey)
                 if (response.isSuccessful && response.body() != null) {
                     val lat = response.body()!!.results[0].position.lat
                     val lon = response.body()!!.results[0].position.lon

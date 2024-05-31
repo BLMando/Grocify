@@ -77,7 +77,8 @@ dependencies {
 
 
     //ANDROID X COMPOSE LIBRARIES
-   implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.ktx)
+    implementation("androidx.compose.foundation:foundation:1.6.7")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
