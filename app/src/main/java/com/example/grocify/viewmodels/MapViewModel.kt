@@ -2,10 +2,13 @@ package com.example.grocify.viewmodels
 
 import android.Manifest
 import android.app.Application
+import android.app.NotificationManager
+import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.util.Log
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.AndroidViewModel
@@ -67,6 +70,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
@@ -285,12 +289,21 @@ class MapViewModel(application: Application): AndroidViewModel(application){
      * - passaggio dell'oggetto Route lungo il quale verrà effettuata la navigazione e delle RoutePlanningOptions utilizzate durante la pianificazione del percorso,
      * - gestione degli aggiornamenti agli stati di navigazione utilizzando il NavigationListener.
      */
-    fun startNavigation(route: Route) {
+    fun startNavigation(route: Route, orderId: String?) {
         if (!isNavigationRunning()) {
             _uiState.update {
                 it.copy(
                     mapHeight = Resources.getSystem().displayMetrics.widthPixels.dp,
                     mapWidth = Resources.getSystem().displayMetrics.widthPixels.dp
+                )
+            }
+            setOrderStatus(
+                orderId = orderId!!,
+                "in consegna"
+            ){
+                sendNotification(
+                    "Ordine in consegna",
+                    "Il driver è in arrivo."
                 )
             }
             mapFragment.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
@@ -307,7 +320,11 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     /**
      * Inizializzazione del NavigationFragment per la navigazione
      */
-      fun initNavigationFragment(binding: MapLayoutBinding, fragmentManager: FragmentManager?) {
+      fun initNavigationFragment(
+        binding: MapLayoutBinding,
+        fragmentManager: FragmentManager?,
+        orderId: String?
+    ) {
           if(!::navigationFragment.isInitialized) {
               navigationFragment = NavigationFragment.newInstance(
                   NavigationUiOptions(
@@ -325,6 +342,15 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
         navigationFragment.navigationView.setArrivalViewButtonClickListener{
             stopNavigation()
+            setOrderStatus(
+                orderId = orderId!!,
+                "consegnato"
+            ){
+                sendNotification(
+                    "Ordine consegnato",
+                    "Il driver è arrivato a destinazione."
+                )
+            }
             setDialogState(true)
         }
 
@@ -414,18 +440,47 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
 
     fun setOrderConclude(orderId: String) {
-        db.collection("orders")
-            .whereEqualTo("orderId", orderId)
-            .get()
-            .addOnSuccessListener { document ->
-                val order = document.documents[0].reference
-                order.update("status", "concluso")
-            }
+        setOrderStatus(
+            orderId = orderId,
+            "concluso"
+        ){
+            sendNotification(
+                "Ordine terminato",
+                "E' stata confermata la ricezione dell'ordine."
+            )
+        }
     }
+
+    private fun setOrderStatus(orderId: String,status: String,sendNotification:()->Unit){
+        viewModelScope.launch {
+            db.collection("orders")
+                .whereEqualTo("orderId", orderId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val order = document.documents[0].reference
+                    order.update("status", status)
+                    sendNotification()
+                }
+        }
+    }
+
 
     fun setDialogState(openDialog: Boolean) {
         _uiState.update { it.copy(openDialog = openDialog) }
     }
+
+    private fun sendNotification(text:String, title:String){
+        val notification =
+            NotificationCompat.Builder(getApplication<Application>().applicationContext, "OrderStatusChannel")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle(title)
+                .setContentText(text)
+                .build()
+        val notificationManager =
+            getApplication<Application>().applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(1, notification)
+    }
+
 
     private fun setLocationDialogState() {
         _uiState.update { it.copy(locationAcquired = true) }

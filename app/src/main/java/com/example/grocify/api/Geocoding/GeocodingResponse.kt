@@ -1,4 +1,4 @@
-package com.example.grocify.api
+package com.example.grocify.api.Geocoding
 
 import com.squareup.moshi.JsonClass
 

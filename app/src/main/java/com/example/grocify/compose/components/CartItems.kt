@@ -1,4 +1,4 @@
-package com.example.grocify.components
+package com.example.grocify.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

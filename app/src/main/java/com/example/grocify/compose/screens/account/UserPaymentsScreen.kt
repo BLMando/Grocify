@@ -1,6 +1,5 @@
 package com.example.grocify.compose.screens.account
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -486,7 +484,7 @@ fun PaymentDialog(uiState: UserPaymentMethodsUiState,viewModel: UserPaymentMetho
                     )
 
                     OutlinedTextField(
-                        value = if(uiState.paymentMethodToUpdate != null && !cvcChange) TextFieldValue(uiState.paymentMethodToUpdate.cvc.toString()) else cvc,
+                        value = if(uiState.paymentMethodToUpdate != null && !cvcChange) TextFieldValue(uiState.paymentMethodToUpdate.cvc) else cvc,
                         singleLine = true,
                         label = { Text(text = "CVC", color = Color.Black) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -555,7 +553,7 @@ fun PaymentDialog(uiState: UserPaymentMethodsUiState,viewModel: UserPaymentMetho
                 else{
                     //creo un nuovo metodo di pagamento con i dati modificati
                     val _owner = if(!ownerChange) uiState.paymentMethodToUpdate.owner else owner
-                    val _cvc = if(!cvcChange) uiState.paymentMethodToUpdate.cvc else cvc.text.toInt()
+                    val _cvc = if(!cvcChange) uiState.paymentMethodToUpdate.cvc else cvc.text
                     val _cardNumber = if(!cardNumberChange) uiState.paymentMethodToUpdate.number else cardNumber.text
                     val _expireDate = if(!expireDateChange) uiState.paymentMethodToUpdate.expireDate else expireDate.text
 

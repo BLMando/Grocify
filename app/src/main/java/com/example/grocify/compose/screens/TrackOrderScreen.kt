@@ -74,6 +74,11 @@ import com.journeyapps.barcodescanner.BarcodeEncoder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.data.TrackOrderUiState
 import com.example.grocify.viewmodels.TrackOrderViewModel
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -146,6 +151,7 @@ fun TrackOrderScreen(
                         )
                     }
 
+               
                     TrackingState(
                         Icons.Filled.LocalShipping,
                         "Ordine in corso di elaborazione",
@@ -155,19 +161,23 @@ fun TrackOrderScreen(
                     TrackingState(
                         Icons.Filled.AccessTimeFilled,
                         "In preparazione",
-                        "Stiamo preparando la tua spesa. 22 Aprile 2024, 15:50",
+                        if(uiState.value.order.status == "in attesa") "" else "Stiamo preparando la tua spesa. ${LocalDateTime.now().format(
+                            DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm"))}",
                         uiState.value.order.status == "in preparazione" || uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
                     )
                     TrackingState(
                         Icons.Filled.Map,
                         "In consegna",
-                        "La tua spesa è in arrivo con un nostro driver",
+                        if(uiState.value.order.status != "in consegna" && uiState.value.order.status != "consegnato") "" else "La tua spesa è in arrivo con un nostro driver. ${
+                            LocalDateTime.now().format(
+                            DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm"))}",
                         uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
                     )
                     TrackingState(
                         Icons.Filled.CheckCircle,
                         "Consegnato",
-                        "La tua spesa è stata consegnata, apri il QRCode in basso. 22 Aprile 2024, 16:30",
+                        if(uiState.value.order.status != "consegnato") "" else "La tua spesa è stata consegnata, apri il QRCode in basso. ${LocalDateTime.now().format(
+                            DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm"))}",
                         uiState.value.order.status == "consegnato"
                     )
                 }

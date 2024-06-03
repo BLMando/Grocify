@@ -1,4 +1,4 @@
-package com.example.grocify.components
+package com.example.grocify.compose.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -87,7 +87,7 @@ fun UserBottomNavigation(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable {
-                        onPhysicalCartClick()
+                        onVirtualCartClick()
                     }
                 ){
                     Icon(
@@ -108,7 +108,7 @@ fun UserBottomNavigation(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.clickable {
-                        onVirtualCartClick()
+                        onPhysicalCartClick()
                     }
                 ){
                     Icon(

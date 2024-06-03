@@ -72,7 +72,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
-import com.example.grocify.api.SentimentData
+import com.example.grocify.api.SentimentAnalysis.SentimentData
 import com.example.grocify.compose.screens.account.StarRatingBar
 import com.example.grocify.data.HomeAdminUiState
 import com.example.grocify.model.Review
@@ -89,7 +89,6 @@ import com.himanshoe.charty.bar.model.BarData
 import com.himanshoe.charty.common.ChartDataCollection
 import com.himanshoe.charty.line.CurveLineChart
 import com.himanshoe.charty.line.config.LineConfig
-
 
 data class TabRowItem(
     val title: String,
@@ -347,23 +346,25 @@ fun StatisticsContent(uiState: HomeAdminUiState){
 
 @Composable
 fun BarChartCard(data: List<Pair<String, Int>>,title:String) {
-    if(data.isEmpty()){
-        CircularProgressIndicator()
-    }else{
+
         var dialogState by remember { mutableStateOf(false) }
         val barData: MutableList<BarData> = mutableListOf()
+        val colorList: List<Color> = listOf(
+            Color(0xffed625d),
+            Color(0xffed125d),
+            Color(0xffed225d),
+            Color(0xffed325d),
+            Color(0xffed425d),
+            Color(0xffed525d),
+            Color(0xffed615d),
+            Color(0xffed635d),
+            Color(0xffed735d),
+            Color(0xffed835d),
+            Color(0xffed935d),
+            Color(0xffeda35d)
+        )
 
-        data.forEach { product ->
-            barData.add(
-                BarData(
-                    product.second.toFloat(),
-                    data.indexOf(product) + 1,
-                    color = BlueMedium
-                )
-            )
-        }
-
-        Card (
+        Card(
             colors = CardDefaults.cardColors(
                 containerColor = Color.White
             ),
@@ -375,58 +376,73 @@ fun BarChartCard(data: List<Pair<String, Int>>,title:String) {
                 .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
                 .clip(RoundedCornerShape(20.dp))
         ) {
-            Column(
-                Modifier.padding(15.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
-                when (title) {
-                    "Media ordini mensili" -> CurveLineChart(
-                        dataCollection = ChartDataCollection(barData),
-                        lineConfig = LineConfig(
-                            hasDotMarker = true,
-                            hasSmoothCurve = true,
-                            strokeSize = 1f
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                    "Spesa media mensile degli utenti" -> CurveLineChart(
-                        dataCollection = ChartDataCollection(barData),
-                        lineConfig = LineConfig(
-                            hasDotMarker = true,
-                            hasSmoothCurve = true,
-                            strokeSize = 1f
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                    else -> BarChart(
-                        dataCollection = ChartDataCollection(barData),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                    )
-                }
-
-                TextButton(
-                    onClick = { dialogState = true }
-                ) {
-                    Text(
-                        text = "Legenda",
-                        style = TextStyle(
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
+            if(data.isEmpty())
+                CircularProgressIndicator()
+            else {
+                data.forEach { product ->
+                    barData.add(
+                        BarData(
+                            product.second.toFloat(),
+                            data.indexOf(product) + 1,
+                            colorList[data.indexOf(product)]
                         )
                     )
+                }
+                Column(
+                    Modifier.padding(15.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    when (title) {
+                        "Media ordini mensili" -> CurveLineChart(
+                            dataCollection = ChartDataCollection(barData),
+                            lineConfig = LineConfig(
+                                hasDotMarker = true,
+                                hasSmoothCurve = true,
+                                strokeSize = 1f
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+
+                        "Spesa media mensile degli utenti" -> CurveLineChart(
+                            dataCollection = ChartDataCollection(barData),
+                            lineConfig = LineConfig(
+                                hasDotMarker = true,
+                                hasSmoothCurve = true,
+                                strokeSize = 1f
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+
+                        else -> BarChart(
+                            dataCollection = ChartDataCollection(barData),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+                    }
+
+                    TextButton(
+                        onClick = { dialogState = true }
+                    ) {
+                        Text(
+                            text = "Legenda",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -517,7 +533,6 @@ fun BarChartCard(data: List<Pair<String, Int>>,title:String) {
                 },
                 containerColor = Color.White
             )
-    }
 }
 
 @Composable

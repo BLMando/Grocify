@@ -1,4 +1,4 @@
-package com.example.grocify.api
+package com.example.grocify.api.SentimentAnalysis
 
 import com.squareup.moshi.JsonClass
 

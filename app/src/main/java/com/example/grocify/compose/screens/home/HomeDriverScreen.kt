@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +56,7 @@ import com.google.android.gms.auth.api.identity.Identity
 fun HomeDriverScreen(
     context: Activity,
     onLogOutClick: () -> Unit,
-    onGroceryClick: (orderId: String) -> Unit
+    onGroceryClick: (String, String) -> Unit
 ) {
     val viewModel: HomeDriverViewModel = viewModel(factory = viewModelFactory {
         addInitializer(HomeDriverViewModel::class) {
@@ -139,7 +138,7 @@ fun HomeDriverScreen(
                     items(uiState.value.orders.size) {
                         Spacer(modifier = Modifier.size(20.dp))
                         OrderItem(
-                            { onGroceryClick(uiState.value.orders[it].orderId) },
+                            { onGroceryClick(uiState.value.orders[it].orderId, uiState.value.orders[it].destination) },
                             uiState.value.orders[it]
                         )
                         Spacer(modifier = Modifier.size(10.dp))

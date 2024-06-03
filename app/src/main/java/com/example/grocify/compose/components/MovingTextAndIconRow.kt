@@ -1,4 +1,4 @@
-package com.example.grocify.components
+package com.example.grocify.compose.components
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

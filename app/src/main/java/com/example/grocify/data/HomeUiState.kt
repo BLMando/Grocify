@@ -1,6 +1,6 @@
 package com.example.grocify.data
 
-import com.example.grocify.api.SentimentData
+import com.example.grocify.api.SentimentAnalysis.SentimentData
 import com.example.grocify.model.Category
 import com.example.grocify.model.Order
 import com.example.grocify.model.Review

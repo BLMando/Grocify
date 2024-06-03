@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.api.RetrofitObject
-import com.example.grocify.api.SentimentData
+import com.example.grocify.api.SentimentAnalysis.SentimentData
 import com.example.grocify.data.HomeAdminUiState
 import com.example.grocify.model.Review
 import com.google.android.gms.auth.api.identity.SignInClient

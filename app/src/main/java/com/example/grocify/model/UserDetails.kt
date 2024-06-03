@@ -10,7 +10,7 @@ data class Address(
     val name: String = "",
     val address: String = "",
     val city: String = "",
-    val civic: Int = 0,
+    val civic: String = "",
     var selected: Boolean = false
 )
 
@@ -18,6 +18,6 @@ data class PaymentMethod(
     val owner: String,
     val number: String,
     val expireDate: String,
-    val cvc: Int,
+    val cvc: String,
     val selected: Boolean
 )
