@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,6 +68,7 @@ import com.example.grocify.components.UserBottomNavigation
 import com.example.grocify.model.ProductType
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.util.anyToDouble
 import com.example.grocify.viewmodels.CategoryItemsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -85,6 +88,7 @@ fun CategoryItemsScreen(
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
+        viewModel.resetFields()
         viewModel.initializeProductsList("online")
         viewModel.getProducts(categoryId)
     }
@@ -219,43 +223,83 @@ fun CategoryItemCard(product: ProductType, viewModel: CategoryItemsViewModel, fl
                     ),
                     modifier = Modifier.padding(start = 18.dp, top = 10.dp)
                 )
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                            ),
-                        ) {
-                            append("${product.price}€")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                fontSize = 13.sp,
-                                color = Color.Gray,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append("/${product.quantity}")
-                        }
-                    },
-                    modifier = Modifier.padding(start = 18.dp)
-                )
+                if(product.discount != 0.0){
+                    val originalPrice = String.format("%.2f", anyToDouble(product.price)).replace(',', '.') + "€"
+                    val discountedPrice = String.format("%.2f" , anyToDouble(product.price * (100.0 - product.discount) / 100.0)).replace(',', '.') + "€"
+
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Red, // Color for original price
+                                    textDecoration = TextDecoration.LineThrough // Strikethrough style
+                                )
+                            ) {
+                                append(originalPrice)
+                            }
+                            append(" ") // Add space between prices
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black // Color for discounted price
+                                )
+                            ) {
+                                append(discountedPrice)
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 13.sp,
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("/${product.quantity}")
+                            }
+                        },
+                        modifier = Modifier.padding(start = 18.dp)
+                    )
+                }
+                else{
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Black,
+                                ),
+                            ) {
+                                append("${product.price}€")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    fontSize = 13.sp,
+                                    color = Color.Gray,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            ) {
+                                append("/${product.quantity}")
+                            }
+                        },
+                        modifier = Modifier.padding(start = 18.dp)
+                    )
+                }
             }
 
 
             Button(
                 onClick = {
-
-                    if (!isAddingToCart ) {
-                        isAddingToCart   = true
-                        scope.launch {
-                            viewModel.addToCart(product.id)
-                            delay(300)  // Debounce delay
-                            isAddingToCart  = false
-                        }
-                    }
+                            if (!isAddingToCart ) {
+                                isAddingToCart   = true
+                                scope.launch {
+                                    viewModel.addToCart(product)
+                                    delay(300)  // Debounce delay
+                                    isAddingToCart  = false
+                                }
+                            }
                          },
                 modifier = Modifier
                     .fillMaxWidth()

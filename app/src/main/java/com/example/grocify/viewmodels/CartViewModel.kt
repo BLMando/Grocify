@@ -28,9 +28,9 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-    fun getUnitsById(id: String?): String {
+    fun getUnitsByIdAndThreshold(id: String?, threshold: Int): String {
 
-        val index = _uiState.value.productsList.indexOf(_uiState.value.productsList.find { it.id == id })
+        val index = _uiState.value.productsList.indexOf(_uiState.value.productsList.find { it.id == id && it.threshold == threshold })
 
         return _uiState.value.productsList[index].units.toString()
     }
@@ -44,26 +44,40 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
                 .addOnSuccessListener { products ->
                     for (product in products) {
                         if (product.id == productId) {
-                            val name = product.get("nome")?.toString() ?: ""
-                            val price = product.get("prezzo_unitario")?.toString() ?: ""
-                            val priceKg = product.get("prezzo_al_kg")?.toString() ?: ""
+                            val name     = product.get("nome")?.toString() ?: ""
+                            val price    = product.get("prezzo_unitario")?.toString() ?: ""
+                            val priceKg  = product.get("prezzo_al_kg")?.toString() ?: ""
                             val quantity = product.get("quantita")?.toString() ?: ""
-                            val image = product.get("immagine")?.toString() ?: ""
+                            val image    = product.get("immagine")?.toString() ?: ""
+                            val discount = product.get("sconto")?.toString() ?: "0.00"
 
-                            val productToAdd = Product(product.id, "store", auth.currentUser?.uid.toString(), name, priceKg.toDouble(), price.toDouble(), quantity, image, 1)
+                            val productToAdd = Product(
+                                id = product.id,
+                                type = "store",
+                                userId = auth.currentUser?.uid.toString(),
+                                name = name,
+                                priceKg = priceKg.toDouble(),
+                                price = price.toDouble(),
+                                quantity = quantity,
+                                image = image,
+                                units = 1,
+                                discount = discount.toDouble(),
+                                0
+                            )
 
                             _uiState.update { currentState ->
                                 val updatedList = currentState.productsList.toMutableList()
-                                val existingProduct = updatedList.find { it.id == product.id }
+                                val existingProduct = updatedList.find { it.id == product.id && it.threshold == 0 }
                                 if (existingProduct != null) {
                                     existingProduct.units += 1
+                                    productDao.addValueToProductUnits(product.id, 0,"store", auth.currentUser?.uid.toString(),1)
                                 }
                                 else {
-                                    productDao.insertProduct(productToAdd)
                                     updatedList.add(productToAdd)
+                                    productDao.insertProduct(productToAdd)
                                 }
-                                cartDao.addValueToTotalPrice("store", auth.currentUser?.uid.toString(), price.toDouble())
-                                val totalPrice = currentState.totalPrice + price.toDouble()
+                                cartDao.addValueToTotalPrice("store", auth.currentUser?.uid.toString(), (price.toDouble() * (100.0 - discount.toDouble())/100.0))
+                                val totalPrice = currentState.totalPrice + (price.toDouble() * (100.0 - discount.toDouble())/100.0)
                                 currentState.copy(productsList = updatedList, totalPrice = totalPrice)
                             }
 
@@ -83,11 +97,11 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
                 val cart = Cart(
                     type = flagCart,
                     userId = auth.currentUser?.uid.toString(),
-                    totalPrice = if(flagCart == "store") 0.00 else  1.50,
+                    totalPrice = if(flagCart == "store") 0.00 else 1.50,
                 )
                 cartDao.insertCart(cart)
                 _uiState.update { currentState ->
-                    currentState.copy(totalPrice = if(flagCart == "store") 0.00 else  1.50)
+                    currentState.copy(totalPrice = if(flagCart == "store") 0.00 else 1.50)
                 }
             }
             else{
@@ -103,17 +117,23 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun removeFromCart(id: String, price: Double, units: Int, flagCart: String) {
+    fun removeFromCart(product: Product, flagCart: String) {
         viewModelScope.launch {
             _uiState.update { currentState ->
                 val updatedList = currentState.productsList.toMutableList()
-                val productToRemove = updatedList.find { it.id == id }
+                val productToRemove = updatedList.find { it.id == product.id && it.threshold == product.threshold }
                 if (productToRemove != null) {
-                    productDao.deleteById(id, flagCart, auth.currentUser?.uid.toString())
-                    cartDao.addValueToTotalPrice(flagCart, auth.currentUser?.uid.toString(),-(units * price))
+                    productDao.deleteByIdAndThreshold(product.id, product.threshold, flagCart, auth.currentUser?.uid.toString())
                     updatedList.remove(productToRemove)
-                    val totalPrice = currentState.totalPrice - (units * price)
-                    currentState.copy(productsList = updatedList, totalPrice = totalPrice)
+                    if(product.threshold == 0){
+                        cartDao.addValueToTotalPrice(flagCart, auth.currentUser?.uid.toString(),-(product.units * (product.price * (100.0 - product.discount)/100.0)))
+                        val totalPrice = currentState.totalPrice - (product.units * (product.price * (100.0 - product.discount)/100.0))
+                        currentState.copy(productsList = updatedList, totalPrice = totalPrice)
+                    }
+                    else{
+                        currentState.copy(productsList = updatedList)
+                    }
+
                 }
                 else {
                     currentState
@@ -122,16 +142,16 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    fun addValueToProductUnits(id: String, price: Double, value: Int, flagCart: String) {
+    fun addValueToProductUnits(product: Product, value: Int, flagCart: String) {
         viewModelScope.launch {
             _uiState.update { currentState ->
                 val updatedList = currentState.productsList.toMutableList()
-                val product = updatedList.find { it.id == id }
-                if (product != null) {
-                    productDao.addValueToProductUnits(id, flagCart, auth.currentUser?.uid.toString(), value)
-                    cartDao.addValueToTotalPrice(flagCart, auth.currentUser?.uid.toString(),value * price)
+                val existingProduct = updatedList.find { it.id == product.id && it.threshold == product.threshold }
+                if (existingProduct != null) {
+                    productDao.addValueToProductUnits(product.id, product.threshold, flagCart, auth.currentUser?.uid.toString(), value)
+                    cartDao.addValueToTotalPrice(flagCart, auth.currentUser?.uid.toString(),value * (product.price * (100.0 - product.discount)/100.0))
                     product.units += value
-                    val totalPrice = currentState.totalPrice + value * price
+                    val totalPrice = currentState.totalPrice + value * (product.price * (100.0 - product.discount)/100.0)
                     currentState.copy(productsList = updatedList, totalPrice = totalPrice)
                 }
                 else {

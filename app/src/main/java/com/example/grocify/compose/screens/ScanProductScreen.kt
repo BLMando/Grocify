@@ -187,12 +187,7 @@ fun ScanProductScreen(
                                     val product = storeUiState.productsList[index]
                                     product.let {
                                         CartItems(
-                                            id = it.id,
-                                            name = it.name,
-                                            price = it.price,
-                                            quantity = it.quantity,
-                                            image = it.image,
-                                            units = it.units,
+                                            product = it,
                                             viewModel = viewModel,
                                             flagCart = "store"
                                         )

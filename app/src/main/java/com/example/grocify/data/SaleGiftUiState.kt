@@ -2,10 +2,7 @@ package com.example.grocify.data
 
 import com.example.grocify.model.ProductType
 
-data class CategoryItemsUiState(
-    val categoryName: String = "",
+data class SaleGiftUiState(
     val products: MutableList<ProductType> = mutableListOf<ProductType>(),
-    val isSuccessful: Boolean = true
+    val selectedProducts: MutableList<ProductType> = mutableListOf<ProductType>(),
 )
-
-

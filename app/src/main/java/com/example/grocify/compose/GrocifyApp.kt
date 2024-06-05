@@ -20,10 +20,12 @@ import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.MapScreen
 import com.example.grocify.compose.screens.OrderDetailsScreen
 import com.example.grocify.compose.screens.OrderSuccessScreen
+import com.example.grocify.compose.screens.SaleGiftScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
 import com.example.grocify.compose.screens.SignUpScreen
 import com.example.grocify.compose.screens.TrackOrderScreen
+import com.example.grocify.compose.screens.UsersManagementScreen
 import com.example.grocify.compose.screens.account.UserAccountScreen
 import com.example.grocify.compose.screens.account.UserAddressScreen
 import com.example.grocify.compose.screens.account.UserOrdersScreen
@@ -147,6 +149,10 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onCatalogClick = onCatalogClick,
                     onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick,
+                    onTrackOrderClick = {
+                        navController.navigate(Screen.TrackOrderScreen.createRoute(
+                            orderId = it
+                        )) },
                 )
             }
 
@@ -307,10 +313,53 @@ fun GrocifyNavHost(navController: NavHostController) {
             composable(route = Screen.HomeAdminScreen.route){
                 HomeAdminScreen(
                     context = activity,
+                    onSaleClick = {navController.navigate(Screen.SaleGiftScreen.createRoute(
+                        flagPage = it
+                    ))},
+                    onGiftClick =  {navController.navigate(Screen.SaleGiftScreen.createRoute(
+                        flagPage = it
+                    ))},
+                    onUsersClick = { navController.navigate(Screen.UsersManagementScreen.route) },
                     onLogOutClick = { navController.navigate(Screen.SignInScreen.route) }
                 )
             }
+
+            composable(
+                route = Screen.SaleGiftScreen.route,
+                arguments = Screen.SaleGiftScreen.navArguments
+            ){ backStackEntry ->
+                val flagPage = backStackEntry.arguments?.getString("flagPage").toBoolean()
+                SaleGiftScreen(
+                    isSaleContent = flagPage,
+                    onStatsClick = { navController.navigate(Screen.HomeAdminScreen.route) },
+                    onSaleClick = {navController.navigate(Screen.SaleGiftScreen.createRoute(
+                        flagPage = it
+                    ))},
+                    onGiftClick =  {navController.navigate(Screen.SaleGiftScreen.createRoute(
+                        flagPage = it
+                    ))},
+                    onUsersClick = { navController.navigate(Screen.UsersManagementScreen.route) },
+                )
+            }
+
+            composable(
+                route = Screen.UsersManagementScreen.route,
+                arguments = Screen.UsersManagementScreen.navArguments
+            ){ backStackEntry ->
+                val flagPage = backStackEntry.arguments?.getString("flagPage").toBoolean()
+                UsersManagementScreen(
+                    onStatsClick = { navController.navigate(Screen.HomeAdminScreen.route) },
+                    onSaleClick = {navController.navigate(Screen.SaleGiftScreen.createRoute(
+                        flagPage = it
+                    ))},
+                    onGiftClick =  {navController.navigate(Screen.SaleGiftScreen.createRoute(
+                        flagPage = it
+                    ))},
+                )
+            }
+
         }
+
         //END ADMIN SCREENS
     }
 }
