@@ -19,6 +19,7 @@ import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.MapScreen
 import com.example.grocify.compose.screens.OrderDetailsScreen
+import com.example.grocify.compose.screens.OrderFinishedScreen
 import com.example.grocify.compose.screens.OrderSuccessScreen
 import com.example.grocify.compose.screens.ScanProductScreen
 import com.example.grocify.compose.screens.SignInScreen
@@ -239,7 +240,16 @@ fun GrocifyNavHost(navController: NavHostController) {
                 val orderId = backStackEntry.arguments?.getString("orderId")
                 TrackOrderScreen(
                     orderId = orderId!!,
-                    onBackClick = onCatalogClick
+                    onBackClick = onCatalogClick,
+                    onQRScanned = { navController.navigate(Screen.OrderFinishedScreen.route)}
+                )
+            }
+
+            composable(
+                route = Screen.OrderFinishedScreen.route
+            ){
+                OrderFinishedScreen(
+                    onHomeClick = onCatalogClick,
                 )
             }
         }

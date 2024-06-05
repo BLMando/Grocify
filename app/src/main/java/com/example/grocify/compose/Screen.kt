@@ -67,6 +67,8 @@ sealed class Screen(
     ){
         fun createRoute(orderId:String) = "track_order/${orderId}"
     }
+
+    data object OrderFinishedScreen: Screen("order_finished")
     //END USER ROUTES
 
 

@@ -74,18 +74,16 @@ import com.journeyapps.barcodescanner.BarcodeEncoder
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.data.TrackOrderUiState
 import com.example.grocify.viewmodels.TrackOrderViewModel
-import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TrackOrderScreen(
     viewModel: TrackOrderViewModel = viewModel(),
     onBackClick: () -> Unit,
-    orderId: String
+    orderId: String,
+    onQRScanned: () -> Unit
 ){
 
     val uiState = viewModel.uiState.collectAsState()
@@ -93,6 +91,11 @@ fun TrackOrderScreen(
     LaunchedEffect(key1 = Unit) {
         viewModel.getCurrentOrder(orderId)
         viewModel.getUserName(orderId)
+    }
+
+    LaunchedEffect(key1 = uiState.value.order.status) {
+        if(uiState.value.order.status == "concluso")
+            onQRScanned()
     }
 
     Scaffold(
@@ -137,9 +140,9 @@ fun TrackOrderScreen(
                 ) {
 
                     Row(
-                       Modifier
-                           .fillMaxWidth()
-                           .padding(start = 30.dp, bottom = 30.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 30.dp, bottom = 30.dp),
                         horizontalArrangement = Arrangement.Start
                     ) {
                         Text(
