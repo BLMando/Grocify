@@ -64,6 +64,7 @@ import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.ui.MapFragment
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +73,7 @@ fun MapScreen(
     viewModel: MapViewModel = viewModel(),
     context: Activity,
     onBackClick: () -> Unit,
+    onQRScanned: () -> Unit,
     destination: String?,
     orderId: String?
 ){
@@ -202,7 +204,8 @@ fun MapScreen(
         uiState.value.openDialog,
         orderId!!,
         viewModel,
-        scanner
+        scanner,
+        onQRScanned
     )
 
     LocationDialog(uiState.value.locationAcquired)
@@ -254,6 +257,7 @@ fun Dialog(
     orderId: String,
     viewModel: MapViewModel,
     scanner: GmsBarcodeScanner,
+    onQRScanned: () -> Unit,
 ) {
     if (state) {
         AlertDialog(
@@ -290,7 +294,7 @@ fun Dialog(
                     Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally
                 ){
                     Text(
-                        text = LocalTime.now().toString(),
+                        text = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm")).toString(),
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .padding(top = 10.dp, start = 25.dp, end = 25.dp)
@@ -310,9 +314,13 @@ fun Dialog(
             },
             confirmButton = {
                 Button(
-                    onClick = { scanner.startScan().addOnSuccessListener {
-                        viewModel.setOrderConclude(orderId)
-                        viewModel.setDialogState(false)
+                    onClick = { scanner.startScan().addOnSuccessListener {QRcode ->
+
+                        if(orderId == QRcode.rawValue.toString()){
+                            viewModel.setOrderConclude(orderId)
+                            viewModel.setDialogState(false)
+                            onQRScanned()
+                        }
                     }},
                     Modifier.fillMaxWidth()
                 ) {

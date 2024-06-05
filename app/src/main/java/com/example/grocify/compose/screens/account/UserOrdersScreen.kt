@@ -1,6 +1,5 @@
 package com.example.grocify.compose.screens.account
 
-import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DepartureBoard
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Star
@@ -34,6 +34,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.grocify.data.UserOrdersUiState
 import com.example.grocify.model.Order
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.viewmodels.UserOrdersViewModel
@@ -188,7 +190,7 @@ fun UserOrdersScreen(
                         ) { }
                     }
                 }
-                OrderDialog(uiState.value.orderReview, uiState.value.isReviewClicked, viewModel!!)
+                OrderDialog(uiState.value.orderReview, uiState.value.isReviewClicked, viewModel!!, uiState.value)
             }
         }
     }
@@ -325,7 +327,8 @@ fun OrderCard(
 fun OrderDialog(
     order: Order,
     fabState: Boolean,
-    viewModel: UserOrdersViewModel
+    viewModel: UserOrdersViewModel,
+    uiState: UserOrdersUiState
 ){
 
     var rating by rememberSaveable { mutableFloatStateOf(1f) } //default rating will be 1
@@ -373,14 +376,31 @@ fun OrderDialog(
                         singleLine = false,
                         label = {
                             Text(text = "Inserisci un commento")
+                        },
+                        isError = !uiState.isTextValid,
+                        supportingText = {
+                            if(!uiState.isTextValid)
+                                Text(
+                                    text = uiState.textError,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.Red,
+                                    textAlign = TextAlign.Start
+                                )
+                        },
+                        trailingIcon = {
+                            if (!uiState.isTextValid)
+                                Icon(Icons.Filled.Error,"error", tint = MaterialTheme.colorScheme.error)
                         }
                     )
                 }
             },
             dismissButton = {
                 Button(
-                    onClick = {viewModel.addOrderReview(order.orderId,order.userId,text,rating)
-                              viewModel.setReviewIconClicked(false) },
+                    onClick = {
+                                viewModel.addOrderReview(order.orderId,order.userId,text,rating)
+                                if (!uiState.isTextValid)
+                                    viewModel.setReviewIconClicked(false)
+                            },
                     Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 10.dp),
                     shape = RoundedCornerShape(25)

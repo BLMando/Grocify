@@ -50,12 +50,14 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
             db.collection("orders")
                 .whereEqualTo("date", currentDate.format(formatter) )
                 .whereEqualTo("status", "in attesa")
-                .get()
-                .addOnSuccessListener { documents ->
+                .addSnapshotListener { documentSnapshot, exception ->
+                    if (exception != null) {
+                        return@addSnapshotListener
+                    }
                     val ordersList:MutableList<Order> = mutableListOf()
-                    for (document in documents) {
+                    for (document in documentSnapshot!!.documents) {
                         document.toObject(Order::class.java).let { order ->
-                            ordersList.add(order)
+                            ordersList.add(order!!)
                         }
                     }
                     _uiState.update { currentState ->

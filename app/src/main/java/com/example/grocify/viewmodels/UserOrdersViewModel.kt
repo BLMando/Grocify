@@ -7,7 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.UserOrdersUiState
 import com.example.grocify.model.Order
 import com.example.grocify.model.Review
+import com.example.grocify.util.isNotEmpty
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,23 +63,45 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
     }
 
     fun addOrderReview(orderId: String, userId: String, text: String, rating: Float){
-        viewModelScope.launch {
-            db.collection("orders_reviews")
-               .add(
-                   Review(
-                       orderId = orderId,
-                       userId = userId,
-                       review = text,
-                       rating = rating,
-                       date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-                   )
-               ).addOnSuccessListener {
-                   _uiState.update { currentState ->
-                       currentState.copy(
-                           ordersReviewed = _uiState.value.ordersReviewed + orderId
-                       ) }
 
-               }
+        val textStatus = isNotEmpty(text)
+
+        if(!textStatus){
+            _uiState.update { currentState ->
+                currentState.copy(
+                    textError = "La recensione non può essere vuota",
+                    isTextValid = false
+                )
+            }
+        }
+        else{
+            _uiState.update { currentState ->
+                currentState.copy(
+                    textError = "",
+                    isTextValid = true
+                )
+            }
+        }
+        if(textStatus) {
+            viewModelScope.launch {
+                db.collection("orders_reviews")
+                    .add(
+                        Review(
+                            orderId = orderId,
+                            userId = userId,
+                            review = text,
+                            rating = rating,
+                            date = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        )
+                    ).addOnSuccessListener {
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                ordersReviewed = _uiState.value.ordersReviewed + orderId
+                            )
+                        }
+
+                    }
+            }
         }
     }
 

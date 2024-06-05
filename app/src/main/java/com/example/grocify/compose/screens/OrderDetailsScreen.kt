@@ -1,6 +1,7 @@
 package com.example.grocify.compose.screens
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -113,9 +114,9 @@ fun OrderDetailsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    viewModel.markProduct("WVMd50MFzfwhhgmIDBut",orderId)
+
                     scanner.startScan().addOnSuccessListener { barcode ->
-                            /*TODO*/
+                        viewModel.markProduct(barcode.rawValue.toString(),orderId)
                     }},
                 containerColor = BlueDark,
             )
@@ -129,7 +130,7 @@ fun OrderDetailsScreen(
                 )
         } },
         content = { innerPadding ->
-            Column (
+            Column(
                 Modifier.padding(innerPadding)
             ) {
                 Text(
@@ -149,21 +150,21 @@ fun OrderDetailsScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    items(uiState.value.products.size) {index ->
+                    items(uiState.value.products.size) { index ->
                         //Log.v("OrderDetail", uiState.value.products[index].toString())
                         CartItems(
                             product = uiState.value.products[index],
                             viewModel = viewModel,
                             flagCart = "",
-                            productMarked = if(uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[index]
+                            productMarked = if (uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[index]
                         )
                     }
                 }
             }
 
-            if(uiState.value.isProductsMarked.containsAll(listOf(true)))
+            if ((uiState.value.isProductsMarked.all{ it }) && (uiState.value.products.size != 0))
                 AlertDialog(
-                    onDismissRequest = {  },
+                    onDismissRequest = { },
                     title = {
                         Text(
                             text = "Ordine completato",
@@ -192,9 +193,10 @@ fun OrderDetailsScreen(
                         )
                     },
                     text = {
-                        Column (
-                            Modifier.fillMaxWidth(),horizontalAlignment = Alignment.CenterHorizontally
-                        ){
+                        Column(
+                            Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Text(
                                 text = "Raggiungi Mattia Mandorlini",
                                 style = TextStyle(
@@ -215,7 +217,7 @@ fun OrderDetailsScreen(
                     },
                     confirmButton = {
                         Button(
-                            onClick = { onProceedClick(destination,orderId) },
+                            onClick = { onProceedClick(destination, orderId) },
                             Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(vertical = 10.dp),
                             shape = RoundedCornerShape(25)
@@ -231,6 +233,7 @@ fun OrderDetailsScreen(
                     },
                     containerColor = Color.White
                 )
+
         }
     )
 }

@@ -165,7 +165,7 @@ fun TrackOrderScreen(
                         Icons.Filled.AccessTimeFilled,
                         "In preparazione",
                         if(uiState.value.order.status == "in attesa") "" else "Stiamo preparando la tua spesa. ${LocalDateTime.now().format(
-                            DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm"))}",
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm"))}",
                         uiState.value.order.status == "in preparazione" || uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
                     )
                     TrackingState(
@@ -173,14 +173,14 @@ fun TrackOrderScreen(
                         "In consegna",
                         if(uiState.value.order.status != "in consegna" && uiState.value.order.status != "consegnato") "" else "La tua spesa è in arrivo con un nostro driver. ${
                             LocalDateTime.now().format(
-                            DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm"))}",
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm"))}",
                         uiState.value.order.status == "in consegna" || uiState.value.order.status == "consegnato"
                     )
                     TrackingState(
                         Icons.Filled.CheckCircle,
                         "Consegnato",
                         if(uiState.value.order.status != "consegnato") "" else "La tua spesa è stata consegnata, apri il QRCode in basso. ${LocalDateTime.now().format(
-                            DateTimeFormatter.ofPattern("dd MMMM yyyy, HH:mm"))}",
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm"))}",
                         uiState.value.order.status == "consegnato"
                     )
                 }

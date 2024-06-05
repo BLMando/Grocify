@@ -317,7 +317,8 @@ fun GrocifyNavHost(navController: NavHostController) {
                     context = activity,
                     destination = destination,
                     orderId = orderId,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.popBackStack() },
+                    onQRScanned = { navController.navigate(Screen.HomeDriverScreen.route) },
                 )
             }
         }

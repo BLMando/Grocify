@@ -32,6 +32,7 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
                 .get()
                 .addOnSuccessListener { documents ->
                     val cart:List<HashMap<String, Any>> = documents.documents[0].data?.get("cart") as List<HashMap<String, Any>>
+                    val listBoolean = mutableListOf<Boolean>()
                     val productList = mutableListOf<Product>()
                     cart.forEach { product ->
                         productList.add(Product(
@@ -39,16 +40,18 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
                             image = product["image"] as String,
                             quantity = product["quantity"] as String,
                             units = (product["units"] as Long).toInt(),
-                        ))
+                        )
+                        )
+                        listBoolean.add(false)
                     }
-                    _uiState.update { it.copy(products = productList)}
+                    _uiState.update { it.copy(products = productList, isProductsMarked = listBoolean)}
                 }
         }
     }
 
 
     fun markProduct(productId: String, orderId: String){
-        val listBoolean = mutableListOf<Boolean>()
+        val listBoolean = _uiState.value.isProductsMarked.toMutableList()
         viewModelScope.launch {
             db.collection("orders")
                 .whereEqualTo("orderId", orderId)
@@ -56,15 +59,17 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
                 .addOnSuccessListener { documents ->
                     val order = documents.documents[0]
                     val cart: List<HashMap<String, Any>> = order.data?.get("cart") as List<HashMap<String, Any>>
+                    var i = 0
                     for (product in cart){
                         if(product["id"] == productId) {
-                            /*if(order?.data!!["status"] == "in attesa"){
+                            if(order?.data!!["status"] == "in attesa"){
                                 order.reference.update("status","in preparazione")
-                                sendNotification()
-                            }*/
-                            listBoolean.add(true)
-                        }else
-                            listBoolean.add(false)
+                                //sendNotification()
+                            }
+                            listBoolean[i] = true
+                        }
+
+                        i +=1
                     }
                     _uiState.update { it.copy(isProductsMarked = listBoolean) }
                 }

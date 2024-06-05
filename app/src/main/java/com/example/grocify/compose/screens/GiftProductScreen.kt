@@ -57,8 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
-import com.example.grocify.components.MovingTextAndIconRow
-import com.example.grocify.components.UserBottomNavigation
+import com.example.grocify.compose.components.MovingTextAndIconRow
+import com.example.grocify.compose.components.UserBottomNavigation
 import com.example.grocify.model.ProductType
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight

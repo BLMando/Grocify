@@ -22,9 +22,11 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.LegendToggle
 import androidx.compose.material.icons.filled.Reviews
 import androidx.compose.material.icons.outlined.BarChart
+import androidx.compose.material.icons.outlined.InsertChart
 import androidx.compose.material.icons.outlined.Reviews
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
@@ -132,8 +134,8 @@ fun HomeAdminScreen(
     val tabItems = listOf(
         TabRowItem(
             title = "Statistiche",
-            selectedIcon = Icons.Filled.BarChart,
-            unSelectedIcon = Icons.Outlined.BarChart,
+            selectedIcon = Icons.Filled.InsertChart,
+            unSelectedIcon = Icons.Outlined.InsertChart,
             screen = { StatisticsContent(uiState.value) }
         ),
         TabRowItem(

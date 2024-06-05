@@ -121,7 +121,7 @@ fun SaleGiftScreen(
         },
         bottomBar = {
             AdminBottomNavigation(
-                ref = if (isSaleContent) "discount" else "gift",
+                ref = if (isSaleContent) "sale" else "gift",
                 onStatsClick = onStatsClick,
                 onSaleClick = if (isSaleContent) ({}) else onSaleClick,
                 onGiftClick = if (isSaleContent) onGiftClick else ({}),
@@ -305,17 +305,17 @@ fun ShowProducts(
             scope.launch {
                 while (isTrembling) {
                     shakeAnimation.animateTo(
-                        targetValue = 10f,
+                        targetValue = 2f,
                         animationSpec = tween(
-                            durationMillis = 50,
+                            durationMillis = 25,
                             easing = LinearEasing
                         )
                     )
                     delay(50)
                     shakeAnimation.animateTo(
-                        targetValue = -10f,
+                        targetValue = -2f,
                         animationSpec = tween(
-                            durationMillis = 50,
+                            durationMillis = 25,
                             easing = LinearEasing
                         )
                     )

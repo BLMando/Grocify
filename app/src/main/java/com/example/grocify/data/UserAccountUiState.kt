@@ -51,7 +51,9 @@ data class UserOrdersUiState(
     val isReviewClicked: Boolean = false,
     val ordersReviewed: List<String> = emptyList(),
     val orders:  List<Order> = emptyList(),
-    val orderReview: Order = Order()
+    val orderReview: Order = Order(),
+    val textError: String = "",
+    val isTextValid: Boolean = true
 )
 
 data class UserPaymentMethodsUiState(

@@ -19,15 +19,20 @@ class TrackOrderViewModel(application: Application): AndroidViewModel(applicatio
 
     private val db = Firebase.firestore
 
-    fun getCurrentOrder(orderId: String) {
+    fun getCurrentOrder(orderId: String){
         db.collection("orders")
-            .whereEqualTo("orderId",orderId)
-            .get()
-            .addOnSuccessListener { document->
-                _uiState.update { currentState ->
-                    document.documents[0].toObject(Order::class.java)?.let { order ->
-                        currentState.copy(order = order)
-                    } ?: currentState
+            .whereEqualTo("orderId", orderId)
+            .addSnapshotListener { documentSnapshot, exception ->
+                if (exception != null) {
+                    return@addSnapshotListener
+                }
+
+                if (documentSnapshot!!.documents.isNotEmpty()) {
+                    _uiState.update { currentState ->
+                        documentSnapshot.documents[0].toObject(Order::class.java)?.let { order ->
+                            currentState.copy(order = order)
+                        } ?: currentState
+                    }
                 }
             }
     }
