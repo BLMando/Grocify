@@ -3,6 +3,7 @@ package com.example.grocify.compose.screens.home
 import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
+import com.example.grocify.components.AdminBottomNavigation
 import com.example.grocify.compose.screens.account.StarRatingBar
 import com.example.grocify.ui.theme.BlueLight
 import com.example.grocify.viewmodels.HomeAdminViewModel
@@ -80,7 +82,10 @@ data class TabRowItem(
 @Composable
 fun HomeAdminScreen(
     context: Activity,
-    onLogOutClick: () -> Unit
+    onSaleClick: (flagPage: Boolean) -> Unit,
+    onGiftClick: (flagPage: Boolean) -> Unit,
+    onUsersClick: () -> Unit,
+    onLogOutClick: () -> Unit,
 ) {
 
     val viewModel: HomeAdminViewModel = viewModel(factory = viewModelFactory {
@@ -173,65 +178,12 @@ fun HomeAdminScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                windowInsets = TopAppBarDefaults.windowInsets,
-                modifier = Modifier
-                    .shadow(10.dp, RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
-                tonalElevation = 30.dp,
-                containerColor = Color.White,
-                actions = {
-                    Row (
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.BarChart,
-                                contentDescription = "Localized description",
-                                tint = BlueLight
-                            )
-                            Text(
-                                text = "Statistiche",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = BlueLight,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.AttachMoney,
-                                contentDescription = "Localized description"
-                            )
-                            Text(
-                                text = "Sconti",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(Icons.Filled.CardGiftcard, contentDescription = "Localized description")
-                            Text(
-                                text = "Omaggi",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-                    }
-                },
+            AdminBottomNavigation(
+                ref = "stats",
+                onStatsClick = {},
+                onSaleClick = onSaleClick,
+                onGiftClick = onGiftClick,
+                onUsersClick = onUsersClick
             )
         },
         content = { innerPadding ->
@@ -408,9 +360,9 @@ fun ReviewCard() {
         }
     }
 }
-
+/*
 @Preview
 @Composable
 fun HomeAdminScreenPreview() {
     HomeAdminScreen(context = Activity(),{})
-}
+}*/

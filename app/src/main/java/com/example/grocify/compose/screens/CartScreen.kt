@@ -142,12 +142,7 @@ fun CartScreen(
                                     val product = onlineUiState.productsList[index]
                                     product.let {
                                         CartItems(
-                                            id = it.id,
-                                            name = it.name,
-                                            price = it.price,
-                                            quantity = it.quantity,
-                                            image = it.image,
-                                            units = it.units,
+                                            product = it,
                                             viewModel = viewModel,
                                             flagCart = "online"
                                         )

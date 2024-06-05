@@ -172,7 +172,7 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                                         owner = method["owner"] as String,
                                         number = method["number"] as String,
                                         expireDate = method["expireDate"] as String,
-                                        cvc = (method["cvc"] as Long).toInt(),
+                                        cvc = method["cvc"].toString().toInt(),
                                         selected = method["selected"] as Boolean
                                     )
                                 )
@@ -233,7 +233,7 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
 
                             //vado a trovare nella lista dei metodi di pagamento quello che è stato selezionato e lo seleziono
                             paymentMethodsList.forEach { method ->
-                                method["cvc"] = (method["cvc"] as Long).toInt()
+                                method["cvc"] = method["cvc"].toString().toInt()
                                 if(method.entries == paymentMethodMap.entries){
                                     method["selected"] = true
                                 }

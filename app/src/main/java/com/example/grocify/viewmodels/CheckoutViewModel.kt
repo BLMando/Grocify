@@ -66,7 +66,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                                 name = selectedAddress[0]["name"] as String,
                                 address = selectedAddress[0]["address"] as String,
                                 city = selectedAddress[0]["city"] as String,
-                                civic = (selectedAddress[0]["civic"] as Long).toInt(),
+                                civic = selectedAddress[0]["civic"].toString().toInt(),
                                 selected = selectedAddress[0]["selected"] as Boolean
                             )
                             _uiState.update {
@@ -97,7 +97,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                                 owner = selectedPaymentMethod[0]["owner"] as String,
                                 number = maskCardNumber(selectedPaymentMethod[0]["number"] as String),
                                 expireDate = selectedPaymentMethod[0]["expireDate"] as String,
-                                cvc = (selectedPaymentMethod[0]["cvc"] as Long).toInt(),
+                                cvc = selectedPaymentMethod[0]["cvc"].toString().toInt(),
                                 selected = selectedPaymentMethod[0]["selected"] as Boolean
                             )
                             _uiState.update {
@@ -130,15 +130,29 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
             val lightProducts: MutableList<HashMap<String,Any>> = mutableListOf()
 
             for (product in products){
-                lightProducts.add(
-                    hashMapOf(
-                        "id" to product.id,
-                        "name" to product.name,
-                        "units" to product.units,
-                        "image" to product.image,
-                        "quantity" to product.quantity
+                if(product.threshold == 0){
+                    lightProducts.add(
+                        hashMapOf(
+                            "id" to product.id,
+                            "name" to product.name,
+                            "units" to product.units,
+                            "image" to product.image,
+                            "quantity" to product.quantity
+                        )
                     )
-                )
+                }
+                else{
+                    lightProducts.add(
+                        hashMapOf(
+                            "id" to product.id,
+                            "name" to product.name,
+                            "units" to product.units,
+                            "image" to product.image,
+                            "quantity" to product.quantity,
+                            "threshold" to product.threshold.toString()
+                        )
+                    )
+                }
             }
 
             //creo un nuovo ordine e lo aggiungo al db
