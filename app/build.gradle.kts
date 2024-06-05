@@ -74,10 +74,11 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.android.gms:play-services-auth:21.0.0")
-
+    implementation(libs.firebase.messaging)
 
     //ANDROID X COMPOSE LIBRARIES
-   implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.ktx)
+    implementation("androidx.compose.foundation:foundation:1.6.7")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
@@ -97,6 +98,7 @@ dependencies {
     implementation(libs.androidx.databinding.runtime)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+
 
     //BARCODE E QRCODE LIBRARY
     testImplementation("junit:junit:4.13.2")
@@ -140,7 +142,7 @@ dependencies {
 
 
     //TOMTOM MAPS API
-    val version = "1.4.0"
+    val version = "1.5.0"
     implementation("com.tomtom.sdk.location:provider-android:$version"){
         exclude(group = "com.google.protobuf", module = "proto-google-common-protos")
         exclude(group = "com.google.protobuf", module = "protolite-well-known-types")

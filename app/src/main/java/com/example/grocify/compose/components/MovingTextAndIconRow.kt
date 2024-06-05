@@ -1,4 +1,4 @@
-package com.example.grocify.components
+package com.example.grocify.compose.components
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -36,12 +36,14 @@ fun MovingTextAndIconRow(
     val configuration = LocalConfiguration.current
     val screenWidth = configuration.screenWidthDp.dp
 
+    val animationDurationMillis = (5000 * (screenWidth.value / 500)).toLong()
+
     val infiniteTransition = rememberInfiniteTransition()
     val offsetX by infiniteTransition.animateFloat(
         initialValue = -screenWidth.value,
         targetValue = screenWidth.value,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 5000, easing = LinearEasing),
+            animation = tween(durationMillis = animationDurationMillis.toInt(), easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ), label = ""
     )

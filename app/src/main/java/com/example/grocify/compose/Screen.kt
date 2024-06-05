@@ -67,20 +67,25 @@ sealed class Screen(
     ){
         fun createRoute(orderId:String) = "track_order/${orderId}"
     }
+
+    data object OrderFinishedScreen: Screen("order_finished")
     //END USER ROUTES
 
 
     //DRIVER ROUTES
     data object HomeDriverScreen: Screen("home_driver")
     data object OrderDetailsScreen: Screen(
-        route = "order_details/{orderId}",
+        route = "order_details/{orderId}/{destination}",
         navArguments = listOf(
             navArgument("orderId") {
+                type = NavType.StringType
+            },
+            navArgument("destination") {
                 type = NavType.StringType
             }
         )
     ){
-        fun createRoute(orderId:String) = "order_details/${orderId}"
+        fun createRoute(orderId:String, destination: String) = "order_details/${orderId}/${destination}"
     }
 
     data object MapScreen: Screen(
@@ -101,5 +106,18 @@ sealed class Screen(
 
     //ADMIN ROUTES
     data object HomeAdminScreen: Screen("home_admin")
+
+    data object SaleGiftScreen: Screen(
+        route = "sale_gift/{flagPage}",
+        navArguments = listOf(
+            navArgument("flagPage") {
+                type = NavType.StringType
+            }
+        )
+    ){
+        fun createRoute(flagPage: Boolean) = "sale_gift/${flagPage}"
+    }
+
+    data object UsersManagementScreen: Screen("users_management")
     //END ADMIN ROUTES
 }

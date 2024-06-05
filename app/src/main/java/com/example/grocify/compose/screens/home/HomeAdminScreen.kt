@@ -3,6 +3,7 @@ package com.example.grocify.compose.screens.home
 import android.app.Activity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -20,20 +22,25 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.LegendToggle
 import androidx.compose.material.icons.filled.Reviews
 import androidx.compose.material.icons.outlined.BarChart
 import androidx.compose.material.icons.outlined.Reviews
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -41,7 +48,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,20 +63,34 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
+import com.example.grocify.api.SentimentAnalysis.SentimentData
+import com.example.grocify.components.AdminBottomNavigation
 import com.example.grocify.compose.screens.account.StarRatingBar
+import com.example.grocify.data.HomeAdminUiState
+import com.example.grocify.model.Review
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.ui.theme.MIXED
+import com.example.grocify.ui.theme.NEGATIVE
+import com.example.grocify.ui.theme.NEUTRAL
+import com.example.grocify.ui.theme.POSITIVE
 import com.example.grocify.viewmodels.HomeAdminViewModel
 import com.google.android.gms.auth.api.identity.Identity
 import com.himanshoe.charty.bar.BarChart
 import com.himanshoe.charty.bar.model.BarData
 import com.himanshoe.charty.common.ChartDataCollection
+import com.himanshoe.charty.line.CurveLineChart
+import com.himanshoe.charty.line.config.LineConfig
 
 data class TabRowItem(
     val title: String,
@@ -80,7 +103,10 @@ data class TabRowItem(
 @Composable
 fun HomeAdminScreen(
     context: Activity,
-    onLogOutClick: () -> Unit
+    onSaleClick: (flagPage: Boolean) -> Unit,
+    onGiftClick: (flagPage: Boolean) -> Unit,
+    onUsersClick: () -> Unit,
+    onLogOutClick: () -> Unit,
 ) {
 
     val viewModel: HomeAdminViewModel = viewModel(factory = viewModelFactory {
@@ -94,23 +120,31 @@ fun HomeAdminScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getSignedInUserName()
+        viewModel.getAllReviews()
+        viewModel.getTop10MostBoughtProducts()
+        viewModel.getTop10MostBoughtCategories()
+        viewModel.getAverageMonthlyOrders()
+        viewModel.getAverageMonthlyUsersExpense()
     }
 
+
+    //Dichiarazione oggetti della data class che rappresentano le tab
     val tabItems = listOf(
         TabRowItem(
             title = "Statistiche",
             selectedIcon = Icons.Filled.BarChart,
             unSelectedIcon = Icons.Outlined.BarChart,
-            screen = { StatisticsContent() }
+            screen = { StatisticsContent(uiState.value) }
         ),
         TabRowItem(
             title = "Recensioni",
             selectedIcon = Icons.Filled.Reviews,
             unSelectedIcon = Icons.Outlined.Reviews,
-            screen = { ReviewsContent() }
+            screen = { ReviewsContent(uiState.value,viewModel) }
         )
     )
 
+    //Gestione del pager
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState {
         tabItems.size
@@ -173,65 +207,12 @@ fun HomeAdminScreen(
             )
         },
         bottomBar = {
-            BottomAppBar(
-                windowInsets = TopAppBarDefaults.windowInsets,
-                modifier = Modifier
-                    .shadow(10.dp, RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)),
-                tonalElevation = 30.dp,
-                containerColor = Color.White,
-                actions = {
-                    Row (
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.BarChart,
-                                contentDescription = "Localized description",
-                                tint = BlueLight
-                            )
-                            Text(
-                                text = "Statistiche",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = BlueLight,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(
-                                Icons.Filled.AttachMoney,
-                                contentDescription = "Localized description"
-                            )
-                            Text(
-                                text = "Sconti",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ){
-                            Icon(Icons.Filled.CardGiftcard, contentDescription = "Localized description")
-                            Text(
-                                text = "Omaggi",
-                                Modifier.padding(top = 7.dp),
-                                style = TextStyle(
-                                    color = Color.Black,
-                                )
-                            )
-                        }
-                    }
-                },
+            AdminBottomNavigation(
+                ref = "stats",
+                onStatsClick = {},
+                onSaleClick = onSaleClick,
+                onGiftClick = onGiftClick,
+                onUsersClick = onUsersClick
             )
         },
         content = { innerPadding ->
@@ -286,72 +267,239 @@ fun HomeAdminScreen(
     )
 }
 @Composable
-fun ReviewsContent() {
+fun ReviewsContent(uiState: HomeAdminUiState,viewModel: HomeAdminViewModel) {
     LazyColumn {
-        items(4){
-            ReviewCard()
-        }
-    }
-}
-
-@Composable
-fun StatisticsContent(){
-    LazyColumn {
-        items(4){
-            CardChart("I prodotti più venduti")
-        }
-    }
-}
-
-@Composable
-fun CardChart(title:String) {
-    Card (
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 6.dp
-        ),
-        modifier = Modifier
-            .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 20.dp)
-            .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
-            .clip(RoundedCornerShape(20.dp))
-    ) {
-        Column (
-            Modifier.padding(15.dp)
-        ){
-            Text(
-                text = title,
-                style = TextStyle(
-                    fontSize = 15.sp,
-
-                    )
+        items(uiState.reviews.size){
+            ReviewCard(
+                uiState.reviews[it],
+                viewModel = viewModel,
+                if(uiState.sentimentAnalysisResult[it] == null) emptyList() else uiState.sentimentAnalysisResult[it]!!,
+                it,
+                analysisIsLoaded = uiState.analysisIsLoaded
             )
+        }
+    }
+}
 
-            BarChart(
-                dataCollection =  ChartDataCollection(
-                    listOf(
-                        BarData(10f, "Category A", color = Color(0xffed625d)),
-                        BarData(20f, "Category B", color = Color(0xffed125d)),
-                        BarData(50f, "Category C", color = Color(0xffed225d)),
-                        BarData(40f, "Category D", color = Color(0xffed325d)),
-                        BarData(23f, "Category E", color = Color(0xffed425d)),
-                        BarData(35F, "Category F", color = Color(0xffed525d)),
-                        BarData(20f, "Category K", color = Color(0xffed615d)),
-                        BarData(50f, "Category L", color = Color(0xffed625d))
+@Composable
+fun StatisticsContent(uiState: HomeAdminUiState){
+
+    val charts = hashMapOf(
+        "I 10 prodotti più venduti" to uiState.top10Products,
+        "Le 10 categorie più vendute" to uiState.top10Categories,
+        "Media ordini mensili" to uiState.averageMonthlyOrders,
+        "Spesa media mensile degli utenti" to uiState.averageMonthlyUsersExpense
+    )
+
+    LazyColumn {
+        items(charts.size){
+            BarChartCard(data = charts.values.elementAt(it), title = charts.keys.elementAt(it))
+        }
+    }
+}
+
+@Composable
+fun BarChartCard(data: List<Pair<String, Int>>,title:String) {
+
+        var dialogState by remember { mutableStateOf(false) }
+        val barData: MutableList<BarData> = mutableListOf()
+        val colorList: List<Color> = listOf(
+            Color(0xffed625d),
+            Color(0xffed125d),
+            Color(0xffed225d),
+            Color(0xffed325d),
+            Color(0xffed425d),
+            Color(0xffed525d),
+            Color(0xffed615d),
+            Color(0xffed635d),
+            Color(0xffed735d),
+            Color(0xffed835d),
+            Color(0xffed935d),
+            Color(0xffeda35d)
+        )
+
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp
+            ),
+            modifier = Modifier
+                .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 20.dp)
+                .shadow(5.dp, shape = RoundedCornerShape(20.dp), ambientColor = Color.Black)
+                .clip(RoundedCornerShape(20.dp))
+        ) {
+            if(data.isEmpty())
+                CircularProgressIndicator()
+            else {
+                data.forEach { product ->
+                    barData.add(
+                        BarData(
+                            product.second.toFloat(),
+                            data.indexOf(product) + 1,
+                            colorList[data.indexOf(product)]
+                        )
                     )
+                }
+                Column(
+                    Modifier.padding(15.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    when (title) {
+                        "Media ordini mensili" -> CurveLineChart(
+                            dataCollection = ChartDataCollection(barData),
+                            lineConfig = LineConfig(
+                                hasDotMarker = true,
+                                hasSmoothCurve = true,
+                                strokeSize = 1f
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+
+                        "Spesa media mensile degli utenti" -> CurveLineChart(
+                            dataCollection = ChartDataCollection(barData),
+                            lineConfig = LineConfig(
+                                hasDotMarker = true,
+                                hasSmoothCurve = true,
+                                strokeSize = 1f
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+
+                        else -> BarChart(
+                            dataCollection = ChartDataCollection(barData),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                        )
+                    }
+
+                    TextButton(
+                        onClick = { dialogState = true }
+                    ) {
+                        Text(
+                            text = "Legenda",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        if (dialogState)
+            AlertDialog(
+                onDismissRequest = { dialogState = false },
+                title = {
+                    Text(
+                        text = "Legenda",
+                        style = TextStyle(
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                        ),
+                        modifier = Modifier
+                            .padding(top = 5.dp, bottom = 10.dp)
+                            .fillMaxWidth(),
+
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.LegendToggle,
+                        contentDescription = "icona",
+                        tint = BlueMedium,
+                        modifier = Modifier
+                            .padding(top = 35.dp)
+                            .height(70.dp)
+                            .fillMaxWidth(),
+                    )
+                },
+                text = {
+                    LazyColumn(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        items(data.size) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        bottom = 10.dp
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "${it + 1}:",
+                                    style = TextStyle(
+                                        fontSize = 18.sp,
+                                        textAlign = TextAlign.Center,
+                                    ),
+                                    modifier = Modifier.padding(
+                                        end = 10.dp
+                                    )
+                                )
+
+                                Text(
+                                    text = data[it].first.replaceFirstChar { it.uppercase() },
+                                    style = TextStyle(
+                                        fontSize = 15.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                )
+                            }
+                        }
+
+                    }
+
+                },
+                properties = DialogProperties(
+                    dismissOnClickOutside = true
                 ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
+                confirmButton = {
+                    Row(
+                        Modifier
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        TextButton(
+                            onClick = { dialogState = false }
+                        ) {
+                            Text("Chiudi")
+                        }
+                    }
 
-        }
-    }
+                },
+                containerColor = Color.White
+            )
 }
 
 @Composable
-fun ReviewCard() {
+fun ReviewCard(
+    review: Review,
+    viewModel: HomeAdminViewModel,
+    sentimentAnalysisData: List<SentimentData>,
+    index: Int,
+    analysisIsLoaded: Boolean
+) {
+    //variabile di stato per il LinearLoader
+    var loaderState by rememberSaveable { mutableStateOf(false) }
+
     Card (
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -368,49 +516,237 @@ fun ReviewCard() {
             Modifier.padding(20.dp)
         ) {
             Text(
-                text = "Ordine #123456",
+                text = "Ordine ${review.orderId}",
                 style = TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 modifier = Modifier.padding(bottom = 20.dp)
             )
+
             StarRatingBar(
-                rating = 2F,
+                rating = review.rating,
                 onRatingChanged = {},
                 maxStars = 5
             )
+
             Text(
-                text = "Ho preso un paio di stivali dal negozio X e sono molto soddisfatto. Sono di alta qualità e valgono il prezzo. Il negozio offriva anche la spedizione gratuita a quel prezzo, quindi è un vantaggio!.",
+                text = review.review,
                 style = TextStyle(
                     fontSize = 15.sp,
                 ),
                 modifier = Modifier.padding(vertical = 20.dp)
             )
 
-            BarChart(
-                dataCollection =  ChartDataCollection(
-                    listOf(
-                        BarData(10f, "Category A", color = Color(0xffed625d)),
-                        BarData(20f, "Category B", color = Color(0xffed125d)),
-                        BarData(50f, "Category C", color = Color(0xffed225d)),
-                        BarData(40f, "Category D", color = Color(0xffed325d)),
-                        BarData(23f, "Category E", color = Color(0xffed425d)),
-                        BarData(35F, "Category F", color = Color(0xffed525d)),
-                        BarData(20f, "Category K", color = Color(0xffed615d)),
-                        BarData(50f, "Category L", color = Color(0xffed625d))
+            if(sentimentAnalysisData.isEmpty()) {
+                TextButton(
+                    onClick = {
+                        loaderState = true
+                        viewModel.sentimentAnalysis(review.review, index)
+                    },
+                    enabled = !loaderState
+                ) {
+                    Text(text = "Mostra analisi")
+                }
+
+                if (loaderState && !analysisIsLoaded)
+                    LinearProgressIndicator(
+                       modifier = Modifier.fillMaxWidth()
                     )
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-            )
+            }else{
+                //resetto lo stato
+                loaderState = false
+                viewModel.resetAnalysisIsLoaded()
+
+                //stato della legenda
+                var dialogState by remember { mutableStateOf(false) }
+
+                val barData = mutableListOf<BarData>()
+                val sentimentColorList: MutableList<Color> = mutableListOf()
+
+                sentimentAnalysisData.forEach { data ->
+                    //per ogni entity associo un coloro al relativo sentiment
+                    val score = hashMapOf(
+                        POSITIVE to data.positive.toFloat(),
+                        NEGATIVE to data.negative.toFloat(),
+                        MIXED to data.mixed.toFloat(),
+                        NEUTRAL to data.neutral.toFloat()
+                    )
+
+                    //ricavo il sentiment predominante
+                    val sentimentScore = score.values.max() - (score.values.sum() - score.values.max())
+
+                    //ricavo il colore del sentimentScore
+                    val sentimentColor =
+                        score.filterValues { it == score.values.max() }.keys.first()
+                    sentimentColorList.add(sentimentColor)
+
+                    //creo la barra del grafico relativa a quell'entity
+                    barData.add(
+                        BarData(
+                            sentimentScore,
+                            sentimentAnalysisData.indexOf(data) + 1,
+                            color = sentimentColor
+                        )
+                    )
+                }
+
+                BarChart(
+                    dataCollection = ChartDataCollection(barData),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                )
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(
+                        onClick = { dialogState = true }
+                    ) {
+                        Text(
+                            text = "Legenda",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    }
+
+                    TextButton(
+                        onClick = { viewModel.resetSentimentAnalysisResult(index) }
+                    ) {
+                        Text(
+                            text = "Chiudi analisi",
+                            style = TextStyle(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        )
+                    }
+                }
+
+
+                if (dialogState)
+                    AlertDialog(
+                        onDismissRequest = { dialogState = false },
+                        title = {
+                            Column {
+                                Text(
+                                    text = "Legenda",
+                                    style = TextStyle(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp,
+                                        textAlign = TextAlign.Center,
+                                    ),
+                                    modifier = Modifier
+                                        .padding(top = 5.dp, bottom = 10.dp)
+                                        .fillMaxWidth(),
+
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    sentimentColorList.toSet().forEach { color ->
+                                        //rimuovo i duplicati dall'array e associo ad ogni colore una legenda
+                                        val text = when (color) {
+                                            POSITIVE -> "Positivo"
+                                            NEGATIVE -> "Negativo"
+                                            NEUTRAL -> "Neutro"
+                                            else -> "Misto"
+                                        }
+                                        Row(
+                                            modifier = Modifier.padding(end = 5.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Divider(
+                                                color = color,
+                                                modifier = Modifier
+                                                    .padding(end = 5.dp)
+                                                    .height(10.dp)
+                                                    .width(10.dp)
+                                            )
+                                            Text(
+                                                text = text,
+                                                fontSize = 10.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Filled.LegendToggle,
+                                contentDescription = "icona",
+                                tint = BlueMedium,
+                                modifier = Modifier
+                                    .padding(top = 35.dp)
+                                    .height(70.dp)
+                                    .fillMaxWidth(),
+                            )
+                        },
+                        text = {
+                            LazyColumn(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                items(sentimentAnalysisData.size) {
+                                    Row(
+                                        Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = "${it + 1}:",
+                                            style = TextStyle(
+                                                fontSize = 18.sp,
+                                                textAlign = TextAlign.Center,
+                                            ),
+                                            modifier = Modifier.padding(
+                                                bottom = 10.dp,
+                                                end = 10.dp
+                                            )
+                                        )
+
+                                        Text(
+                                            text = sentimentAnalysisData[it].entity.replaceFirstChar { it.uppercase() },
+                                            style = TextStyle(
+                                                fontSize = 15.sp,
+                                                textAlign = TextAlign.Center,
+                                                color = sentimentColorList[it]
+                                            )
+                                        )
+                                    }
+                                }
+
+                            }
+
+                        },
+                        properties = DialogProperties(
+                            dismissOnClickOutside = true
+                        ),
+                        confirmButton = {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 10.dp),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                TextButton(
+                                    onClick = { dialogState = false }
+                                ) {
+                                    Text("Chiudi")
+                                }
+                            }
+
+                        },
+                        containerColor = Color.White
+                    )
+            }
         }
     }
-}
-
-@Preview
-@Composable
-fun HomeAdminScreenPreview() {
-    HomeAdminScreen(context = Activity(),{})
 }

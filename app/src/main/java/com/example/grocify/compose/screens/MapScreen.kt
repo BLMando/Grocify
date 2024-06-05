@@ -172,9 +172,10 @@ fun MapScreen(
                     if (uiState.value.route != null) {
                         viewModel.initNavigationFragment(
                             MapLayoutBinding.inflate(context.layoutInflater),
-                            fragmentManager
+                            fragmentManager,
+                            orderId
                         )
-                       viewModel.startNavigation(uiState.value.route!!)
+                        viewModel.startNavigation(uiState.value.route!!,orderId)
                     }
                 },
                 Modifier

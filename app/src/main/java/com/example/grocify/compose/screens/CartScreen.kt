@@ -31,11 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-import com.example.grocify.components.CartItems
+import com.example.grocify.compose.components.CartItems
 
-import com.example.grocify.components.CheckoutBox
-import com.example.grocify.components.MovingTextAndIconRow
-import com.example.grocify.components.UserBottomNavigation
+import com.example.grocify.compose.components.CheckoutBox
+import com.example.grocify.compose.components.MovingTextAndIconRow
+import com.example.grocify.compose.components.UserBottomNavigation
 
 import com.example.grocify.model.Product
 import com.example.grocify.util.anyToDouble
@@ -142,12 +142,7 @@ fun CartScreen(
                                     val product = onlineUiState.productsList[index]
                                     product.let {
                                         CartItems(
-                                            id = it.id,
-                                            name = it.name,
-                                            price = it.price,
-                                            quantity = it.quantity,
-                                            image = it.image,
-                                            units = it.units,
+                                            product = it,
                                             viewModel = viewModel,
                                             flagCart = "online"
                                         )

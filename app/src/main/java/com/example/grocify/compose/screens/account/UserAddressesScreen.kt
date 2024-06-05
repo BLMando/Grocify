@@ -527,7 +527,7 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
                     }
                 else {
                     //creo un nuovo indirizzo con i dati modificati
-                    val _civic = if(!civicChange) uiState.addressToUpdate.civic else civic.toInt()
+                    val _civic = if(!civicChange) uiState.addressToUpdate.civic else civic
                     val _address = if(!addressChange) uiState.addressToUpdate.address else address
                     val _city = if(!cityChange) uiState.addressToUpdate.city else city
                     val _addressName = if(!addressNameChange) uiState.addressToUpdate.name else addressName

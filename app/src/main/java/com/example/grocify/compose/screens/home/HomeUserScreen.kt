@@ -67,7 +67,8 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.R
-import com.example.grocify.components.UserBottomNavigation
+import com.example.grocify.compose.components.MovingTextAndIconRow
+import com.example.grocify.compose.components.UserBottomNavigation
 import com.example.grocify.model.Category
 import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.HomeUserViewModel
@@ -119,7 +120,7 @@ fun HomeUserScreen(
                                 color = Color.Black,
                             )
                         ) {
-                            append("${uiState.value.currentUserName}!")
+                            append("${uiState.value.currentUserName}")
                         }
                     }
                 ) },
@@ -273,6 +274,7 @@ fun PermissionDialog(context:Activity) {
             context.applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(1, notification)
     }
+
     if (dialogOpen)
         AlertDialog(
             onDismissRequest = { dialogOpen = false },

@@ -1,6 +1,7 @@
 [versions]
 agp = "8.4.1"
 firebaseFirestoreKtx = "25.0.0"
+firebaseMessagingVersion = "23.0.0"
 kotlin = "1.9.0"
 coreKtx = "1.12.0"
 junit = "4.13.2"
@@ -24,11 +25,14 @@ navigationCompose = "2.7.7"
 roomKtx = "2.6.1"
 roomRuntimeAndroid = "2.7.0-alpha01"
 lifecycleRuntimeCompose = "2.7.0"
+googleGmsGoogleServices = "4.4.2"
+firebaseMessaging = "24.0.0"
 
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 firebase-firestore-ktx = { module = "com.google.firebase:firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }
+firebase-messaging-v2300 = { module = "com.google.firebase:firebase-messaging", version.ref = "firebaseMessagingVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -58,9 +62,11 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "roomKtx" }
 androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+googleGmsGoogleServices = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
 

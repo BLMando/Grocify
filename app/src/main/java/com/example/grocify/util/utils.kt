@@ -24,6 +24,12 @@ fun formatCVC(input: String): String{
     return if (sanitizedInput.length > 3) sanitizedInput.substring(0, 3) else sanitizedInput
 }
 
+//Vengono rimossi i caratteri non numerici dal testo, lo tronca a 2 cifre se necessario.
+fun formatDiscount(input: String): String{
+    val sanitizedInput = input.filter { it.isDigit() }
+    return if (sanitizedInput.length > 2) sanitizedInput.substring(0, 2) else sanitizedInput
+}
+
 
 //Calcola la nuova posizione del cursore basandosi sulla differenza tra la lunghezza del testo originale e quello formattato, tenendo conto dello slash aggiunto.
 fun calculateExpiryDateSelection(oldValue: TextFieldValue, newFormattedValue: String): TextRange {
@@ -135,8 +141,8 @@ fun anyToDouble(value: Any?): Double? {
 }
 
 fun checkName(name: String?): String{
-    if(name.toString().count() > 14){
-        return name!!.substring(0, 14) + "..."
+    if(name.toString().count() > 13){
+        return name!!.substring(0, 13) + "..."
     }
     else{
         return name.toString()

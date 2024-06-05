@@ -1,7 +1,6 @@
 package com.example.grocify.compose.screens
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -46,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.grocify.ui.theme.BlueDark
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.components.CartItems
+import com.example.grocify.compose.components.CartItems
 import com.example.grocify.ui.theme.BlueMedium
 import com.example.grocify.viewmodels.OrderDetailsViewModel
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -59,7 +58,8 @@ fun OrderDetailsScreen(
     orderId: String,
     onBackClick: () -> Unit,
     onProceedClick: (destination: String, orderId: String) -> Unit,
-    activity: Activity
+    activity: Activity,
+    destination: String
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
@@ -113,13 +113,10 @@ fun OrderDetailsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    viewModel.markProduct("SEm421YizewY7YBtq8cY",orderId)
-                    scanner
-                        .startScan()
-                        .addOnSuccessListener { barcode ->
-                           Log.d("Barcode OK", barcode.rawValue.toString())
-                        }
-                        .addOnFailureListener { Log.d("Barcode Fail", it.message.toString()) }},
+                    viewModel.markProduct("WVMd50MFzfwhhgmIDBut",orderId)
+                    scanner.startScan().addOnSuccessListener { barcode ->
+                            /*TODO*/
+                    }},
                 containerColor = BlueDark,
             )
             {
@@ -152,16 +149,13 @@ fun OrderDetailsScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    items(uiState.value.products.size) {
+                    items(uiState.value.products.size) {index ->
+                        //Log.v("OrderDetail", uiState.value.products[index].toString())
                         CartItems(
-                            id = uiState.value.products[it].id,
-                            name = uiState.value.products[it].name,
-                            quantity = uiState.value.products[it].quantity,
-                            image = uiState.value.products[it].image,
-                            units = uiState.value.products[it].units,
+                            product = uiState.value.products[index],
                             viewModel = viewModel,
                             flagCart = "",
-                            productMarked = if(uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[it]
+                            productMarked = if(uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[index]
                         )
                     }
                 }
@@ -211,7 +205,7 @@ fun OrderDetailsScreen(
                             )
 
                             Text(
-                                text = "Porto San Giorgio, Via Cavour 12",
+                                text = destination,
                                 style = TextStyle(
                                     fontSize = 15.sp,
                                     textAlign = TextAlign.Center
@@ -221,7 +215,7 @@ fun OrderDetailsScreen(
                     },
                     confirmButton = {
                         Button(
-                            onClick = { onProceedClick("Grottazzolina, Strada provinciale montottonese sud 18",orderId) },
+                            onClick = { onProceedClick(destination,orderId) },
                             Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(vertical = 10.dp),
                             shape = RoundedCornerShape(25)
