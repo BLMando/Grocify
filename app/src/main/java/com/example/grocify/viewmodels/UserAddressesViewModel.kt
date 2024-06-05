@@ -109,7 +109,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
                 name = addressName,
                 address = address,
                 city = city,
-                civic = civic.toInt(),
+                civic = civic,
                 selected = false
             )
 
@@ -171,7 +171,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
                                         name = address["name"] as String,
                                         address = address["address"] as String,
                                         city = address["city"] as String,
-                                        civic = address["civic"].toString().toInt(),
+                                        civic = address["civic"] as String,
                                         selected = address["selected"] as Boolean
                                     )
                                 )
@@ -232,7 +232,6 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
 
                             //vado a trovare nella lista degli indirizzi quello che è stato selezionato e lo seleziono
                             addressesList.forEach { addressItem ->
-                                addressItem["civic"] = addressItem["civic"].toString().toInt()
                                 if(addressItem.entries == addressMap.entries){
                                     addressItem["selected"] = true
                                 }

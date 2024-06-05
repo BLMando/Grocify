@@ -1,4 +1,4 @@
-package com.example.grocify.api
+package com.example.grocify.api.Geocoding
 
 import retrofit2.Response
 import retrofit2.http.GET

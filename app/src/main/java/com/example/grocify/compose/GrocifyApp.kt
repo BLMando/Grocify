@@ -19,6 +19,7 @@ import com.example.grocify.compose.screens.CheckoutScreen
 import com.example.grocify.compose.screens.GiftProductScreen
 import com.example.grocify.compose.screens.MapScreen
 import com.example.grocify.compose.screens.OrderDetailsScreen
+import com.example.grocify.compose.screens.OrderFinishedScreen
 import com.example.grocify.compose.screens.OrderSuccessScreen
 import com.example.grocify.compose.screens.SaleGiftScreen
 import com.example.grocify.compose.screens.ScanProductScreen
@@ -245,7 +246,16 @@ fun GrocifyNavHost(navController: NavHostController) {
                 val orderId = backStackEntry.arguments?.getString("orderId")
                 TrackOrderScreen(
                     orderId = orderId!!,
-                    onBackClick = onCatalogClick
+                    onBackClick = onCatalogClick,
+                    onQRScanned = { navController.navigate(Screen.OrderFinishedScreen.route)}
+                )
+            }
+
+            composable(
+                route = Screen.OrderFinishedScreen.route
+            ){
+                OrderFinishedScreen(
+                    onHomeClick = onCatalogClick,
                 )
             }
         }
@@ -256,14 +266,21 @@ fun GrocifyNavHost(navController: NavHostController) {
             route = "driver",
             startDestination = Screen.HomeDriverScreen.route
         ){
-
-            composable(route = Screen.HomeDriverScreen.route){
+            composable(
+                route = Screen.HomeDriverScreen.route
+            ){
+                val onGroceryClick: (String, String) -> Unit = { orderId , destination ->
+                    navController.navigate(
+                        Screen.OrderDetailsScreen.createRoute(
+                            orderId = orderId,
+                            destination = destination,
+                        )
+                    )
+                }
                 HomeDriverScreen(
                     context = activity,
                     onLogOutClick = { navController.navigate(Screen.SignInScreen.route) },
-                    onGroceryClick = {navController.navigate(Screen.OrderDetailsScreen.createRoute(
-                        orderId = it
-                    ))}
+                    onGroceryClick = onGroceryClick
                 )
             }
 
@@ -272,10 +289,11 @@ fun GrocifyNavHost(navController: NavHostController) {
                 arguments = Screen.OrderDetailsScreen.navArguments
             ){ backStackEntry ->
                 val orderId = backStackEntry.arguments?.getString("orderId")
-                val onProceedClick: (String, String) -> Unit = { destination , _ ->
+                val destination = backStackEntry.arguments?.getString("destination")
+                val onProceedClick: (String, String) -> Unit = { _ , _ ->
                     navController.navigate(
                         Screen.MapScreen.createRoute(
-                            destination = destination,
+                            destination = destination!!,
                             orderId = orderId!!,
                         )
                     )
@@ -283,6 +301,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                 OrderDetailsScreen(
                     activity = activity,
                     orderId = orderId!!,
+                    destination = destination!!,
                     onBackClick = {navController.popBackStack()},
                     onProceedClick = onProceedClick
                 )

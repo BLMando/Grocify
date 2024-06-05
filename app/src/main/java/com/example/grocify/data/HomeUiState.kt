@@ -1,5 +1,6 @@
 package com.example.grocify.data
 
+import com.example.grocify.api.SentimentAnalysis.SentimentData
 import com.example.grocify.model.Category
 import com.example.grocify.model.Order
 import com.example.grocify.model.Review
@@ -19,7 +20,13 @@ data class HomeDriverUiState(
 
 data class HomeAdminUiState(
     val currentUserName: String? = "",
-    val reviews: List<Review> = emptyList()
+    val reviews: List<Review> = emptyList(),
+    val sentimentAnalysisResult: HashMap<Int, List<SentimentData>> =  hashMapOf(),
+    val analysisIsLoaded: Boolean = false,
+    val top10Products: List<Pair<String, Int>> = emptyList(),
+    val top10Categories: List<Pair<String, Int>> = emptyList(),
+    val averageMonthlyOrders: List<Pair<String, Int>> = emptyList(),
+    val averageMonthlyUsersExpense: List<Pair<String, Int>> = emptyList()
 )
 
 

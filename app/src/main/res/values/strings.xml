@@ -1,9 +1,11 @@
 <resources>
     <string name="app_name">Grocify</string>
 
+    <string name="fcm_token">ya29.a0AXooCgs2jVsyp4jJy2VzqEl5FckhyJ7SgMttDAgL1tQVI3wmEQ09ZdbJeBr5rqu-l-cAw5dqScvikciRDfO1J_rTBXvf_qo5HH_Zij_SKajUDAwxDIernb5VoYXSbsMHHkP1-UxcQDr2QuB3RFMONr6Rc0mHcvZszI8MaCgYKAXESARASFQHGX2Mi_NkfSnQfxPCwfcDwoj6y8g0171</string>
     <string name="client_id">135277017788-uetahclfn3d9h4ojchfk2o9337muih19.apps.googleusercontent.com</string>
     <string name="location_permission_denied">Permission denied</string>
 
     <string name="default_user_link">https://cdn.icon-icons.com/icons2/1378/PNG/512/avatardefault_92824.png</string>
     <string name="default_user_role">user</string>
+    <string name="default_notification_channel_id">OrderStatusChannel</string>
 </resources>

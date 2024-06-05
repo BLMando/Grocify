@@ -61,7 +61,6 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
     }
 
     fun addOrderReview(orderId: String, userId: String, text: String, rating: Float){
-        Log.d("OrderReview", "addOrderReview: $orderId")
         viewModelScope.launch {
             db.collection("orders_reviews")
                .add(
