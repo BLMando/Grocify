@@ -7,5 +7,5 @@ data class User(
     val email: String?,
     val password: String?,
     val profilePic: String?,
-    val role: String
+    var role: String
 )

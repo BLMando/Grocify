@@ -149,16 +149,13 @@ fun OrderDetailsScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    items(uiState.value.products.size) {
+                    items(uiState.value.products.size) {index ->
+                        //Log.v("OrderDetail", uiState.value.products[index].toString())
                         CartItems(
-                            id = uiState.value.products[it].id,
-                            name = uiState.value.products[it].name,
-                            quantity = uiState.value.products[it].quantity,
-                            image = uiState.value.products[it].image,
-                            units = uiState.value.products[it].units,
+                            product = uiState.value.products[index],
                             viewModel = viewModel,
                             flagCart = "",
-                            productMarked = if(uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[it]
+                            productMarked = if(uiState.value.isProductsMarked.isEmpty()) false else uiState.value.isProductsMarked[index]
                         )
                     }
                 }

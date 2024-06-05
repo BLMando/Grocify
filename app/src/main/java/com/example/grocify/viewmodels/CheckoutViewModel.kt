@@ -154,7 +154,6 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
 
 
     fun createNewOrder(flagCart: String, totalPrice:Double){
-
         //prendo ora e data attuali nel formato indicato
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
         val localDate = LocalDateTime.now().format(formatter)
@@ -171,15 +170,29 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
             val lightProducts: MutableList<HashMap<String,Any>> = mutableListOf()
 
             for (product in products){
-                lightProducts.add(
-                    hashMapOf(
-                        "id" to product.id,
-                        "name" to product.name,
-                        "units" to product.units,
-                        "image" to product.image,
-                        "quantity" to product.quantity
+                if(product.threshold == 0){
+                    lightProducts.add(
+                        hashMapOf(
+                            "id" to product.id,
+                            "name" to product.name,
+                            "units" to product.units,
+                            "image" to product.image,
+                            "quantity" to product.quantity
+                        )
                     )
-                )
+                }
+                else{
+                    lightProducts.add(
+                        hashMapOf(
+                            "id" to product.id,
+                            "name" to product.name,
+                            "units" to product.units,
+                            "image" to product.image,
+                            "quantity" to product.quantity,
+                            "threshold" to product.threshold.toString()
+                        )
+                    )
+                }
             }
 
             //creo un nuovo ordine e lo aggiungo al db
@@ -210,6 +223,7 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
 
     fun userHasRunningOrder(){
         viewModelScope.launch {
+            //
             db.collection("orders")
                 .whereEqualTo("userId", auth.currentUser!!.uid)
                 .whereNotEqualTo("status", "concluso")
@@ -221,6 +235,5 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                 }
         }
     }
-
 }
 

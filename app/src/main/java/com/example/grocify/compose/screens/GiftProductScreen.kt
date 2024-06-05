@@ -1,27 +1,28 @@
 package com.example.grocify.compose.screens
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AddShoppingCart
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,13 +32,19 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -45,18 +52,41 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.grocify.R
-import com.example.grocify.compose.components.UserBottomNavigation
+import androidx.compose.ui.window.PopupProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import com.example.grocify.components.MovingTextAndIconRow
+import com.example.grocify.components.UserBottomNavigation
+import com.example.grocify.model.ProductType
 import com.example.grocify.ui.theme.BlueDark
 import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.viewmodels.GiftProductViewModel
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GiftProductScreen(
+    viewModel: GiftProductViewModel = viewModel(),
     onCatalogClick: () -> Unit,
     onPhysicalCartClick: () -> Unit,
-    onVirtualCartClick: () -> Unit
+    onVirtualCartClick: () -> Unit,
+    onTrackOrderClick: (orderId: String) -> Unit,
 ) {
+
+    val uiState = viewModel.uiState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.resetFields()
+        viewModel.getThresholdProducts()
+        viewModel.calculateMoneySpentDuringCurrentMonth()
+        viewModel.checkIfAlreadyRedeemed()
+        viewModel.checkIfInCart()
+        viewModel.checkOrdersStatus()
+    }
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -89,7 +119,17 @@ fun GiftProductScreen(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top
             ){
-                GiftInfoCard()
+
+                if(uiState.value.orderId != ""){
+                    MovingTextAndIconRow(uiState.value.orderId, onTrackOrderClick)
+                }
+
+                GiftInfoCard(
+                    moneySpent = uiState.value.moneySpent,
+                    startOfMonth = uiState.value.startOfMonth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    endOfMonth = uiState.value.endOfMonth.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")),
+                    daysLeft = uiState.value.daysLeft
+                )
                 Text(
                     text = "Premi omaggio",
                     style = TextStyle(
@@ -98,16 +138,23 @@ fun GiftProductScreen(
                     ),
                     modifier = Modifier.padding(start = 15.dp,top = 10.dp,bottom = 20.dp)
                 )
-                repeat(3){
-                    GiftProduct(true)
-                }
+                repeat(uiState.value.thresholdProducts.size) { index ->
+                        val product = uiState.value.thresholdProducts[index]
+                        product.let {
+                            GiftProduct(
+                                it,
+                                uiState.value.moneySpent,
+                                viewModel
+                            )
+                        }
+                    }
             }
         }
     )
 }
 
 @Composable
-fun GiftInfoCard() {
+fun GiftInfoCard(moneySpent: Float, startOfMonth: String, endOfMonth: String, daysLeft: Long) {
     Card (
         colors = CardDefaults.cardColors(
             containerColor = BlueDark
@@ -124,7 +171,7 @@ fun GiftInfoCard() {
             Modifier.padding(15.dp)
         ){
             Text(
-                text = "Valida dal 01/04/2024 al 30/04/2024",
+                text = "Valida dal " + startOfMonth +" al "+ endOfMonth,
                 Modifier.padding(bottom = 30.dp),
                 style = TextStyle(
                     fontSize = 15.sp,
@@ -148,62 +195,83 @@ fun GiftInfoCard() {
                             color = Color.White,
                         )
                     ) {
-                        append("$105,00")
+                        append(String.format("%.2f", moneySpent).replace(',', '.') + "€")
                     }
                 }
             )
+            val valueRange = 0f..200f
+
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
             ) {
                 Slider(
-                    value = 100.0F,
-                    onValueChange = {  },
+                    value = moneySpent,
+                    onValueChange = {},
                     colors = SliderDefaults.colors(
                         thumbColor = BlueLight,
                         activeTrackColor = BlueLight,
                         inactiveTrackColor = Color.White,
                     ),
-                    valueRange = 0f..200f
+                    valueRange = valueRange
                 )
-                Row(
+
+                BoxWithConstraints(
                     Modifier
-                        .fillMaxWidth(0.81f)
-                        .padding(bottom = 25.dp, end = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ){
-                    Text(
-                        text = "$50",
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight(600)
+                        .fillMaxWidth()
+                        .padding(bottom = 25.dp, end = 8.dp)
+                ) {
+                    val sliderWidth = maxWidth * 0.5f
+                    val labelSpacing = sliderWidth / (valueRange.endInclusive - valueRange.start)
+
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = "0€",
+                            style = TextStyle(
+                                fontSize = 17.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.W600
+                            )
                         )
-                    )
-                    Text(
-                        text = "$100",
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight(600)
+                        Spacer(modifier = Modifier.width(labelSpacing * 50))
+                        Text(
+                            text = "50€",
+                            style = TextStyle(
+                                fontSize = 17.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.W600
+                            )
                         )
-                    )
-                    Text(
-                        text = "$200",
-                        Modifier.padding(start = 70.dp),
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = Color.White,
-                            fontWeight = FontWeight(600)
+                        Spacer(modifier = Modifier.width(labelSpacing * 50))
+                        Text(
+                            text = "100€",
+                            style = TextStyle(
+                                fontSize = 17.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.W600
+                            )
                         )
-                    )
+                        Spacer(modifier = Modifier.width(labelSpacing * 100))
+                        Text(
+                            text = "200€",
+                            style = TextStyle(
+                                fontSize = 17.sp,
+                                color = Color.White,
+                                fontWeight = FontWeight.W600
+                            )
+                        )
+                    }
                 }
+
                 Text(
-                    text = "Ti rimangono 22 giorni",
+                    text = "Ti rimangono " + daysLeft.toString() + " giorni",
                     style = TextStyle(
                         fontSize = 12.sp,
                         color = Color.White,
-                        fontWeight = FontWeight(500),
+                        fontWeight = FontWeight.W500,
                     )
                 )
             }
@@ -213,7 +281,21 @@ fun GiftInfoCard() {
 }
 
 @Composable
-fun GiftProduct(available:Boolean) {
+fun GiftProduct(product: ProductType, moneySpent: Float, viewModel: GiftProductViewModel) {
+
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val flagRedeemed = viewModel.getFlagThreshold(product.threshold)
+
+    val message: String
+
+    if(!flagRedeemed)
+        if(product.threshold < moneySpent)
+            message = "Ricompensa sbloccata"
+        else
+            message = "Ti mancano " + String.format("%.2f", (product.threshold - moneySpent)).replace(',', '.') + "€"
+    else
+        message = "Ricompensa già riscattata"
     Column {
         Row(
             Modifier
@@ -226,21 +308,32 @@ fun GiftProduct(available:Boolean) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ){
-                Image(
-                    painter = painterResource(id = R.drawable.food),
-                    contentDescription = "food",
+                SubcomposeAsyncImage(
+                    model = product.image,
+                    contentDescription = product.name,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .size(65.dp)
-                        .padding(2.dp)
+                        .width(65.dp)
+                        .height(65.dp)
                         .clip(RoundedCornerShape(15.dp))
-                )
+                ) {
+                    val state = painter.state
+                    if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.width(64.dp),
+                            color = BlueMedium,
+                            strokeCap = StrokeCap.Round
+                        )
+                    } else {
+                        SubcomposeAsyncImageContent()
+                    }
+                }
                 Column (
                     Modifier.padding(start = 10.dp)
                 ) {
 
                     Text(
-                        text = "Apples 100g",
+                        text = product.name + " " + product.quantity,
                         Modifier.padding(bottom = 5.dp),
                         style = TextStyle(
                             fontWeight = FontWeight.Light,
@@ -249,7 +342,7 @@ fun GiftProduct(available:Boolean) {
                     )
 
                     Text(
-                        text = "Ricompensa sbloccata",
+                        text = message,
                         style = TextStyle(
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp
@@ -258,21 +351,59 @@ fun GiftProduct(available:Boolean) {
                 }
 
             }
-            if(available) {
-                IconButton(
-                    onClick = { /*TODO*/ },
-                    Modifier.border(
-                        width = 1.dp,
-                        color = Color.Black,
-                        shape = RoundedCornerShape(15.dp)
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.AddShoppingCart,
-                        contentDescription = "cart icon"
-                    )
+            if(!flagRedeemed)
+                if(product.threshold < moneySpent){
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentSize(Alignment.TopEnd)
+                    ) {
+
+                        IconButton(
+                            onClick = { expanded = !expanded },
+
+                            Modifier.border(
+                                width = 1.dp,
+                                color = Color.Black,
+                                shape = RoundedCornerShape(15.dp)
+                            )
+
+                        )
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.AddShoppingCart,
+                                contentDescription = "cart icon"
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            properties = PopupProperties(
+                                dismissOnClickOutside = true,
+                            ),
+                            modifier = Modifier.background(Color.White)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Online") },
+                                onClick = {
+                                    viewModel.addToCart(product, "online")
+                                    expanded = false
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text("Negozio") },
+                                onClick = {
+                                    viewModel.addToCart(product, "store")
+                                    expanded = false
+                                }
+                            )
+
+                        }
+                    }
+
                 }
-            }
         }
     }
 }

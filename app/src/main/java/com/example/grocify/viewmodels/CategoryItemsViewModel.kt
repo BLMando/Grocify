@@ -64,14 +64,17 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                             val price    = product.get("prezzo_unitario")?.toString() ?: ""
                             val quantity = product.get("quantita")?.toString() ?: ""
                             val image    = product.get("immagine")?.toString() ?: ""
+                            val discount  = product.get("sconto")?.toString() ?: "0.00"
 
-                           val item = ProductType(
+                            val item = ProductType(
                                 product.id,
                                 name,
                                 priceKg.toDouble(),
                                 price.toDouble(),
                                 quantity,
-                                image)
+                                image,
+                                discount.toDouble(),
+                                0)
 
                             _uiState.update { currentState ->
                                 val updatedList = currentState.products + item
@@ -92,34 +95,39 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
-    fun addToCart(productId: String) {
+    fun addToCart(product: ProductType) {
         viewModelScope.launch {
-            //scorro tutti i prodotti
-            db.collection("prodotti")
-                .get()
-                .addOnSuccessListener { products ->
-                    for (product in products) {
-                        if (product.id == productId) {
-                            val price = product.get("prezzo_unitario")?.toString() ?: ""
 
-                            val productToCheck = productDao.getProductById(product.id, "online", auth.currentUser?.uid.toString())
-                            if (productToCheck != emptyList<Product>()) {
-                                productDao.addValueToProductUnits(product.id, "online", auth.currentUser?.uid.toString(),1)
-                            }
-                            else {
-                                val name = product.get("nome")?.toString() ?: ""
-                                val priceKg = product.get("prezzo_al_kg")?.toString() ?: ""
-                                val quantity = product.get("quantita")?.toString() ?: ""
-                                val image = product.get("immagine")?.toString() ?: ""
+            val price = product.price
 
-                                val productToAdd = Product(product.id, "online", auth.currentUser?.uid.toString(), name, priceKg.toDouble(), price.toDouble(), quantity, image, 1)
+            val productToCheck = productDao.getProductByIdAndThreshold(product.id, 0, "online", auth.currentUser?.uid.toString())
+            if (productToCheck != emptyList<Product>()) {
+                productDao.addValueToProductUnits(product.id, 0,"online", auth.currentUser?.uid.toString(),1)
+            }
+            else {
+                val name      = product.name
+                val priceKg   = product.priceKg
+                val quantity  = product.quantity
+                val image     = product.image
+                val discount  = product.discount
 
-                                productDao.insertProduct(productToAdd)
-                            }
-                            cartDao.addValueToTotalPrice("online", auth.currentUser?.uid.toString(), price.toDouble())
-                        }
-                    }
-                }
+                val productToAdd = Product(
+                    id = product.id,
+                    type = "online",
+                    userId = auth.currentUser?.uid.toString(),
+                    name = name,
+                    priceKg = priceKg,
+                    price = price,
+                    quantity = quantity,
+                    image = image,
+                    units = 1,
+                    discount = discount,
+                    threshold = 0
+                )
+
+                productDao.insertProduct(productToAdd)
+            }
+            cartDao.addValueToTotalPrice("online", auth.currentUser?.uid.toString(), price * (100.0 - product.discount)/100.0 )
         }
     }
 
@@ -133,6 +141,14 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                     totalPrice = 1.50,
                 )
                 cartDao.insertCart(cart)
+            }
+        }
+    }
+
+    fun resetFields(){
+        viewModelScope.launch {
+            _uiState.update { currentState ->
+                currentState.copy(products = mutableListOf<ProductType>())
             }
         }
     }
