@@ -2,13 +2,10 @@ package com.example.grocify.viewmodels
 
 import android.Manifest
 import android.app.Application
-import android.app.NotificationManager
-import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.util.Log
 import androidx.compose.ui.unit.dp
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.AndroidViewModel
@@ -300,12 +297,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             setOrderStatus(
                 orderId = orderId!!,
                 "in consegna"
-            ){
-                sendNotification(
-                    "Ordine in consegna",
-                    "Il driver è in arrivo."
-                )
-            }
+            )
             mapFragment.currentLocationButton.visibilityPolicy = CurrentLocationButton.VisibilityPolicy.Invisible
             navigationFragment.setTomTomNavigation(tomTomNavigation)
             val routePlan = RoutePlan(route, routePlanningOptions)
@@ -345,12 +337,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             setOrderStatus(
                 orderId = orderId!!,
                 "consegnato"
-            ){
-                sendNotification(
-                    "Ordine consegnato",
-                    "Il driver è arrivato a destinazione."
-                )
-            }
+            )
             setDialogState(true)
         }
 
@@ -443,15 +430,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         setOrderStatus(
             orderId = orderId,
             "concluso"
-        ){
-            sendNotification(
-                "Ordine terminato",
-                "E' stata confermata la ricezione dell'ordine."
-            )
-        }
+        )
     }
 
-    private fun setOrderStatus(orderId: String,status: String,sendNotification:()->Unit){
+    private fun setOrderStatus(orderId: String,status: String){
         viewModelScope.launch {
             db.collection("orders")
                 .whereEqualTo("orderId", orderId)
@@ -459,7 +441,6 @@ class MapViewModel(application: Application): AndroidViewModel(application){
                 .addOnSuccessListener { document ->
                     val order = document.documents[0].reference
                     order.update("status", status)
-                    sendNotification()
                 }
         }
     }
@@ -467,18 +448,6 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
     fun setDialogState(openDialog: Boolean) {
         _uiState.update { it.copy(openDialog = openDialog) }
-    }
-
-    private fun sendNotification(text:String, title:String){
-        val notification =
-            NotificationCompat.Builder(getApplication<Application>().applicationContext, "OrderStatusChannel")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(title)
-                .setContentText(text)
-                .build()
-        val notificationManager =
-            getApplication<Application>().applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(1, notification)
     }
 
 

@@ -1,8 +1,6 @@
 package com.example.grocify.compose
 
 import android.app.Activity
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -34,14 +32,12 @@ import com.example.grocify.compose.screens.account.UserPaymentsScreen
 import com.example.grocify.compose.screens.account.UserProfileScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
-fun GrocifyApp(){
+fun GrocifyApp() {
     val navController = rememberNavController()
     GrocifyNavHost(navController = navController)
 }
 
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun GrocifyNavHost(navController: NavHostController) {
@@ -81,7 +77,6 @@ fun GrocifyNavHost(navController: NavHostController) {
 
             composable(route = Screen.HomeUserScreen.route){
                 HomeUserScreen(
-                    context = activity,
                     onAccountClick = { navController.navigate(Screen.UserAccount.route) },
                     onCategoryClick = {
                         navController.navigate(Screen.CategoryItems.createRoute(

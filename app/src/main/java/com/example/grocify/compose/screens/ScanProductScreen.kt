@@ -3,7 +3,7 @@ package com.example.grocify.compose.screens
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,15 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.R
 import com.example.grocify.compose.components.CartItems
 import com.example.grocify.compose.components.CheckoutBox
 import com.example.grocify.compose.components.MovingTextAndIconRow
@@ -65,6 +62,7 @@ fun ScanProductScreen(
     onCheckoutClick: (totalPrice: String) -> Unit,
     onTrackOrderClick: (orderId: String) -> Unit,
 ) {
+
     val scanner = GmsBarcodeScanning.getClient(activity)
     val storeUiState by viewModel.uiState.collectAsState()
 
@@ -73,7 +71,7 @@ fun ScanProductScreen(
         viewModel.checkOrdersStatus()
     }
 
-   Scaffold(
+    Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 windowInsets = TopAppBarDefaults.windowInsets,
@@ -185,13 +183,11 @@ fun ScanProductScreen(
                             if (storeUiState.productsList != emptyList<Product>()) {
                                 items(storeUiState.productsList.size) { index ->
                                     val product = storeUiState.productsList[index]
-                                    product.let {
-                                        CartItems(
-                                            product = it,
-                                            viewModel = viewModel,
-                                            flagCart = "store"
-                                        )
-                                    }
+                                    CartItems(
+                                        product = product,
+                                        viewModel = viewModel,
+                                        flagCart = "store"
+                                    )
                                 }
                             }
                         }

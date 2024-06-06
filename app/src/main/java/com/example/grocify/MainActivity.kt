@@ -1,9 +1,7 @@
 package com.example.grocify
 
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
+
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -20,10 +18,9 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
 
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         installSplashScreen()
-        //createCommunicationChannel(this)
 
         setContent {
             GrocifyTheme {
@@ -31,14 +28,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
-    /*private fun createCommunicationChannel(context: Context) {
-        val channel = NotificationChannel(
-            context.getString(R.string.default_notification_channel_id),
-            "OrderStatus",
-            NotificationManager.IMPORTANCE_HIGH
-        )
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(channel)
-    }*/
 }
+
+

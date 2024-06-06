@@ -1,14 +1,8 @@
 package com.example.grocify.viewmodels
 
-import com.example.grocify.api.FirebaseCloudMessaging.FCMResponse
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.api.FirebaseCloudMessaging.FCMNotification
-import com.example.grocify.api.FirebaseCloudMessaging.Message
-import com.example.grocify.api.FirebaseCloudMessaging.Notification
-import com.example.grocify.api.RetrofitObject
 import com.example.grocify.data.CheckoutUiState
 import com.example.grocify.model.Address
 import com.example.grocify.model.Order
@@ -18,15 +12,11 @@ import com.example.grocify.util.maskCardNumber
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.time.LocalDateTime
@@ -40,36 +30,6 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
     private val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
     private val db = Firebase.firestore
     private val auth = Firebase.auth
-
-    init {
-        viewModelScope.launch {
-            Firebase.messaging.token.addOnSuccessListener {
-                val title = "Sample com.example.grocify.api.Notification"
-                val body = "This is a test notification sent from Kotlin"
-                sendFCMNotification(it, title, body)
-            }
-        }
-    }
-
-    private fun sendFCMNotification(token: String, title: String, body: String) {
-        val notification = Notification(title, body)
-        val message = Message(token, notification)
-        val fcmNotification = FCMNotification(message)
-
-        RetrofitObject.fcmService.sendNotification(fcmNotification).enqueue(object : Callback<FCMResponse> {
-            override fun onResponse(call: Call<FCMResponse>, response: Response<FCMResponse>) {
-                if (response.isSuccessful) {
-                    Log.d("FCM", "Notification sent successfully: ${response.body()}")
-                } else {
-                    Log.e("FCM", "Notification failed: ${response.errorBody()?.string()}")
-                }
-            }
-
-            override fun onFailure(call: Call<FCMResponse>, t: Throwable) {
-                Log.e("FCM", "Error sending notification: ${t.message}")
-            }
-        })
-    }
 
     fun getCurrentInfo(){
         db.collection("users_details")

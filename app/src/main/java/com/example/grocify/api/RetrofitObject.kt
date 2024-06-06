@@ -1,6 +1,6 @@
 package com.example.grocify.api
 
-import com.example.grocify.api.FirebaseCloudMessaging.FCMService
+
 import com.example.grocify.api.Geocoding.GeocodingService
 import com.example.grocify.api.SentimentAnalysis.SentimentAnalysisService
 import com.squareup.moshi.Moshi
@@ -12,7 +12,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 object RetrofitObject {
     private const val BASE_URL_TOMTOM = "https://api.tomtom.com/search/2/"
     private const val BASE_URL_AWS = " https://c5wk4pir8i.execute-api.eu-west-2.amazonaws.com/prod/"
-    private const val BASE_FCM = "https://fcm.googleapis.com/"
+
 
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
@@ -31,13 +31,6 @@ object RetrofitObject {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build().create(SentimentAnalysisService::class.java)
     }
-
-   val fcmService: FCMService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_FCM)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build().create(FCMService::class.java)
-   }
 
 }
 

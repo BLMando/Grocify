@@ -315,7 +315,6 @@ fun Dialog(
             confirmButton = {
                 Button(
                     onClick = { scanner.startScan().addOnSuccessListener {QRcode ->
-
                         if(orderId == QRcode.rawValue.toString()){
                             viewModel.setOrderConclude(orderId)
                             viewModel.setDialogState(false)

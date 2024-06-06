@@ -74,16 +74,15 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.android.gms:play-services-auth:21.0.0")
-    implementation(libs.firebase.messaging)
 
     //ANDROID X COMPOSE LIBRARIES
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.core.ktx)
     implementation("androidx.compose.foundation:foundation:1.6.7")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0")
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
@@ -99,13 +98,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-
-    //BARCODE E QRCODE LIBRARY
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-
-
     //RETROFIT
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
@@ -119,19 +111,17 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:2.6.1")
 
 
-    //BAR CODE LIBRARY
+    //BAR CODE AND QRCODE LIBRARY
     implementation("com.google.android.gms:play-services-code-scanner:16.1.0")
     implementation("com.google.zxing:core:3.4.1")
-    implementation("androidx.camera:camera-camera2:1.2.2")
-    implementation("androidx.camera:camera-lifecycle:1.2.2")
-    implementation("androidx.camera:camera-view:1.2.2")
+    implementation("androidx.camera:camera-camera2:1.3.3")
+    implementation("androidx.camera:camera-lifecycle:1.3.3")
+    implementation("androidx.camera:camera-view:1.3.3")
     implementation("com.google.mlkit:barcode-scanning:17.2.0")
     implementation(libs.androidx.camera.core)
-
-    //QRCODE LIBRARY
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     implementation("androidx.multidex:multidex:2.0.1")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     //CHART LIBRARY
     implementation("com.himanshoe:charty:2.0.0-alpha01")
