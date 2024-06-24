@@ -1,6 +1,7 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.states.UserOrdersUiState
@@ -31,7 +32,7 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
     private val auth = Firebase.auth
 
 
-    fun setReviewIconClicked(value: Boolean) = run {
+    fun setReviewIconClicked(value: Boolean) {
         _uiState.update { currentState ->
             currentState.copy(
                 isReviewClicked = value
@@ -114,7 +115,6 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
                                 ordersReviewed = _uiState.value.ordersReviewed + orderId
                             )
                         }
-
                     }
             }
         }

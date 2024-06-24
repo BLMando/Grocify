@@ -1,5 +1,6 @@
 package com.example.grocify.views.screens.account
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -190,7 +191,7 @@ fun UserOrdersScreen(
                         ) { }
                     }
                 }
-                OrderDialog(uiState.value.orderReview, uiState.value.isReviewClicked, viewModel!!, uiState.value)
+                OrderDialog(uiState.value.orderReview, uiState.value.isReviewClicked, viewModel, uiState.value)
             }
         }
     }
@@ -397,10 +398,10 @@ fun OrderDialog(
             dismissButton = {
                 Button(
                     onClick = {
-                                viewModel.addOrderReview(order.orderId,order.userId,text,rating)
-                                if (!uiState.isTextValid)
-                                    viewModel.setReviewIconClicked(false)
-                            },
+                        viewModel.addOrderReview(order.orderId,order.userId,text,rating)
+                        if (!uiState.isTextValid)
+                            viewModel.setReviewIconClicked(false)
+                    },
                     Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 10.dp),
                     shape = RoundedCornerShape(25)
