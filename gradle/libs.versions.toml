@@ -27,6 +27,7 @@ roomRuntimeAndroid = "2.7.0-alpha01"
 lifecycleRuntimeCompose = "2.7.0"
 googleGmsGoogleServices = "4.4.2"
 firebaseMessaging = "24.0.0"
+uiTestJunit4 = "1.6.8"
 
 
 [libraries]
@@ -63,6 +64,7 @@ androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = 
 androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
+ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "uiTestJunit4" }
 
 
 [plugins]

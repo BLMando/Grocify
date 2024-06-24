@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
-public class SaleGiftViewModel(application: Application):AndroidViewModel(application) {
+class SaleGiftViewModel(application: Application):AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(SaleGiftUiState())
     val uiState: StateFlow<SaleGiftUiState> = _uiState.asStateFlow()

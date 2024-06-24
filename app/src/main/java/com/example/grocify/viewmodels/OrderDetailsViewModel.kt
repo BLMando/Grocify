@@ -1,13 +1,8 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.app.NotificationManager
-import android.content.Context
-import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.R
 import com.example.grocify.data.OrderDetailsUiState
 import com.example.grocify.model.Product
 import com.google.firebase.firestore.ktx.firestore
@@ -64,11 +59,9 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
                         if(product["id"] == productId) {
                             if(order?.data!!["status"] == "in attesa"){
                                 order.reference.update("status","in preparazione")
-                                //sendNotification()
                             }
                             listBoolean[i] = true
                         }
-
                         i +=1
                     }
                     _uiState.update { it.copy(isProductsMarked = listBoolean) }
@@ -76,15 +69,4 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
         }
     }
 
-    private fun sendNotification(){
-        val notification =
-            NotificationCompat.Builder(getApplication<Application>().applicationContext, "OrderStatusChannel")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("Ordine in preparazione")
-                .setContentText("Il tuo ordine è stato preso in carico da un driver che si occuperà della spesa")
-                .build()
-        val notificationManager =
-            getApplication<Application>().applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(1, notification)
-    }
 }

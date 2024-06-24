@@ -305,7 +305,7 @@ fun SignUpScreen(
                             onClick = { showPassword = true }) {
                             Icon(
                                 imageVector = Icons.Filled.VisibilityOff,
-                                contentDescription = "hide_password"
+                                contentDescription = "Toggle password visibility"
                             )
                         }
                     }
@@ -351,7 +351,7 @@ fun SignUpScreen(
                         IconButton(onClick = { showPasswordConfirm = false }) {
                             Icon(
                                 imageVector = Icons.Filled.Visibility,
-                                contentDescription = "hide_password"
+                                contentDescription = "Toggle password visibility"
                             )
                         }
                     } else {

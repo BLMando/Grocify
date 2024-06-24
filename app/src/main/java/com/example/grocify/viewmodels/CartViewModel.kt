@@ -176,7 +176,7 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
                     }
                 }
                 else {
-                    val orderId = documentSnapshot!!.documents[0].get("orderId").toString()
+                    val orderId = documentSnapshot.documents[0].get("orderId").toString()
                     _uiState.update {
                         it.copy(orderId = orderId)
                     }

@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -249,7 +250,8 @@ fun SignInScreen(
                 ),
                 modifier = Modifier
                     .width(325.dp)
-                    .padding(0.dp, 10.dp, 0.dp, 10.dp),
+                    .padding(0.dp, 10.dp, 0.dp, 10.dp)
+                    .testTag("EmailInputField"),
                 textStyle = TextStyle(
                     color = Color.Black
                 ),
@@ -284,7 +286,8 @@ fun SignInScreen(
                 ),
                 modifier = Modifier
                     .width(325.dp)
-                    .padding(0.dp, 10.dp, 0.dp, 10.dp),
+                    .padding(0.dp, 10.dp, 0.dp, 10.dp)
+                    .testTag("PasswordInputField"),
                 visualTransformation = if (showPassword) {
                     VisualTransformation.None
                 } else {
@@ -305,7 +308,7 @@ fun SignInScreen(
                         IconButton(onClick = { showPassword = false }) {
                             Icon(
                                 imageVector = Icons.Filled.Visibility,
-                                contentDescription = "hide_password"
+                                contentDescription = "Toggle password visibility"
                             )
                         }
                     } else {
@@ -313,7 +316,7 @@ fun SignInScreen(
                             onClick = { showPassword = true }) {
                             Icon(
                                 imageVector = Icons.Filled.VisibilityOff,
-                                contentDescription = "hide_password"
+                                contentDescription = "Toggle password visibility"
                             )
                         }
                     }
@@ -330,7 +333,8 @@ fun SignInScreen(
                 ),
                 modifier = Modifier
                     .width(325.dp)
-                    .padding(0.dp, 20.dp, 0.dp, 0.dp),
+                    .padding(0.dp, 20.dp, 0.dp, 0.dp)
+                    .testTag("SignInButton"),
                 shape = RoundedCornerShape(50)
             ) {
                 Text(
@@ -344,7 +348,8 @@ fun SignInScreen(
             Spacer(modifier = Modifier.size(20.dp))
 
             TextButton(
-                onClick = { onGoSignUp() }
+                onClick = { onGoSignUp() },
+                modifier = Modifier.testTag("GoSignUpButton")
             ) {
                 Text(
                     text = "Non hai un account? Registrati ora!",
@@ -375,6 +380,7 @@ fun SignInScreen(
                 }},
                 modifier = Modifier
                     .width(325.dp)
+                    .testTag("GoogleSignInButton"),
             ) {
                 Image(
                     painterResource(id = R.drawable.google_logo),

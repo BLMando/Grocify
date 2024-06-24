@@ -2,8 +2,6 @@ package com.example.grocify.viewmodels
 
 import android.app.Application
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.data.GiftProductUiState
@@ -28,7 +26,6 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
     val uiState: StateFlow<GiftProductUiState> = _uiState.asStateFlow()
 
     private val productDao = Storage.getInstance(getApplication<Application>().applicationContext).productDao()
-    private val cartDao = Storage.getInstance(getApplication<Application>().applicationContext).cartDao()
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
@@ -161,7 +158,7 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
     fun resetFields(){
         viewModelScope.launch {
             _uiState.update { currentState ->
-                currentState.copy(thresholdProducts = mutableListOf<ProductType>(), moneySpent = 0.0f)
+                currentState.copy(thresholdProducts = mutableListOf(), moneySpent = 0.0f)
             }
         }
     }
@@ -216,7 +213,7 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
                     }
                 }
                 else {
-                    val orderId = documentSnapshot!!.documents[0].get("orderId").toString()
+                    val orderId = documentSnapshot.documents[0].get("orderId").toString()
                     _uiState.update {
                         it.copy(orderId = orderId)
                     }

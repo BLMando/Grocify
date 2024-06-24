@@ -24,6 +24,10 @@ android {
         }
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -58,10 +62,14 @@ android {
 
     packaging {
         resources {
+            // Exclude duplicate LICENSE-notice.md files
+            excludes += "/META-INF/LICENSE-notice.md"
+            excludes += "META-INF/LICENSE.md"
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
         jniLibs.pickFirsts.add("lib/**/libc++_shared.so")
     }
+
 }
 
 dependencies {
@@ -107,6 +115,7 @@ dependencies {
     //ROOM DB
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    androidTestImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
     kapt("androidx.room:room-compiler:2.6.1")
     annotationProcessor("androidx.room:room-compiler:2.6.1")
 
@@ -208,10 +217,18 @@ dependencies {
 
 
     testImplementation(libs.junit)
+    testImplementation("io.mockk:mockk:1.13.11")
+    testImplementation("io.mockk:mockk-android:1.13.11")
+    testImplementation("org.mockito:mockito-core:5.12.0")
+    testImplementation("org.robolectric:robolectric:4.12.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
+
+    androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(kotlin("reflect"))
