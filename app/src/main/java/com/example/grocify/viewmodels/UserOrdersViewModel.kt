@@ -1,15 +1,13 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.UserOrdersUiState
+import com.example.grocify.states.UserOrdersUiState
 import com.example.grocify.model.Order
 import com.example.grocify.model.Review
-import com.example.grocify.util.isNotEmpty
+import com.example.grocify.utils.isNotEmpty
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +18,10 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+/**
+ * ViewModel class for UserOrdersScreen handling user's history orders.
+ * @param application The application context.
+ */
 class UserOrdersViewModel (application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(UserOrdersUiState())
@@ -27,6 +29,8 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
+
+
     fun setReviewIconClicked(value: Boolean) = run {
         _uiState.update { currentState ->
             currentState.copy(
@@ -43,6 +47,9 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to get all orders from the database.
+     */
     fun getAllOrders(){
         viewModelScope.launch {
             db.collection("orders")
@@ -62,6 +69,14 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to add a review to an order
+     * performs a check to see if the review is empty or not and if it is valid it adds the review to the database.
+     * @param orderId The id of the order to review.
+     * @param userId The id of the user who made the order.
+     * @param text The text of the review.
+     * @param rating The rating of the review.
+     */
     fun addOrderReview(orderId: String, userId: String, text: String, rating: Float){
 
         val textStatus = isNotEmpty(text)
@@ -105,9 +120,14 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to get all orders reviewed by the current user
+     * and update the ui state with the list of orders reviewed.
+     */
     fun getOrdersReviewed() {
         viewModelScope.launch {
             db.collection("orders_reviews")
+                .whereEqualTo("userId", auth.currentUser!!.uid)
                 .get()
                 .addOnSuccessListener { ordersReviewed ->
                     val listOrderId = mutableListOf<String>()

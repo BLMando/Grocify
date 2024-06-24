@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.grocify.views.GrocifyApp
-import com.example.grocify.ui.theme.GrocifyTheme
+import com.example.grocify.views.theme.GrocifyTheme
 
 
 class MainActivity : AppCompatActivity() {

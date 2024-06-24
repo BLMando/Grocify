@@ -4,10 +4,10 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.UserProfileUiState
+import com.example.grocify.states.UserProfileUiState
 import com.example.grocify.model.User
-import com.example.grocify.util.isNotEmpty
-import com.example.grocify.util.verifyPassword
+import com.example.grocify.utils.isNotEmpty
+import com.example.grocify.utils.verifyPassword
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel class for UserProfileScreen handling user's personal data.
+ * @param application The application context.
+ */
 class UserProfileViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(UserProfileUiState())
@@ -26,6 +30,9 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
+    /**
+     * Method to retrieve the user's profile data from Firestore.
+     */
     fun getUserProfile() {
         viewModelScope.launch {
             val user = auth.currentUser
@@ -54,6 +61,12 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Method to update the user's profile data in Firestore and Firebase Authentication
+     * performs user data validation and use reauthenticate method to verify the user's current password
+     * before updating the password.
+     * @param user The user object containing the updated data.
+     */
     fun updateUserProfile(user: User) {
 
         Log.e("UserOptionsViewModel", "updateUserProfile: $user")
@@ -111,7 +124,6 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
             }
         }
 
-        //se tutti i dati sono validi, aggiorno i dati dell'utente nel database e su firebase auth
         if(nameStatus && surnameStatus && passwordStatus){
             viewModelScope.launch {
                 val userDb = db.collection("users")
@@ -119,7 +131,7 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
                     .whereEqualTo("uid", user.uid)
                     .get()
                     .addOnSuccessListener { document ->
-                        //poiché il cambio di password è un'operazione sensibile, firebase richiede di autenticazione di nuovo prima di procedere
+                        // since changing passwords is a sensitive operation, firebase requires you to authenticate again before proceeding
                         val credential = EmailAuthProvider.getCredential(auth.currentUser?.email.toString(), document.documents[0].get("password").toString())
                         auth.currentUser!!.reauthenticate(credential)
                             .addOnCompleteListener { taskReauth ->
@@ -127,7 +139,6 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
                                     auth.currentUser!!.updatePassword(user.password.toString())
                                         .addOnCompleteListener { taskUpdatePsw ->
                                             if (taskUpdatePsw.isSuccessful) {
-                                                //se la password su firebase auth è stata aggiornata correttamente aggiorno i dati dell'utente nel database
                                                 userDb.document(document.documents[0].id).update(
                                                     "name",
                                                     user.name,
@@ -137,7 +148,6 @@ class UserProfileViewModel(application: Application): AndroidViewModel(applicati
                                                     user.password
                                                 ).addOnCompleteListener { taskDB ->
                                                     if (taskDB.isSuccessful) {
-                                                        //se i dati vengono aggiornati correttamente aggiorno lo stato dell'applicazione
                                                         _uiState.update { currentState ->
                                                             currentState.copy(
                                                                 isSuccessful = true,

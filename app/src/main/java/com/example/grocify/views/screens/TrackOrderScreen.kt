@@ -63,16 +63,16 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.BlueMedium
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import com.google.zxing.common.BitMatrix
 import com.journeyapps.barcodescanner.BarcodeEncoder
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.data.TrackOrderUiState
+import com.example.grocify.states.TrackOrderUiState
 import com.example.grocify.viewmodels.TrackOrderViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -93,6 +93,9 @@ fun TrackOrderScreen(
         viewModel.getUserName(orderId)
     }
 
+    /**
+     * Effect to handle route after qr code is scanned by the driver
+     */
     LaunchedEffect(key1 = uiState.value.order.status) {
         if(uiState.value.order.status == "concluso")
             onQRScanned()
@@ -199,6 +202,7 @@ fun QRCodeInfo(state: TrackOrderUiState, orderId: String) {
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
 
+    // Animation for the swipe up icon
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val offsetY by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -324,6 +328,11 @@ fun QRCodeInfo(state: TrackOrderUiState, orderId: String) {
         }
 }
 
+/**
+ * Function to generate a QR code bitmap based on the order ID
+ * @param orderId: String representing the order ID
+ * @return Bitmap representing the QR code
+ */
 fun qrCodeGenerator(orderId: String): Bitmap {
     val mfw = MultiFormatWriter()
 

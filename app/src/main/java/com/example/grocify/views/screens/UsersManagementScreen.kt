@@ -56,9 +56,9 @@ import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.components.AdminBottomNavigation
 import com.example.grocify.model.User
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.BlueMedium
 import com.example.grocify.viewmodels.UsersManagementViewModel
 
 

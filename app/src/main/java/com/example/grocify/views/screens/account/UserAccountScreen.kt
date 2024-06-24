@@ -44,8 +44,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import coil.compose.SubcomposeAsyncImage
 import com.example.grocify.model.User
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
 import com.example.grocify.viewmodels.UserAccountViewModel
 import com.google.android.gms.auth.api.identity.Identity
 
@@ -60,7 +60,11 @@ fun UserAccountScreen(
     onUserOrdersClick: () -> Unit,
     onUserPaymentClick: () -> Unit,
 ){
-
+    /**
+     * Instantiate the UserAccountViewModel passing parameters through the factory method
+     * @param context Activity
+     * @param OneTapClient The Google Sign-In client
+     */
     val viewModel: UserAccountViewModel = viewModel(factory = viewModelFactory {
         addInitializer(UserAccountViewModel::class) {
             UserAccountViewModel(context.application, Identity.getSignInClient(context))

@@ -69,16 +69,16 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
-import com.example.grocify.api.SentimentAnalysis.SentimentData
+import com.example.grocify.data.remote.SentimentAnalysis.SentimentData
 import com.example.grocify.components.AdminBottomNavigation
 import com.example.grocify.views.screens.account.StarRatingBar
-import com.example.grocify.data.HomeAdminUiState
+import com.example.grocify.states.HomeAdminUiState
 import com.example.grocify.model.Review
-import com.example.grocify.ui.theme.BlueMedium
-import com.example.grocify.ui.theme.MIXED
-import com.example.grocify.ui.theme.NEGATIVE
-import com.example.grocify.ui.theme.NEUTRAL
-import com.example.grocify.ui.theme.POSITIVE
+import com.example.grocify.views.theme.BlueMedium
+import com.example.grocify.views.theme.MIXED
+import com.example.grocify.views.theme.NEGATIVE
+import com.example.grocify.views.theme.NEUTRAL
+import com.example.grocify.views.theme.POSITIVE
 import com.example.grocify.viewmodels.HomeAdminViewModel
 import com.google.android.gms.auth.api.identity.Identity
 import com.himanshoe.charty.bar.BarChart
@@ -87,6 +87,9 @@ import com.himanshoe.charty.common.ChartDataCollection
 import com.himanshoe.charty.line.CurveLineChart
 import com.himanshoe.charty.line.config.LineConfig
 
+/**
+ * Data class that represents a tab item in the tab row
+ */
 data class TabRowItem(
     val title: String,
     val selectedIcon: ImageVector,
@@ -104,6 +107,11 @@ fun HomeAdminScreen(
     onLogOutClick: () -> Unit,
 ) {
 
+    /**
+     * Instantiate the HomeAdminViewModel passing parameters through the factory method
+     * @param context Activity
+     * @param OneTapClient The Google Sign-In client
+     */
     val viewModel: HomeAdminViewModel = viewModel(factory = viewModelFactory {
         addInitializer(HomeAdminViewModel::class) {
             HomeAdminViewModel(context.application, Identity.getSignInClient(context))
@@ -122,8 +130,9 @@ fun HomeAdminScreen(
         viewModel.getAverageMonthlyUsersExpense()
     }
 
-
-    //Dichiarazione oggetti della data class che rappresentano le tab
+    /**
+     * Declare the tab items to navigate on the two sections of the screen
+     */
     val tabItems = listOf(
         TabRowItem(
             title = "Statistiche",
@@ -139,16 +148,25 @@ fun HomeAdminScreen(
         )
     )
 
-    //Gestione del pager
+    /**
+     * Handle paging between the two sections
+     */
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val pagerState = rememberPagerState {
         tabItems.size
     }
 
 
+    /**
+     * Animate the scrolling between the two sections
+     */
     LaunchedEffect(key1 = selectedTabIndex) {
         pagerState.animateScrollToPage(selectedTabIndex)
     }
+
+    /**
+     * Update the selected tab index when the page changes
+     */
     LaunchedEffect(key1 = pagerState.currentPage) {
         selectedTabIndex = pagerState.currentPage
     }
@@ -262,7 +280,7 @@ fun HomeAdminScreen(
     )
 }
 @Composable
-fun ReviewsContent(uiState: HomeAdminUiState,viewModel: HomeAdminViewModel) {
+fun ReviewsContent(uiState: HomeAdminUiState, viewModel: HomeAdminViewModel) {
     LazyColumn {
         items(uiState.reviews.size){
             ReviewCard(
@@ -492,7 +510,7 @@ fun ReviewCard(
     index: Int,
     analysisIsLoaded: Boolean
 ) {
-    //variabile di stato per il LinearLoader
+
     var loaderState by rememberSaveable { mutableStateOf(false) }
 
     Card (
@@ -549,18 +567,17 @@ fun ReviewCard(
                        modifier = Modifier.fillMaxWidth()
                     )
             }else{
-                //resetto lo stato
+                //reset state
                 loaderState = false
                 viewModel.resetAnalysisIsLoaded()
 
-                //stato della legenda
                 var dialogState by remember { mutableStateOf(false) }
 
                 val barData = mutableListOf<BarData>()
                 val sentimentColorList: MutableList<Color> = mutableListOf()
 
                 sentimentAnalysisData.forEach { data ->
-                    //per ogni entity associo un coloro al relativo sentiment
+                    // for each entity is associated a color to the relative sentiment
                     val score = hashMapOf(
                         POSITIVE to data.positive.toFloat(),
                         NEGATIVE to data.negative.toFloat(),
@@ -568,15 +585,13 @@ fun ReviewCard(
                         NEUTRAL to data.neutral.toFloat()
                     )
 
-                    //ricavo il sentiment predominante
+                    // I get the predominant sentiment
                     val sentimentScore = score.values.max() - (score.values.sum() - score.values.max())
 
-                    //ricavo il colore del sentimentScore
                     val sentimentColor =
                         score.filterValues { it == score.values.max() }.keys.first()
                     sentimentColorList.add(sentimentColor)
 
-                    //creo la barra del grafico relativa a quell'entity
                     barData.add(
                         BarData(
                             sentimentScore,
@@ -649,7 +664,7 @@ fun ReviewCard(
                                     horizontalArrangement = Arrangement.Center
                                 ) {
                                     sentimentColorList.toSet().forEach { color ->
-                                        //rimuovo i duplicati dall'array e associo ad ogni colore una legenda
+                                        // Convert the color to a string representation
                                         val text = when (color) {
                                             POSITIVE -> "Positivo"
                                             NEGATIVE -> "Negativo"

@@ -41,11 +41,11 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.grocify.model.Product
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.BlueMedium
-import com.example.grocify.util.anyToDouble
-import com.example.grocify.util.checkName
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.BlueMedium
+import com.example.grocify.utils.anyToDouble
+import com.example.grocify.utils.checkName
 import com.example.grocify.viewmodels.CartViewModel
 
 @Composable

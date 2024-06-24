@@ -3,8 +3,7 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.UsersManagementUiState
-import com.example.grocify.model.ProductType
+import com.example.grocify.states.UsersManagementUiState
 import com.example.grocify.model.User
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase

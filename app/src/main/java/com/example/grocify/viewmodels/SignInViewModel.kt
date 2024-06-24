@@ -7,12 +7,12 @@ import androidx.core.content.ContextCompat.getString
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
-import com.example.grocify.data.GoogleSignInResult
-import com.example.grocify.data.GoogleSignInState
-import com.example.grocify.data.SignInUiState
+import com.example.grocify.states.GoogleSignInResult
+import com.example.grocify.states.GoogleSignInState
+import com.example.grocify.states.SignInUiState
 import com.example.grocify.model.User
-import com.example.grocify.util.verifyEmail
-import com.example.grocify.util.verifyPassword
+import com.example.grocify.utils.verifyEmail
+import com.example.grocify.utils.verifyPassword
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.GoogleAuthProvider
@@ -29,6 +29,11 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CancellationException
 
+/**
+ * ViewModel class for SignInScreen handling sign-in functionality.
+ * @param application The application context.
+ * @param mOneTapClient The Google Sign-In client to handle Sign in with Google functionality.
+ */
 class SignInViewModel(application: Application, private val mOneTapClient: SignInClient): AndroidViewModel(application) {
 
     private val db = Firebase.firestore
@@ -40,6 +45,13 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
     private val _signInState = MutableStateFlow(SignInUiState())
     val signInState: StateFlow<SignInUiState> = _signInState.asStateFlow()
 
+    /**
+     * Signs in the user with the provided email and password.
+     * @param email The email address of the user.
+     * @param password The password of the user.
+     * This method updates the state flow with the appropriate
+     * values for email and password validation and sign-in success or failure.
+     */
     fun signInWithCredentials(email: String, password: String) {
 
         val passwordStatus = verifyPassword(password)
@@ -76,6 +88,7 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
             }
 
         if (passwordStatus && emailStatus) {
+            // Perform sign-in operations in the background
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     auth.signInWithEmailAndPassword(email, password)
@@ -100,6 +113,9 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
         }
     }
 
+    /**
+     * This method create the sign-in request and returns the pending intent.
+     */
     suspend fun signInWithGoogle(): IntentSender?{
         val result = try{
             mOneTapClient.beginSignIn(
@@ -113,6 +129,11 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
         return result?.pendingIntent?.intentSender
     }
 
+    /**
+      Signs in a user using a Google Sign-In intent and returns the result.
+      Params: intent - The intent containing the Google Sign-In credentials.
+      Returns: A GoogleSignInResult object containing either the signed-in user data or an error message.
+     */
     suspend fun signInWithIntent(intent: Intent): GoogleSignInResult {
         val credential = mOneTapClient.getSignInCredentialFromIntent(intent)
         val idToken = credential.googleIdToken
@@ -144,6 +165,12 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
         }
     }
 
+    /**
+     * This method handles the sign-in result from the Google Sign-In API.
+     * @param result The sign-in result object containing the user data or error message.
+     * This method updates the state flow with the appropriate values for sign-in success or failure.
+     * @see GoogleSignInResult
+     */
     fun onSignInResult(result: GoogleSignInResult){
         if(result.data != null){
             viewModelScope.launch {
@@ -184,16 +211,27 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
             }
     }
 
+    /**
+     * This method checks if the user is signed in or not.
+     */
     fun getSignedInUser(): Boolean = auth.currentUser != null
 
+    /**
+     * This method retrieves the user role from the Firestore database.
+     * @return The user role as a string.
+     * @see User
+     */
     suspend fun getUserRole(): String{
-            val res = db.collection("users")
-                .whereEqualTo("uid",auth.currentUser?.uid)
-                .get().await()
+        val res = db.collection("users")
+            .whereEqualTo("uid",auth.currentUser?.uid)
+            .get().await()
 
-            return res.documents[0].data?.get("role").toString()
+        return res.documents[0].data?.get("role").toString()
     }
 
+    /**
+     * This method builds the sign-in request for the Google Sign-In API.
+     */
     private fun buildSignInRequest(): BeginSignInRequest {
         return BeginSignInRequest.Builder()
             .setGoogleIdTokenRequestOptions(

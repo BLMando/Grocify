@@ -6,12 +6,12 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
-import com.example.grocify.data.SignUpUiState
+import com.example.grocify.states.SignUpUiState
 import com.example.grocify.model.User
-import com.example.grocify.util.isNotEmpty
-import com.example.grocify.util.verifyConfirmPassword
-import com.example.grocify.util.verifyEmail
-import com.example.grocify.util.verifyPassword
+import com.example.grocify.utils.isNotEmpty
+import com.example.grocify.utils.verifyConfirmPassword
+import com.example.grocify.utils.verifyEmail
+import com.example.grocify.utils.verifyPassword
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -24,14 +24,28 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * ViewModel for SignUpScreen handling sign-up functionality.
+ * @param application - Application context
+ */
 class SignUpViewModel(application: Application): AndroidViewModel(application){
 
-    private val auth: FirebaseAuth = Firebase.auth
+    private val auth = Firebase.auth
     private val db = Firebase.firestore
 
     private val _signUpState = MutableStateFlow(SignUpUiState())
     val signUpState: StateFlow<SignUpUiState> = _signUpState.asStateFlow()
 
+    /**
+     * Function to handle sign-up process.
+     * It performs validation on the input fields and updates the state accordingly.
+     * If all validations pass, it creates a new user in the Firebase Authentication and Firestore databases.
+     * @param name - Name of the user
+     * @param surname - Surname of the user
+     * @param email - Email of the user
+     * @param password - Password of the user
+     * @param confirmPassword - Confirm password of the user
+     */
     fun signUp(name:String,surname: String,email: String, password: String, confirmPassword: String){
 
         val nameStatus = isNotEmpty(name)

@@ -27,7 +27,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.grocify.model.Product
-import com.example.grocify.util.anyToInt
+import com.example.grocify.utils.anyToInt
 import com.example.grocify.viewmodels.CartViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

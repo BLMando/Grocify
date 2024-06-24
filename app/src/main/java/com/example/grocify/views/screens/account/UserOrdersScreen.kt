@@ -61,9 +61,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.data.UserOrdersUiState
+import com.example.grocify.states.UserOrdersUiState
 import com.example.grocify.model.Order
-import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.UserOrdersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

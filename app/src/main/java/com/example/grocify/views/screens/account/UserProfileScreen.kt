@@ -59,9 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.SubcomposeAsyncImage
 import com.example.grocify.model.User
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.ExtraLightGray
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.ExtraLightGray
 import com.example.grocify.viewmodels.UserProfileViewModel
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -79,6 +79,7 @@ fun UserProfileScreen(
         viewModel.getUserProfile()
     }
 
+    // variabiles handling update operation
     var name by rememberSaveable { mutableStateOf("") }
     var surname by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -93,6 +94,9 @@ fun UserProfileScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    /**
+     *  LaunchedEffect to handle errors or result message and shows them in snack bar
+     */
     LaunchedEffect(key1 = uiState.value.error, key2 = uiState.value.isSuccessful){
         if(uiState.value.error.isNotEmpty()){
             scope.launch {

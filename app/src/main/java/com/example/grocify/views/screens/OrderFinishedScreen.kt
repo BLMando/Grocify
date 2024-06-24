@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.views.theme.BlueLight
 
 @Composable
 fun OrderFinishedScreen(
@@ -99,10 +99,4 @@ fun OrderFinishedScreen(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun OrderFinishScreenPreview(){
-    OrderFinishedScreen(onHomeClick = {})
 }

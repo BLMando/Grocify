@@ -12,8 +12,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.BuildConfig
 import com.example.grocify.R
-import com.example.grocify.api.RetrofitObject
-import com.example.grocify.data.MapUiState
+import com.example.grocify.data.remote.RetrofitObject
+import com.example.grocify.states.MapUiState
 import com.example.grocify.databinding.MapLayoutBinding
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -73,6 +73,10 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.util.Locale
 
+/**
+ * ViewModel class for MapScreen handling the map and the navigation.
+ * @param application The application context.
+ */
 class MapViewModel(application: Application): AndroidViewModel(application){
 
     private val _uiState = MutableStateFlow(MapUiState())
@@ -97,7 +101,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
 
     /**
-     * Inizializzazione della mappa mediante il riferimento alla view ottenuto dal AndroidViewBinding
+     * Function to initialize the map and start user location procedure
+     * @param mapFragmentView The map fragment view.
      */
     fun initMap(mapFragmentView: MapFragment){
         mapFragment = mapFragmentView
@@ -111,15 +116,14 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         }
     }
 
-    /**
-     * La classe [NavigationTileStore] viene utilizzata per ottenere
-     * dati delle tile basati sulle mappe online. Questo è necessario poiché il componente
-     * di navigazione si basa sui dati delle tile di navigazione.
-     *
-     * Una "tile" è una piccola porzione quadrata di una mappa digitale. Le mappe vengono
-     * suddivise in queste piastrelle per facilitare il caricamento e la visualizzazione,
-     * permettendo di caricare solo le sezioni necessarie in base alla posizione e al livello
-     * di zoom dell'utente.
+    /** The [NavigationTileStore] class is used to get
+    * tile data based on online maps. This is necessary since the component
+    * navigation is based on data from the navigation tiles.
+    *
+    * A "tile" is a small square portion of a digital map. The maps come
+    * divided into these tiles for easy loading and viewing,
+    * allowing you to load only the sections you need based on location and level
+    * user zoom.
      */
      fun initNavigationTileStore() {
         navigationTileStore = NavigationTileStore.create(
@@ -131,8 +135,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
      }
 
     /**
-     * L'interfaccia [LocationProvider] viene usata per ottenere gli aggiornamenti sulla posizione attuale.
-     * In questo caso viene usato [AndroidLocationProvider].
+     * The [LocationProvider] interface is used to get current location updates.
+     * In this case [AndroidLocationProvider] is used.
      */
     fun initLocationProvider() {
         locationProvider = AndroidLocationProvider(
@@ -141,7 +145,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     * Inizializzazione del routePlanner per la pianificazione delle rotte
+     * Initialization of routePlanner for online routing
      */
     fun initRouting() {
         routePlanner = OnlineRoutePlanner.create(
@@ -151,7 +155,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     * Usiamo tutte le informazioni precedenti per inizializzare il componente di navigation
+     * Initialization of the main navigation component
      */
     fun initNavigation() {
         val configuration = Configuration(
@@ -165,9 +169,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     * Per mostrare la posizione dell'utente,
-     * l'applicazione deve utilizzare i servizi di localizzazione del dispositivo,
-     * che richiedono le autorizzazioni appropriate.
+     * Function to require location permissions if not already granted and show user location
      */
     private fun enableUserLocation() {
         if (areLocationPermissionsGranted())
@@ -177,9 +179,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     *
-     * Il LocationProvider stesso segnala solo i cambiamenti di posizione. Non interagisce internamente con la mappa o la navigazione.
-     * Pertanto, per mostrare la posizione dell'utente sulla mappa, è necessario impostare il LocationProvider su TomTomMap.
+     * Function to use user location to display on marker on the map
+     * and change camera position over the marker
      */
     fun showUserLocation() {
         locationProvider.enable()
@@ -197,7 +198,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     private fun isNavigationRunning(): Boolean = tomTomNavigation.navigationSnapshot != null
 
     /**
-     * Crea la rotta a partire dalla posizione correte fino alla destinazione selezionata
+     * Function that calculate route to the user from current location of the driver
+     * @param userLocation The location of the user
      */
     suspend fun calculateRouteTo(userLocation:String) {
         val destination = getUserLocation(userLocation)
@@ -215,6 +217,11 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         routePlanner.planRoute(routePlanningOptions, routePlanningCallback)
     }
 
+    /**
+     * Function that performs geocoding operation calling the API.
+     * @param userLocation The location of the user as address string
+     * @return The [GeoPoint] object representing the latitude and longitude of the user location
+     */
     private suspend fun getUserLocation(userLocation: String): GeoPoint? = withContext(Dispatchers.Main) {
         val deferred = viewModelScope.async(Dispatchers.IO) {
             try {
@@ -239,8 +246,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     * Questa funzione di callback serve per ottenere l'oggetto che rappresenta la rotta
-     * e disegnarla sulla mappa.
+     * Callback function used to handle the response from the route planning request
      */
     private val routePlanningCallback = object : RoutePlanningCallback {
         override fun onSuccess(result: RoutePlanningResponse) {
@@ -258,6 +264,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         override fun onRoutePlanned(route: Route) = Unit
     }
 
+    /**
+     * Function to draw the route on the map
+     * @param route The route to be drawn
+     */
     private fun drawRoute(route: Route) {
         val instructions = route.mapInstructions()
         val routeOptions = RouteOptions(
@@ -271,7 +281,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     * Fornisce istruzioni disegnate sul percorso sotto forma di frecce che indicano le manovre.
+     * Function that display on the map instructions for the navigation
      */
     private fun Route.mapInstructions(): List<Instruction> {
         val routeInstructions = legs.flatMap { routeLeg -> routeLeg.instructions }
@@ -281,10 +291,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-        Utilizzato per avviare la navigazione mediante
-     * - inizializzazione del NavigationFragment per visualizzare le informazioni di navigazione dell'interfaccia utente,
-     * - passaggio dell'oggetto Route lungo il quale verrà effettuata la navigazione e delle RoutePlanningOptions utilizzate durante la pianificazione del percorso,
-     * - gestione degli aggiornamenti agli stati di navigazione utilizzando il NavigationListener.
+        Used to start navigation via
+     * - initialization of NavigationFragment to display UI navigation information,
+     * - passing the Route object along which navigation will be carried out and the RoutePlanningOptions used during route planning,
+     * - management of updates to navigation states using the NavigationListener.
      */
     fun startNavigation(route: Route, orderId: String?) {
         if (!isNavigationRunning()) {
@@ -310,7 +320,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
 
 
     /**
-     * Inizializzazione del NavigationFragment per la navigazione
+     * Function to initialize the NavigationFragment where the navigation info are displayed
+     * @param binding The binding object of the layout
+     * @param fragmentManager The fragment manager
+     * @param orderId The order id
      */
       fun initNavigationFragment(
         binding: MapLayoutBinding,
@@ -345,8 +358,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
     /**
-     * - Viene utilizzato CameraChangeListener per osservare la modalità di tracciamento della fotocamera e rilevare se la fotocamera è bloccata sulla freccia. Se l'utente inizia a muovere la fotocamera, questa cambierà e è possibile regolare l'interfaccia utente di conseguenza.
-     * - Una volta avviata la navigazione, la fotocamera viene impostata per seguire la posizione dell'utente e l'indicatore di posizione viene cambiato in una freccia. Per abbinare gli aggiornamenti di posizione grezzi ai percorsi, utilizzare MapMatchedLocationProvider e impostarlo su TomTomMap.
+     * CameraChangeListener is used to observe the tracking mode of the camera and detect whether the camera is stuck on the arrow.
+     * If the user starts to move the camera, it will change and you can adjust the user interface accordingly.
+     * Once navigation is started, the camera is set to follow the user's location and the location indicator is changed to an arrow.
+     * To match raw location updates to routes, use MapMatchedLocationProvider and set it to TomTomMap.
      */
     private val navigationListener = object : NavigationFragment.NavigationListener {
         override fun onStarted() {
@@ -354,6 +369,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
             tomTomMap.cameraTrackingMode = CameraTrackingMode.FollowRouteDirection
             tomTomMap.enableLocationMarker(LocationMarkerOptions(LocationMarkerOptions.Type.Chevron))
             setMapMatchedLocationProvider()
+            // use for simulation purposes only
             setSimulationLocationProviderToNavigation(route!!)
             tomTomMap.setPadding(Padding(0, 0, 0, getApplication<Application>().resources.getDimensionPixelOffset(R.dimen.map_padding_bottom)))
         }
@@ -363,6 +379,9 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         }
     }
 
+    /**
+     * Function to set the location provider to simulation mode
+     */
     private fun setSimulationLocationProviderToNavigation(route: Route) {
         val routeGeoLocations = route.geometry.map { GeoLocation(it) }
         val simulationStrategy = InterpolationStrategy(routeGeoLocations)
@@ -371,10 +390,16 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         locationProvider.enable()
     }
 
+    /**
+     * Function to update the progress of the navigation like remaining time, distance, ecc..
+     */
     private val progressUpdatedListener = ProgressUpdatedListener {
         tomTomMap.routes.first().progress = it.distanceAlongRoute
     }
 
+    /**
+     * Function to update the route when the route is changed during navigation
+     */
     private val activeRouteChangedListener by lazy {
         ActiveRouteChangedListener { route ->
             tomTomMap.removeRoutes()
@@ -382,6 +407,10 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         }
     }
 
+    /**
+     * Function to stop the navigation and reset the map state, removes all listeners
+     * and enable the user location to be displayed on the map again
+     */
     private fun stopNavigation() {
         resetMapSize()
         navigationFragment.stopNavigation()
@@ -398,13 +427,16 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         enableUserLocation()
     }
 
+
     private fun setMapMatchedLocationProvider() {
         val mapMatchedLocationProvider = MapMatchedLocationProvider(tomTomNavigation)
         tomTomMap.setLocationProvider(mapMatchedLocationProvider)
         mapMatchedLocationProvider.enable()
     }
 
-
+    /**
+     * Function to observe the camera change listener and detect when the camera is stuck on the arrow.
+     */
     private val cameraChangeListener by lazy {
         CameraChangeListener {
             val cameraTrackingMode = tomTomMap.cameraTrackingMode
@@ -416,7 +448,9 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         }
     }
 
-
+    /**
+     * Function to check user permissions for location
+     */
     private fun areLocationPermissionsGranted() = ContextCompat.checkSelfPermission(
         getApplication<Application>().applicationContext,
         Manifest.permission.ACCESS_FINE_LOCATION
@@ -433,6 +467,9 @@ class MapViewModel(application: Application): AndroidViewModel(application){
         )
     }
 
+    /**
+     * Function to update the order status in the database
+     */
     private fun setOrderStatus(orderId: String,status: String){
         viewModelScope.launch {
             db.collection("orders")

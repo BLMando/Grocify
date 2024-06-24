@@ -3,7 +3,7 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.HomeUserUiState
+import com.example.grocify.states.HomeUserUiState
 import com.example.grocify.model.Category
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel class for HomeUserScreen
+ * @param application - Application context
+ */
 class HomeUserViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(HomeUserUiState())
@@ -22,6 +26,9 @@ class HomeUserViewModel(application: Application): AndroidViewModel(application)
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
+    /**
+     * Function to get the name of the currently signed-in user
+     */
     fun getSignedInUserName() {
         val currentUser = auth.currentUser?.uid
         viewModelScope.launch {
@@ -38,6 +45,11 @@ class HomeUserViewModel(application: Application): AndroidViewModel(application)
         }
     }
 
+    /**
+     * Function to get the categories from the database
+     * and update the UI state with the categories list
+     * @see Category
+     */
      fun getCategories() {
 
          val categories: MutableList<Category> = mutableListOf()
@@ -59,6 +71,11 @@ class HomeUserViewModel(application: Application): AndroidViewModel(application)
         }
     }
 
+    /**
+     * Function to check if the user has any active orders
+     * and update the UI state with the order ID if present
+     * @see HomeUserUiState
+     */
     fun checkOrdersStatus(){
         db.collection("orders")
             .whereEqualTo("userId", auth.currentUser!!.uid)

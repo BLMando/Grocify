@@ -66,9 +66,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import com.example.grocify.R
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.ExtraLightGray
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.ExtraLightGray
 import com.example.grocify.viewmodels.SignInViewModel
 import com.google.android.gms.auth.api.identity.Identity
 import kotlinx.coroutines.CoroutineScope
@@ -83,8 +83,14 @@ fun SignInScreen(
     navController: NavController,
 ) {
 
+   /**
+     * Instantiate the SignInViewModel passing parameters through the factory method
+     * @param context Activity
+     * @param OneTapClient The Google Sign-In client
+    */
     val viewModel: SignInViewModel = viewModel(factory = viewModelFactory {
         addInitializer(SignInViewModel::class) {
+
             SignInViewModel(context.application, Identity.getSignInClient(context))
         }
     })
@@ -95,71 +101,53 @@ fun SignInScreen(
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
     var showPassword by rememberSaveable { mutableStateOf(false) }
-    val offset = Offset(5.5f, 6.0f)
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    //launcher per l'intent di login
+    /**
+     * Creates and remembers a launcher to handle the result of an activity
+     * started for result, specifically for activities that return
+     * results via an intent sender (e.g., authentication flows).
+     */
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult(),
         onResult = { result ->
             if(result.resultCode == Activity.RESULT_OK){
-                //se l'intent di login è andato a buon fine, allora si fa il login
                 CoroutineScope(Dispatchers.Main).launch {
                     val signInResult = viewModel.signInWithIntent(
                         intent = result.data ?: return@launch
                     )
                     viewModel.onSignInResult(signInResult)
                 }
-
             }
         }
     )
 
-    LaunchedEffect(key1 = Unit) {
-        if(viewModel.getSignedInUser()){
+    /**
+     * Effect that handles the sign-in result and navigates to the appropriate route
+     */
+    LaunchedEffect(key1 = Triple(Unit, googleUiState.value.isSignInSuccessful, signInUiState.value.isSuccessful)) {
+        if (viewModel.getSignedInUser() || googleUiState.value.isSignInSuccessful || signInUiState.value.isSuccessful) {
             val role = viewModel.getUserRole()
-            handlePostSignInRoute(role,navController)
+            handlePostSignInRoute(role, navController)
         }
-    }
-
-    LaunchedEffect(key1 = googleUiState.value.isSignInSuccessful) {
-        if(googleUiState.value.isSignInSuccessful){
-            val role = viewModel.getUserRole()
-            handlePostSignInRoute(role,navController)
+        if (googleUiState.value.isSignInSuccessful) {
             viewModel.resetGoogleState()
         }
     }
 
-    LaunchedEffect(key1 = signInUiState.value.isSuccessful) {
-        if(signInUiState.value.isSuccessful){
-            val role = viewModel.getUserRole()
-            handlePostSignInRoute(role,navController)
-        }
-    }
 
-
-    LaunchedEffect(key1 = googleUiState.value.signInError) {
-        googleUiState.value.signInError?.let { error ->
+    /**
+     * Effect that handles the sign-in error and displays a snackbar with the error message
+     */
+    LaunchedEffect(key1 = Pair(googleUiState.value.signInError, signInUiState.value.signInError)) {
+        val error = googleUiState.value.signInError ?: signInUiState.value.signInError
+        error?.let {
             scope.launch {
                 snackbarHostState
                     .showSnackbar(
-                        message = error,
-                        withDismissAction = true,
-                        duration = SnackbarDuration.Long
-                    )
-            }
-        }
-    }
-
-
-   LaunchedEffect(key1 = signInUiState.value.signInError){
-        signInUiState.value.signInError?.let { error ->
-            scope.launch {
-                snackbarHostState
-                    .showSnackbar(
-                        message = error,
+                        message = it,
                         withDismissAction = true,
                         duration = SnackbarDuration.Long
                     )
@@ -212,7 +200,7 @@ fun SignInScreen(
                             fontWeight = FontWeight(700),
                             color = BlueLight,
                             shadow = Shadow(
-                                color = Color.Black, offset = offset, blurRadius = 3f
+                                color = Color.Black, offset = Offset(5.5f, 6.0f), blurRadius = 3f
                             ),
                             letterSpacing = 2.sp
                         )

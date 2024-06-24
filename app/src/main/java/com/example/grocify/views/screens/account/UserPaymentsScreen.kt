@@ -60,15 +60,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.data.UserPaymentMethodsUiState
+import com.example.grocify.states.UserPaymentMethodsUiState
 import com.example.grocify.model.PaymentMethod
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.util.calculateCardNumberSelection
-import com.example.grocify.util.calculateExpiryDateSelection
-import com.example.grocify.util.formatCVC
-import com.example.grocify.util.formatCreditCardNumber
-import com.example.grocify.util.formatExpiryDate
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.utils.calculateCardNumberSelection
+import com.example.grocify.utils.calculateExpiryDateSelection
+import com.example.grocify.utils.formatCVC
+import com.example.grocify.utils.formatCreditCardNumber
+import com.example.grocify.utils.formatExpiryDate
 import com.example.grocify.viewmodels.UserPaymentMethodsViewModel
 
 
@@ -80,7 +80,9 @@ fun UserPaymentsScreen(
 ){
     val uiState = viewModel.uiState.collectAsState()
 
-    //ad ogni recomposition, ogni volta che l'inserimento e l'aggiornamento è andato a buon fine ricarico gli indirizzi
+    /**
+     * Effect that reloads payment methods after each operations
+     */
     LaunchedEffect(key1 = Unit, key2 = uiState.value.isUDSuccessful, key3 = uiState.value.isInsertSuccessful) {
         viewModel.getAllPaymentMethods()
     }
@@ -132,8 +134,6 @@ fun UserPaymentsScreen(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 if (uiState.value.result.isEmpty() && uiState.value.paymentMethods.isNotEmpty()) {
-                    //se l'utente ha inserito almeno un metodo di pagamento allora mostro i seguenti composable
-
                     Text(
                         text = "Metodi di pagamento attuale",
                         modifier = Modifier.padding(top = 20.dp, start = 20.dp),
@@ -143,12 +143,10 @@ fun UserPaymentsScreen(
                         )
                     )
 
-                    //isolo l'eventuale metodo di pagamento selezionato dal resto
                     val paymentMethodsListWithSelected =
                         uiState.value.paymentMethods.filter { it.selected }
 
                     if (paymentMethodsListWithSelected.isEmpty())
-                        //se non ho trovato nessun metodo di pagamento selezionato allora mostro un composable che dice che non ci sono metodi di pagamento in uso
                         Row(
                             Modifier.fillMaxWidth().padding(top = 20.dp),
                             horizontalArrangement = Arrangement.Center,
@@ -174,7 +172,6 @@ fun UserPaymentsScreen(
                         )
                     )
 
-                    //mostro la lista di indirizzi dell'utente
                     val paymentMethodsListWithoutSelected: List<PaymentMethod> = if(paymentMethodsListWithSelected.isEmpty())
                         uiState.value.paymentMethods.filter { !it.selected }
                     else
@@ -335,14 +332,14 @@ fun PaymentMethodCard(paymentMethod: PaymentMethod, viewModel: UserPaymentMethod
 
 
 @Composable
-fun PaymentDialog(uiState: UserPaymentMethodsUiState,viewModel: UserPaymentMethodsViewModel){
+fun PaymentDialog(uiState: UserPaymentMethodsUiState, viewModel: UserPaymentMethodsViewModel){
 
+    // variables handling insert and update operations
     var owner by rememberSaveable { mutableStateOf("") }
     var cardNumber by  remember { mutableStateOf(TextFieldValue("")) }
     var expireDate by  remember { mutableStateOf(TextFieldValue("")) }
     var cvc by  remember { mutableStateOf(TextFieldValue("")) }
 
-    //variabili che permettono di effettuare la modifica del metodo di pagamento a partire dai dati attuali
     var ownerChange by rememberSaveable { mutableStateOf(false) }
     var cardNumberChange by rememberSaveable { mutableStateOf(false) }
     var expireDateChange by rememberSaveable { mutableStateOf(false) }
@@ -551,7 +548,7 @@ fun PaymentDialog(uiState: UserPaymentMethodsUiState,viewModel: UserPaymentMetho
                         )
                     }
                 else{
-                    //creo un nuovo metodo di pagamento con i dati modificati
+                    //update payment method
                     val _owner = if(!ownerChange) uiState.paymentMethodToUpdate.owner else owner
                     val _cvc = if(!cvcChange) uiState.paymentMethodToUpdate.cvc else cvc.text
                     val _cardNumber = if(!cardNumberChange) uiState.paymentMethodToUpdate.number else cardNumber.text

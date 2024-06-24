@@ -56,9 +56,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.ui.theme.BlueDark
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.ExtraLightGray
+import com.example.grocify.views.theme.BlueDark
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.ExtraLightGray
 import com.example.grocify.viewmodels.SignUpViewModel
 import kotlinx.coroutines.launch
 
@@ -83,6 +83,9 @@ fun SignUpScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    /**
+     * Effect to handle sign up error
+     */
     LaunchedEffect(key1 = signUpUiState.signUpError){
         signUpUiState.signUpError?.let { error ->
             scope.launch {
@@ -96,16 +99,14 @@ fun SignUpScreen(
         }
     }
 
+    /**
+     * Effect to handle sign up success
+     */
     LaunchedEffect(key1 = signUpUiState.isSuccessful) {
         if(signUpUiState.isSuccessful)
             onSignUpSuccess()
     }
 
-
-    val colorStops = arrayOf(
-        0.2f to BlueLight,
-        1f to BlueDark
-    )
 
     Scaffold(
         snackbarHost = {
@@ -132,7 +133,10 @@ fun SignUpScreen(
                     .height(200.dp)
                     .fillMaxWidth()
                     .shadow(1.dp)
-                    .background(Brush.horizontalGradient(colorStops = colorStops)),
+                    .background(Brush.horizontalGradient(colorStops = arrayOf(
+                        0.2f to BlueLight,
+                        1f to BlueDark
+                    ))),
                 contentAlignment = Alignment.Center
             ){
                 Text(

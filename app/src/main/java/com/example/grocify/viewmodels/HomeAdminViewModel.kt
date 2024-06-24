@@ -4,9 +4,9 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.api.RetrofitObject
-import com.example.grocify.api.SentimentAnalysis.SentimentData
-import com.example.grocify.data.HomeAdminUiState
+import com.example.grocify.data.remote.RetrofitObject
+import com.example.grocify.data.remote.SentimentAnalysis.SentimentData
+import com.example.grocify.states.HomeAdminUiState
 import com.example.grocify.model.Review
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
@@ -27,6 +27,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CancellationException
 
+/**
+ * ViewModel class for HomeAdminScreen
+ * @param application - Application context
+ */
 @Suppress("UNCHECKED_CAST")
 class HomeAdminViewModel(application: Application, private val mOneTapClient: SignInClient): AndroidViewModel(application) {
 
@@ -36,7 +40,12 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
-    //GESTIONE STATISTICHE
+    /**
+     * Function to get the 10 most bought products
+     * It iterates over all the orders and counts the quantity of each product
+     * Then it sorts the map by value in descending order and takes the first 10 entries
+     * @return List of 10 most bought products
+     */
     fun getTop10MostBoughtProducts(){
         val productQuantityMap = mutableMapOf<String, Int>()
 
@@ -45,19 +54,14 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
                 .get()
                 .addOnSuccessListener { orders ->
                     for (order in orders.documents) {
-                        //per ogni ordine prendo il carrello
                         val cart: List<HashMap<String, Any>> = order.get("cart") as List<HashMap<String, Any>>
 
                         for (product in cart) {
-                            //per ogni prodotto nel carrello prendo il nome e la quantità acquistata
                             val name = product["name"] as String
                             val unit = (product["units"] as Long).toInt()
-
-                            //aggiungo il nome del prodotto al map e se esiste aggiorno il valore
                             productQuantityMap[name] = productQuantityMap.getOrDefault(name, 0) + unit
                         }
                     }
-                    //ordino il map in base al valore e prendo i primi 10
                     val sortedItems = productQuantityMap.toList().sortedByDescending { (_, value) -> value }.take(10)
 
                     _uiState.update { currentState ->
@@ -69,6 +73,12 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
         }
     }
 
+    /**
+     * Function to get the 10 most bought categories
+     * It iterates over all the orders and counts the quantity of each category
+     * Then it sorts the map by value in descending order and takes the first 10 entries
+     * @return List of 10 most bought categories
+     */
     fun getTop10MostBoughtCategories(){
 
         val categoriesQuantityMap = mutableMapOf<String, Int>()
@@ -78,28 +88,22 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
                 .get()
                 .addOnSuccessListener { orders ->
                     for (order in orders.documents) {
-                        //per ogni ordine prendo il carrello
                         val cart: List<HashMap<String, Any>> = order.get("cart") as List<HashMap<String, Any>>
 
                         for (product in cart) {
-                            //per ogni prodotto nel carrello prendo l'id
                             val productId = product["id"] as String
                             db.collection("prodotti")
                                 .document(productId)
                                 .get()
                                 .addOnSuccessListener { prod ->
-                                    //nella collection prodotti accedo al prodotto con l'id productId e accedo alla categoria
                                     val category = prod.get("categoria") as String
                                     db.collection("categories")
                                         .document(category)
                                         .get()
                                         .addOnSuccessListener { cat ->
-                                            //nella collection categories accedo alla categoria con l'id category e accedo al nome
                                             val categoryName = cat.get("nome") as String
-                                            //aggiungo il nome della categoria al map e se esiste aggiorno il valore
                                             categoriesQuantityMap[categoryName] = categoriesQuantityMap.getOrDefault(categoryName, 0) + 1
 
-                                            //ordino il map in base al valore e prendo i primi 10
                                             val sortedCategory = categoriesQuantityMap.toList().sortedByDescending { (_, value) -> value }.take(10)
 
                                             _uiState.update { currentState ->
@@ -111,11 +115,17 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
                                 }
                         }
                     }
-
                 }
         }
     }
 
+
+    /**
+     * Function to get the average monthly orders
+     * It iterates over all the orders and counts the number of orders for each month
+     * Then it sorts the map by key (month name) in alphabetical order
+     * @return List of average monthly orders
+     */
     fun getAverageMonthlyOrders(){
 
         val ordersQuantityMap = mutableMapOf<String, Int>()
@@ -125,7 +135,6 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
                 .get()
                 .addOnSuccessListener { orders ->
                     for (order in orders.documents) {
-                        //per ogni ordine prendo la il mese in numero e ottengo il nome del mese
                         val month = LocalDate.parse(order.get("date") as String, DateTimeFormatter.ofPattern("dd/MM/yyyy")).monthValue
                         var monthName = ""
                         when(month){
@@ -142,7 +151,6 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
                             11 -> monthName = "Novembre"
                             12 -> monthName = "Dicembre"
                         }
-                        //aggiungo il nome del mese al map e se esiste aggiorno il numero di ordini effettuati
                         ordersQuantityMap[monthName] = ordersQuantityMap.getOrDefault(monthName, 0) + 1
                     }
                     _uiState.update {currentState ->
@@ -151,10 +159,15 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
                         )
                     }
                 }
-
         }
     }
 
+    /**
+     * Function to get the average monthly users expense
+     * It iterates over all the orders and sums the expense for each month
+     * Then it sorts the map by key (month name) in alphabetical order
+     * @return List of average monthly users expense
+     */
     fun getAverageMonthlyUsersExpense(){
 
         val ordersQuantityMap = mutableMapOf<String, Int>()
@@ -197,17 +210,19 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
         }
     }
 
-    //GESTIONE RECENSIONI
+    /**
+     * Function to get all the reviews
+     * It retrieves all the reviews from the database and orders them by date in descending order
+     * @return List of all the reviews
+     */
     fun getAllReviews(){
         viewModelScope.launch {
             db.collection("orders_reviews")
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener { reviews ->
-                    //prendo tutte le recensioni ordinate per data
                     val reviewsList:MutableList<Review> = mutableListOf()
                     for (review in reviews) {
-                        //ogni recensione viene convertita in un oggetto Review
                         review.toObject(Review::class.java).let { reviewItem ->
                             reviewsList.add(reviewItem)
                         }
@@ -221,16 +236,19 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
         }
     }
 
+    /**
+     * Function that calls the sentiment analysis function and store results
+     * @param text - The review text to be analyzed
+     * @param index - The index of the review in the list of reviews
+     * @return List of sentiment data for the given review text
+     */
     fun sentimentAnalysis(text:String,index:Int){
         viewModelScope.launch {
-            //faccio la chiamata all'API per ottenere la sentiment analysis
             val response = getSentimentAnalysis(text)
 
-            //aggiungo la response al map per tenere traccia a quale recensione è associata
             val responseHashMap = hashMapOf(
                 index to response
             )
-
             _uiState.update { currentState ->
                 currentState.copy(
                     analysisIsLoaded = true,
@@ -240,11 +258,13 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
         }
     }
 
+    /**
+     * Function to add the sentiment analysis result to the existing result
+     */
     private fun addToSentimentAnalysisResult(original: HashMap<Int,List<SentimentData>>, newEntries: HashMap<Int, List<SentimentData>>): HashMap<Int,List<SentimentData>> {
-        //Nuova HashMap per mantenere i risultati del merge
+
         val mergedResult = HashMap(original)
 
-        // Aggiungio tutte le entries al nuovo HashMap
         for ((key, value) in newEntries) {
             mergedResult[key] = value
         }
@@ -252,13 +272,17 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
         return mergedResult
     }
 
+    /**
+     * Function to perform the sentiment analysis on a given review text
+     * It makes a network call to the sentiment analysis API and returns the result
+     * @param text - The review text to be analyzed
+     * @return List of sentiment data for the given review text
+     */
      private suspend fun getSentimentAnalysis(text:String): List<SentimentData> = withContext(Dispatchers.Main) {
         val deferred = viewModelScope.async(Dispatchers.IO) {
             try {
-                //chiamo l'API
                 val response = RetrofitObject.sentimentAnalysisService.getSentimentAnalysis(text)
                 if (response.isSuccessful && response.body() != null) {
-                    //se la risposta è andata a buon fine, prendo i dati
                     response.body()!!.chart_data
                 } else {
                     Log.d("AdminViewModel", "Not successful")
@@ -275,8 +299,9 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
          deferred.await()!!
     }
 
-
-
+    /**
+     * Function to get the name of the currently signed-in user
+     */
     fun getSignedInUserName() {
         val currentUser = auth.currentUser?.uid
         viewModelScope.launch {
@@ -294,6 +319,10 @@ class HomeAdminViewModel(application: Application, private val mOneTapClient: Si
         }
     }
 
+    /**
+     * Function to sign out the current user
+     * It signs out the user from both the authentication and OneTap client
+     */
     fun signOut(){
         viewModelScope.launch {
             try {

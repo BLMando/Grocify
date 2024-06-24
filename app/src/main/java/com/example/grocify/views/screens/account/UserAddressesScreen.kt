@@ -58,12 +58,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
-import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.UserAddressesViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.grocify.data.UserAddressesUiState
+import com.example.grocify.states.UserAddressesUiState
 import com.example.grocify.model.Address
-import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.views.theme.BlueLight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +74,9 @@ fun UserAddressScreen(
 
     val uiState = viewModel.uiState.collectAsState()
 
-    //ad ogni recomposition, ogni volta che l'inserimento e l'aggiornamento è andato a buon fine ricarico gli indirizzi
+    /**
+     * Effect that reloads addresses after each operations
+     */
     LaunchedEffect(key1 = Unit, key2 = uiState.value.isUDSuccessful, key3 = uiState.value.isInsertSuccessful) {
         viewModel.getAllAddresses()
     }
@@ -128,7 +130,6 @@ fun UserAddressScreen(
                 horizontalAlignment = Alignment.Start
             ) {
                 if(uiState.value.result.isEmpty() && uiState.value.addresses.isNotEmpty()) {
-                    //se l'utente ha inserito almeno un indirizzo allora mostro i seguenti composable
                     Text(
                         text = "Indirizzo corrente",
                         modifier = Modifier.padding(top = 20.dp, start = 20.dp),
@@ -138,11 +139,9 @@ fun UserAddressScreen(
                         )
                     )
 
-                    //isolo l'eventuale indirizzo selezionato dal resto
                     val addressListWithSelected = uiState.value.addresses.filter { it.selected }
 
                     if (addressListWithSelected.isEmpty())
-                        //se non ho trovato nessun indirizzo selezionato allora mostro un composable che dice che non ci sono indirizzi in uso
                         Row(
                             Modifier.fillMaxWidth().padding(top = 20.dp),
                             horizontalArrangement = Arrangement.Center,
@@ -157,7 +156,6 @@ fun UserAddressScreen(
                             )
                         }
                     else
-                        //altrimenti mostro l'indirizzo
                         AddressCard(addressListWithSelected.first(), viewModel)
 
 
@@ -170,7 +168,6 @@ fun UserAddressScreen(
                         )
                     )
 
-                    //mostro la lista di indirizzi dell'utente
                     val addressListWithoutSelected: List<Address> = if(addressListWithSelected.isEmpty())
                         uiState.value.addresses.filter { !it.selected }
                     else
@@ -320,12 +317,12 @@ fun AddressCard(address: Address,viewModel: UserAddressesViewModel){
 @Composable
 fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewModel){
 
+    // variabiles handling insert and update operations
     var addressName by rememberSaveable { mutableStateOf("")}
     var city by rememberSaveable { mutableStateOf("")}
     var address by  rememberSaveable { mutableStateOf("") }
     var civic by  rememberSaveable { mutableStateOf("") }
 
-    //variabili che permettono di effettuare la modifica dell'indirizzo a partire dai dati attuali
     var addressNameChange by rememberSaveable { mutableStateOf(false) }
     var cityChange by rememberSaveable { mutableStateOf(false)}
     var addressChange by rememberSaveable { mutableStateOf(false) }
@@ -526,7 +523,7 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
                         )
                     }
                 else {
-                    //creo un nuovo indirizzo con i dati modificati
+                    // update address
                     val _civic = if(!civicChange) uiState.addressToUpdate.civic else civic
                     val _address = if(!addressChange) uiState.addressToUpdate.address else address
                     val _city = if(!cityChange) uiState.addressToUpdate.city else city

@@ -50,10 +50,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.views.components.CheckoutBox
 import com.example.grocify.views.components.UserBottomNavigation
-import com.example.grocify.data.CheckoutUiState
-import com.example.grocify.ui.theme.BlueLight
-import com.example.grocify.ui.theme.BlueMedium
-import com.example.grocify.util.anyToDouble
+import com.example.grocify.states.CheckoutUiState
+import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.BlueMedium
+import com.example.grocify.utils.anyToDouble
 import com.example.grocify.viewmodels.CheckoutViewModel
 
 
@@ -80,6 +80,9 @@ fun CheckoutScreen(
     }
 
 
+    /**
+     * Launched effect to handle the order confirmation
+     */
     LaunchedEffect(key1 = uiState.value.orderId) {
         if(uiState.value.orderId.isNotEmpty()){
             onConfirmClick(flagCart,uiState.value.orderId)
@@ -268,10 +271,10 @@ fun DeliveryOptionCard(onAddressClick: () -> Unit, uiState: CheckoutUiState) {
             ) {
                 if (uiState.resultAddress.isEmpty()) {
                     Text(
-                        text = "${uiState.currentAddress?.name}, ${uiState.currentAddress?.city}"
+                        text = "${uiState.currentAddress.name}, ${uiState.currentAddress.city}"
                     )
                     Text(
-                        text = "${uiState.currentAddress?.address}, ${uiState.currentAddress?.civic}"
+                        text = "${uiState.currentAddress.address}, ${uiState.currentAddress.civic}"
                     )
                 }else{
                     Text(

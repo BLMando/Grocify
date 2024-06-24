@@ -24,7 +24,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import com.example.grocify.ui.theme.BlueLight
+import com.example.grocify.views.theme.BlueLight
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminBottomNavigation(

@@ -3,12 +3,12 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.CheckoutUiState
+import com.example.grocify.states.CheckoutUiState
 import com.example.grocify.model.Address
 import com.example.grocify.model.Order
 import com.example.grocify.model.PaymentMethod
-import com.example.grocify.storage.Storage
-import com.example.grocify.util.maskCardNumber
+import com.example.grocify.data.local.Storage
+import com.example.grocify.utils.maskCardNumber
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -22,6 +22,10 @@ import java.text.DecimalFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * ViewModel class for CheckoutScreen handling checkout stage.
+ * @param application The application context.
+ */
 class CheckoutViewModel(application: Application):AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CheckoutUiState())
@@ -31,6 +35,10 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
+    /**
+     * Function to get user's selected payment method and address.
+     * It also checks if there are any payment method or address available.
+     */
     fun getCurrentInfo(){
         db.collection("users_details")
             .whereEqualTo("uid",auth.currentUser!!.uid)
@@ -112,20 +120,25 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
             }
     }
 
-
+    /**
+     * Function to create a new order.
+     * performs data conversion and calculations and then creates a new order in the database.
+     * @param flagCart String that indicates if the order is an online or in-store one.
+     * @param totalPrice Double that represents the total price of the order.
+     */
     fun createNewOrder(flagCart: String, totalPrice:Double){
-        //prendo ora e data attuali nel formato indicato
+
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
         val localDate = LocalDateTime.now().format(formatter)
         val dateTime = localDate.split(" ")
 
-        //arrotondo il prezzo finale alla seconda cifra decimale
+
         val df = DecimalFormat("#.##")
         df.roundingMode = RoundingMode.DOWN
         val roundedTotalPrice = df.format(totalPrice).replace(',', '.')
 
         viewModelScope.launch{
-            //prendo tutti i prodotti dal carrello locale
+
             val products = productDao.getProducts(flagCart, auth.currentUser!!.uid).toList()
             val lightProducts: MutableList<HashMap<String,Any>> = mutableListOf()
 
@@ -155,7 +168,6 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
                 }
             }
 
-            //creo un nuovo ordine e lo aggiungo al db
             val newOrder = Order(
                 cart = lightProducts,
                 userId = auth.currentUser!!.uid,
@@ -181,6 +193,9 @@ class CheckoutViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to check if the user has an order in progress.
+     */
     fun userHasRunningOrder(){
         viewModelScope.launch {
             //

@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.R
 import com.example.grocify.model.User
-import com.example.grocify.data.UserAccountUiState
+import com.example.grocify.states.UserAccountUiState
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -18,6 +18,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.concurrent.CancellationException
 
+
+/**
+ * ViewModel class for UserAccountScreen.
+ * @param application The application context.
+ */
 class UserAccountViewModel(application: Application, private val mOneTapClient: SignInClient): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(UserAccountUiState())
@@ -26,8 +31,11 @@ class UserAccountViewModel(application: Application, private val mOneTapClient: 
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
-    fun getSignedInUser() {
 
+    /**
+     * Get the currently signed-in user and update the UI state.
+     */
+    fun getSignedInUser() {
         val user = auth.currentUser
 
         if(user?.displayName.isNullOrEmpty()){
@@ -76,6 +84,9 @@ class UserAccountViewModel(application: Application, private val mOneTapClient: 
         }
     }
 
+    /**
+     * Sign out the current user and
+     */
      fun signOut(){
         viewModelScope.launch {
             try {
@@ -88,6 +99,10 @@ class UserAccountViewModel(application: Application, private val mOneTapClient: 
         }
     }
 
+    /**
+     * Get the provider ID of the currently signed-in user.
+     * @return The provider ID of the currently signed-in user.
+     */
     fun  getUserAuthProvider(): String {
         val user = auth.currentUser
         return user?.providerData?.get(1)?.providerId.toString()

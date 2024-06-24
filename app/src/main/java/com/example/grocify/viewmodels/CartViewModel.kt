@@ -3,10 +3,10 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.CartUiState
+import com.example.grocify.states.CartUiState
 import com.example.grocify.model.Cart
 import com.example.grocify.model.Product
-import com.example.grocify.storage.Storage
+import com.example.grocify.data.local.Storage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase

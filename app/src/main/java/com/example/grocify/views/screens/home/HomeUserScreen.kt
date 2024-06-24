@@ -51,7 +51,7 @@ import com.example.grocify.R
 import com.example.grocify.views.components.MovingTextAndIconRow
 import com.example.grocify.views.components.UserBottomNavigation
 import com.example.grocify.model.Category
-import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.views.theme.BlueMedium
 import com.example.grocify.viewmodels.HomeUserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -200,6 +200,7 @@ fun CategoryCard(category: Category, onCategoryClick: () -> Unit) {
                     .height(120.dp)
                     .clip(RoundedCornerShape(30.dp))
             ){
+                // handle loading and error states for image
                 val state = painter.state
                 if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
                     CircularProgressIndicator(

@@ -47,7 +47,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
 import com.example.grocify.model.Order
-import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.HomeDriverViewModel
 import com.google.android.gms.auth.api.identity.Identity
 
@@ -58,6 +58,11 @@ fun HomeDriverScreen(
     onLogOutClick: () -> Unit,
     onGroceryClick: (String, String) -> Unit
 ) {
+    /**
+     * Instantiate the HomeDriverViewModel passing parameters through the factory method
+     * @param context Activity
+     * @param OneTapClient The Google Sign-In client
+     */
     val viewModel: HomeDriverViewModel = viewModel(factory = viewModelFactory {
         addInitializer(HomeDriverViewModel::class) {
             HomeDriverViewModel(context.application, Identity.getSignInClient(context))
@@ -206,8 +211,6 @@ fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
                     fontSize = 14.sp
                 )
             }
-
-
 
             Row(
                 modifier = Modifier

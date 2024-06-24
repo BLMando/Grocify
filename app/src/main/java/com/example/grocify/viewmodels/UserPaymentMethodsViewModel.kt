@@ -3,13 +3,13 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.UserPaymentMethodsUiState
+import com.example.grocify.states.UserPaymentMethodsUiState
 import com.example.grocify.model.PaymentMethod
 import com.example.grocify.model.UserDetails
-import com.example.grocify.util.dataClassToMap
-import com.example.grocify.util.isNotEmpty
-import com.example.grocify.util.isValidCreditCardNumber
-import com.example.grocify.util.isValidExpireDate
+import com.example.grocify.utils.dataClassToMap
+import com.example.grocify.utils.isNotEmpty
+import com.example.grocify.utils.isValidCreditCardNumber
+import com.example.grocify.utils.isValidExpireDate
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
@@ -20,6 +20,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel class for UserPaymentsScreen handling user's payment methods.
+ * @param application The application context.
+ */
 class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(UserPaymentMethodsUiState())
@@ -28,9 +32,17 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
+    /**
+     * Function to add a new payment method to the user's payment methods list
+     * performs input validations and then adds the new payment method to the list
+     * and update the user's details in the Firestore database.
+     * @param owner The name of the payment method owner
+     * @param number The credit card number
+     * @param cvc The CVC code of the credit card
+     * @param expireDate The expire date of the credit card
+     */
     fun addNewPaymentMethod(owner:String, number: String, cvc: String, expireDate:String){
 
-        //INZIO CONTROLLO DELL'INPUT
         val ownerStatus = isNotEmpty(owner)
         val numberStatus = isValidCreditCardNumber(number)
         val cvcStatus = isNotEmpty(cvc)
@@ -99,10 +111,8 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                 )
             }
         }
-        //FINE CONTROLLO DELL'INPUT
 
         if(ownerStatus && numberStatus && cvcStatus && expireDateStatus){
-            //se tutti i campi sono validi, procedo con l'inserimento
 
             val userDetailsRef = db.collection("users_details")
 
@@ -114,13 +124,11 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                 selected = false
             )
             viewModelScope.launch {
-                //accedo al documento dell'utente attualmente loggato
                 userDetailsRef
                     .whereEqualTo("uid", auth.currentUser!!.uid)
                     .get()
                     .addOnSuccessListener { document ->
                         if(document.isEmpty){
-                            //se l'utente non ha ancora alcun dettaglio di spedizione, lo creo
                             userDetailsRef.add(
                                 UserDetails(
                                     uid = auth.currentUser!!.uid,
@@ -134,7 +142,6 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                                 }
                             }
                         }else{
-                            //altrimento lo aggiungo
                             userDetailsRef.document(document.first().id)
                                 .update("paymentMethods", FieldValue.arrayUnion(paymentMethodObject))
                                 .addOnSuccessListener {
@@ -151,21 +158,21 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
         }
     }
 
+    /**
+     * Function to get all the payment methods of the user from the Firestore database
+     */
     fun getAllPaymentMethods(){
 
         val paymentMethods = mutableListOf<PaymentMethod>()
 
         viewModelScope.launch {
-            //accedo al documento dell'utente attualmente loggato
             db.collection("users_details")
                 .whereEqualTo("uid", auth.currentUser!!.uid)
                 .get()
                 .addOnSuccessListener { document ->
                     if(!document.isEmpty){
-                        //se l'utente ha un documento per i suoi dettagli, vado a leggere i metodi di pagamento
                         val paymentMethodsList: List<HashMap<String, Any>> = document.first().get("paymentMethods") as List<HashMap<String, Any>>
                         if(paymentMethodsList.isNotEmpty()){
-                            //se ha inserito metodi di pagamento li leggo
                             paymentMethodsList.listIterator().forEach{ method ->
                                 paymentMethods.add(
                                     PaymentMethod(
@@ -184,7 +191,6 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                                 )
                             }
                         }else{
-                            //l'utente non ha inserito nessun metodo di pagamento
                             _uiState.update { currentState ->
                                 currentState.copy(
                                     result = "Nessuno metodo di pagamento presente"
@@ -192,7 +198,6 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                             }
                         }
                     }else{
-                        //l'utente non ha ancora alcun dettaglio di spedizione
                         _uiState.update { currentState ->
                             currentState.copy(
                                 result = "Nessuno metodo di pagamento presente"
@@ -201,16 +206,19 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                     }
                 }
         }
-        //reimposto lo stato dei flag per attivare il LaunchedEffect
         resetFlag()
     }
 
+    /**
+     * Function to set a selected payment method for the user
+     * and update the user's details in Firestore
+     * @param paymentMethod The payment method to be set as selected
+     */
     fun setPaymentMethodSelected(paymentMethod: PaymentMethod){
 
         val userDetailsRef = db.collection("users_details")
 
         viewModelScope.launch {
-            //accedo al documento dell'utente attualmente loggato
             userDetailsRef
                 .whereEqualTo("uid", auth.currentUser!!.uid)
                 .get()
@@ -218,27 +226,23 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                     userDetailsRef.document(documents.first().id)
                         .get()
                         .addOnSuccessListener{ document ->
-
+                            // Get the payment methods list from the document and set to true the selected payment method and false the others
                             val paymentMethodsList: List<HashMap<String, Any?>> = document.get("paymentMethods") as List<HashMap<String, Any?>>
 
-                            //converto l'oggetto PaymentMethod in un HashMap per poter confrontarlo con gli altri oggetti
                             val paymentMethodMap = dataClassToMap(paymentMethod)
 
-                            //quando viene selezionato un nuovo metodo di pagamento imposto quello precedentemete selezionato a false
                             paymentMethodsList.forEach { method ->
                                 if (method["selected"] == true){
                                     method["selected"] = false
                                 }
                             }
 
-                            //vado a trovare nella lista dei metodi di pagamento quello che è stato selezionato e lo seleziono
                             paymentMethodsList.forEach { method ->
                                 if(method.entries == paymentMethodMap.entries){
                                     method["selected"] = true
                                 }
                             }
 
-                            //aggiorno il documento sul db
                             userDetailsRef.document(documents.first().id)
                                 .update("paymentMethods", paymentMethodsList)
                                 .addOnSuccessListener {
@@ -253,19 +257,21 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
         }
     }
 
+    /**
+     * Function to update a payment method from the user's payment methods list
+     * performs input validation on the payment method fields and
+     * and update the user's details in Firestore
+     * @param paymentMethod The payment method to be updated
+     * @param ready A flag indicating if the update is ready to be performed
+     */
     fun updatePaymentMethod(paymentMethod: PaymentMethod, ready:Boolean){
-        //il flag ready indica se l'utente ha premuto il tasto "modifica"
-
         if(!ready) {
-            //se è false vuoldire che ha cliccato sul tasto "modifica" del menù a tendina e quindi mi salvo il metodo di pagamento da voler modificare
             _uiState.update {
                 it.copy(
                     paymentMethodToUpdate = paymentMethod
                 )
             }
         }else{
-            //quando il flag vale true vuol dire che l'utente ha effettuato le modifiche e quindi viene passatto come "paymentMethod" l'oggetto con i campi aggiornati
-            //INZIO CONTROLLO DELL'INPUT
             val ownerStatus = isNotEmpty(paymentMethod.owner)
             val numberStatus = isValidCreditCardNumber(paymentMethod.number)
             val cvcStatus = isNotEmpty(paymentMethod.cvc)
@@ -334,7 +340,6 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                     )
                 }
             }
-            //FINE CONTROLLO DELL'INPUT
 
             if(ownerStatus && numberStatus && cvcStatus && expireDateStatus) {
                 val userDetailsRef = db.collection("users_details")
@@ -342,15 +347,12 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
                     .whereEqualTo("uid", auth.currentUser!!.uid)
                     .get()
                     .addOnSuccessListener { documents ->
-                        //accedo al documento dell'utente attualmente loggato
                         userDetailsRef.document(documents.documents[0].id)
-                            //rimuovo il vecchio metodo di pagamento dall'array di metodi di pagamento dell'utente
                             .update(
                                 "paymentMethods",
                                 FieldValue.arrayRemove(_uiState.value.paymentMethodToUpdate)
                             )
                             .addOnSuccessListener {
-                                //aggiungo il nuovo metodo di pagamento
                                 userDetailsRef.document(documents.documents[0].id)
                                     .update("paymentMethods", FieldValue.arrayUnion(paymentMethod))
                                     .addOnSuccessListener {
@@ -369,6 +371,11 @@ class UserPaymentMethodsViewModel (application: Application): AndroidViewModel(a
         }
     }
 
+    /**
+     * Function to delete an payment method from the user's payment methods list
+     * and update the user's details in Firestore
+     * @param paymentMethod The payment method to be deleted
+     */
     fun deletePaymentMethod(paymentMethod: PaymentMethod){
         val userDetailsRef = db.collection("users_details")
 

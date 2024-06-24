@@ -43,10 +43,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.grocify.ui.theme.BlueDark
+import com.example.grocify.views.theme.BlueDark
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.views.components.CartItems
-import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.views.theme.BlueMedium
 import com.example.grocify.viewmodels.OrderDetailsViewModel
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
@@ -63,6 +63,7 @@ fun OrderDetailsScreen(
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
+    // Initialize the QR/Barcode scanner
     val scanner = GmsBarcodeScanning.getClient(activity)
 
     LaunchedEffect(key1 = Unit) {
@@ -161,7 +162,7 @@ fun OrderDetailsScreen(
                 }
             }
 
-            if ((uiState.value.isProductsMarked.all{ it }) && (uiState.value.products.size != 0))
+            if ((uiState.value.isProductsMarked.all{ it }) && (uiState.value.products.isNotEmpty()))
                 AlertDialog(
                     onDismissRequest = { },
                     title = {

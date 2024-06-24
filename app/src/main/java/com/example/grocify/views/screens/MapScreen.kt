@@ -55,7 +55,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.BuildConfig
 import com.example.grocify.R
 import com.example.grocify.databinding.MapLayoutBinding
-import com.example.grocify.ui.theme.BlueMedium
+import com.example.grocify.views.theme.BlueMedium
 import com.example.grocify.viewmodels.MapViewModel
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
@@ -82,7 +82,9 @@ fun MapScreen(
     val uiState = viewModel.uiState.collectAsState()
     val fragmentManager = (LocalContext.current as? FragmentActivity)?.supportFragmentManager
 
-    //METODO PER LA GESTIONE DEI PERMESSI PER LA GEOLOCALIZZAZIONE
+    /**
+     * launcher for location permission request
+     */
     val locationPermissionRequest = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -102,12 +104,18 @@ fun MapScreen(
         }
     }
 
+    /**
+     * Effect to handle the route calculation after client destination is acquired
+     */
     LaunchedEffect(key1 = uiState.value.locationAcquired) {
         if(uiState.value.locationAcquired) {
             viewModel.calculateRouteTo(destination!!)
         }
     }
 
+    /**
+     * Effect to handle location permission
+     */
     LaunchedEffect(key1 = uiState.value.requestLocationPermissions) {
         if(uiState.value.requestLocationPermissions == true) {
             locationPermissionRequest.launch(
@@ -212,15 +220,20 @@ fun MapScreen(
 }
 
 
+/**
+ * Composable function that handles the TomTom map container using AndroidViewBinding
+ */
 @Composable
 fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?) {
 
+    // Fragment manager to manage the map fragment
     val fragmentManager = (LocalContext.current as? FragmentActivity)?.supportFragmentManager
 
     AndroidViewBinding(factory = { inflater, _, _ ->
-
+        // Inflate the map layout binding
         val binding = bind ?: MapLayoutBinding.inflate(inflater)
 
+        // Initialize the map if it's not already initialized
         if (bind == null){
             val mapOptions = MapOptions(
                 mapKey = BuildConfig.TOMTOM_API_KEY,
@@ -234,11 +247,12 @@ fun TomTomMapContainer(viewModel: MapViewModel, bind: MapLayoutBinding?) {
 
             val mapFragment = MapFragment.newInstance(mapOptions)
 
-            // Aggiungi il MapFragment al FragmentManager
+            // Add the map fragment to the layout
             fragmentManager?.beginTransaction()
                 ?.replace(binding.mapFragment.id, mapFragment)
                 ?.commit()
 
+            // Initialize the map view model
             viewModel.initMap(mapFragment)
             viewModel.initNavigationTileStore()
             viewModel.initLocationProvider()

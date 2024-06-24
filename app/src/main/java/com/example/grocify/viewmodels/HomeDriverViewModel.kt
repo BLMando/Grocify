@@ -3,7 +3,7 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.HomeDriverUiState
+import com.example.grocify.states.HomeDriverUiState
 import com.example.grocify.model.Order
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
@@ -18,6 +18,10 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CancellationException
 
+/**
+ * ViewModel class for HomeDriverScreen
+ * @param application - Application context
+ */
 class HomeDriverViewModel(application: Application,private val mOneTapClient: SignInClient):AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(HomeDriverUiState())
@@ -26,6 +30,9 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
+    /**
+     * Function to get the name of the signed in user
+     */
     fun getSignedInUserName() {
         val currentUser = auth.currentUser?.uid
         viewModelScope.launch {
@@ -42,6 +49,11 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
         }
     }
 
+    /**
+     * Function to get the orders for the current date
+     * and update the UI state accordingly
+     * @see Order
+     */
     fun getOrders(){
         val currentDate = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
@@ -67,6 +79,10 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
         }
     }
 
+    /**
+     * Function to sign out the user
+     * and clear the auth state
+     */
     fun signOut(){
         viewModelScope.launch {
             try {

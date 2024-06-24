@@ -1,9 +1,8 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import com.example.grocify.data.TrackOrderUiState
+import com.example.grocify.states.TrackOrderUiState
 import com.example.grocify.model.Order
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -12,6 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+/**
+ * ViewModel class for TrackOrderScreen.
+ * @param application The application context.
+ */
 class TrackOrderViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(TrackOrderUiState())
@@ -19,6 +22,11 @@ class TrackOrderViewModel(application: Application): AndroidViewModel(applicatio
 
     private val db = Firebase.firestore
 
+
+    /**
+     * Get current order from firestore
+     * @param orderId String
+     */
     fun getCurrentOrder(orderId: String){
         db.collection("orders")
             .whereEqualTo("orderId", orderId)
@@ -37,6 +45,11 @@ class TrackOrderViewModel(application: Application): AndroidViewModel(applicatio
             }
     }
 
+
+    /**
+     * Get name of user that placed the order
+     * @param orderId String
+     */
     fun getUserName(orderId: String){
         db.collection("orders")
             .whereEqualTo("orderId",orderId)

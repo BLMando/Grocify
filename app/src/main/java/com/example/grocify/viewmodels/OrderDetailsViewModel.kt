@@ -3,7 +3,7 @@ package com.example.grocify.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.OrderDetailsUiState
+import com.example.grocify.states.OrderDetailsUiState
 import com.example.grocify.model.Product
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -13,6 +13,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel class for OrderDetailsScreen.
+ * @param application The application context.
+ */
 class OrderDetailsViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(OrderDetailsUiState())
@@ -20,6 +24,11 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
 
     private val db = Firebase.firestore
 
+    /**
+     * Retrieves the products associated with the given order
+     * ID from the Firestore database.
+     * @param orderId The ID of the order to retrieve products for.
+     */
     fun getOrderProducts(orderId: String) {
         viewModelScope.launch {
             db.collection("orders")
@@ -44,7 +53,11 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
         }
     }
 
-
+    /**
+     * Function to set a product as marked when the driver scan to product
+     * @param productId The ID of the product to mark.
+     * @param orderId The ID of the order associated with the product.
+     */
     fun markProduct(productId: String, orderId: String){
         val listBoolean = _uiState.value.isProductsMarked.toMutableList()
         viewModelScope.launch {

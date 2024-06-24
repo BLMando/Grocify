@@ -3,7 +3,7 @@ package com.example.grocify.viewmodels;
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.SaleGiftUiState
+import com.example.grocify.states.SaleGiftUiState
 import com.example.grocify.model.ProductType
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore

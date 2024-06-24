@@ -38,7 +38,7 @@ import com.example.grocify.views.components.MovingTextAndIconRow
 import com.example.grocify.views.components.UserBottomNavigation
 
 import com.example.grocify.model.Product
-import com.example.grocify.util.anyToDouble
+import com.example.grocify.utils.anyToDouble
 import com.example.grocify.viewmodels.CartViewModel
 
 

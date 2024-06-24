@@ -4,10 +4,10 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.grocify.data.GiftProductUiState
+import com.example.grocify.states.GiftProductUiState
 import com.example.grocify.model.Product
 import com.example.grocify.model.ProductType
-import com.example.grocify.storage.Storage
+import com.example.grocify.data.local.Storage
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
