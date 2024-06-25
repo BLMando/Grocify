@@ -30,10 +30,12 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     private val auth = Firebase.auth
     private val db = Firebase.firestore
 
+    fun getCurrentDriverId() = auth.currentUser?.uid
+
     /**
-     * Function to get the name of the signed in user
+     * Function to get the name of the signed in driver
      */
-    fun getSignedInUserName() {
+    fun getSignedInDriverName() {
         val currentUser = auth.currentUser?.uid
         viewModelScope.launch {
             db.collection("users")
@@ -50,32 +52,64 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     }
 
     /**
-     * Function to get the orders for the current date
-     * and update the UI state accordingly
+     * Function to get the pending orders and preparation orders for the current driver
+     * in the current date and update the UI state accordingly using a snapshot listener.
      * @see Order
      */
     fun getOrders(){
         val currentDate = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
+        val ordersList:MutableList<Order> = mutableListOf()
+
         viewModelScope.launch {
-            db.collection("orders")
+
+            val pendingOrdersQuery = db.collection("orders")
                 .whereEqualTo("date", currentDate.format(formatter) )
                 .whereEqualTo("status", "in attesa")
-                .addSnapshotListener { documentSnapshot, exception ->
-                    if (exception != null) {
-                        return@addSnapshotListener
-                    }
-                    val ordersList:MutableList<Order> = mutableListOf()
-                    for (document in documentSnapshot!!.documents) {
-                        document.toObject(Order::class.java).let { order ->
-                            ordersList.add(order!!)
-                        }
-                    }
-                    _uiState.update { currentState ->
-                        currentState.copy(orders = ordersList.toList())
-                    }
+
+            val preparationOrdersQuery = db.collection("orders")
+                .whereEqualTo("date", currentDate.format(formatter) )
+                .whereEqualTo("status", "in preparazione")
+                .whereEqualTo("driverId", getCurrentDriverId())
+
+            pendingOrdersQuery.addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    return@addSnapshotListener
                 }
+
+                if (snapshot != null) {
+                    val pendingOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
+                    updateOrdersList(pendingOrders,ordersList)
+                }
+            }
+
+            preparationOrdersQuery.addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val preparationOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
+                    updateOrdersList(preparationOrders,ordersList)
+                }
+            }
+
+        }
+    }
+
+    /**
+     * Function to update the orders list in the UI state.
+     * This function is synchronized to ensure thread safety.
+     * @param newOrders - List of new orders
+     * @param ordersList - Current list of orders
+     */
+    @Synchronized
+    private fun updateOrdersList(newOrders: List<Order>, ordersList: MutableList<Order>) {
+        ordersList.addAll(newOrders)
+
+        _uiState.update { currentState ->
+            currentState.copy(orders = ordersList.toList())
         }
     }
 

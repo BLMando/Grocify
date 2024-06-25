@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.states.OrderDetailsUiState
 import com.example.grocify.model.Product
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,34 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
     val uiState:StateFlow<OrderDetailsUiState> = _uiState.asStateFlow()
 
     private val db = Firebase.firestore
+    private val auth = Firebase.auth
+
+
+    /**
+     * Retrieves the client name associated with the given order Id
+     * from the Firestore database.
+     * @param orderId The ID of the order to retrieve the client name for.
+     */
+    fun getClientName(orderId: String) {
+        viewModelScope.launch {
+            db.collection("orders")
+                .whereEqualTo("orderId", orderId)
+                .get()
+                .addOnSuccessListener { documents ->
+                    val clientId = documents.documents[0].data?.get("userId") as String
+                    db.collection("users")
+                        .whereEqualTo("uid", clientId)
+                        .get()
+                        .addOnSuccessListener { user ->
+                            val clientName = user.documents[0].data?.get("name") as String
+                            val clientSurname = user.documents[0].data?.get("surname") as String
+
+                            _uiState.update { it.copy(clientName = "$clientName $clientSurname") }
+                        }
+
+                }
+        }
+    }
 
     /**
      * Retrieves the products associated with the given order
@@ -54,7 +83,8 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
     }
 
     /**
-     * Function to set a product as marked when the driver scan to product
+     * Function to set a product as marked when the driver scan to product and also
+     * update the order collection with the related driver id
      * @param productId The ID of the product to mark.
      * @param orderId The ID of the order associated with the product.
      */
@@ -72,6 +102,7 @@ class OrderDetailsViewModel(application: Application): AndroidViewModel(applicat
                         if(product["id"] == productId) {
                             if(order?.data!!["status"] == "in attesa"){
                                 order.reference.update("status","in preparazione")
+                                order.reference.update("driverId", auth.currentUser?.uid)
                             }
                             listBoolean[i] = true
                         }

@@ -10,4 +10,5 @@ data class Order(
     val type: String = "",
     val date: String = "",
     val time: String = "",
+    val driverId: String = "",
 )

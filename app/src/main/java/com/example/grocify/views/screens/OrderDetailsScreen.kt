@@ -68,6 +68,7 @@ fun OrderDetailsScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getOrderProducts(orderId)
+        viewModel.getClientName(orderId)
     }
 
     Scaffold(
@@ -114,7 +115,6 @@ fun OrderDetailsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-
                     scanner.startScan().addOnSuccessListener { barcode ->
                         viewModel.markProduct(barcode.rawValue.toString(),orderId)
                     }},
@@ -198,7 +198,7 @@ fun OrderDetailsScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Raggiungi Mattia Mandorlini",
+                                text = "Raggiungi ${uiState.value.clientName}",
                                 style = TextStyle(
                                     fontSize = 15.sp,
                                     textAlign = TextAlign.Center

@@ -49,6 +49,7 @@ import com.example.grocify.R
 import com.example.grocify.model.Order
 import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.HomeDriverViewModel
+import com.example.grocify.views.theme.BlueLight
 import com.google.android.gms.auth.api.identity.Identity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +73,7 @@ fun HomeDriverScreen(
     val uiState = viewModel.uiState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.getSignedInUserName()
+        viewModel.getSignedInDriverName()
         viewModel.getOrders()
     }
 
@@ -144,7 +145,7 @@ fun HomeDriverScreen(
                         Spacer(modifier = Modifier.size(20.dp))
                         OrderItem(
                             { onGroceryClick(uiState.value.orders[it].orderId, uiState.value.orders[it].destination) },
-                            uiState.value.orders[it]
+                            uiState.value.orders[it], viewModel.getCurrentDriverId()
                         )
                         Spacer(modifier = Modifier.size(10.dp))
                     }
@@ -155,7 +156,10 @@ fun HomeDriverScreen(
 }
 
 @Composable
-fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
+fun OrderItem(onGroceryClick: () -> Unit, order: Order, currentDriverId: String?) {
+
+    var buttonColor = if(order.status == "in attesa") BlueDark else BlueLight
+
     Card(
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -249,10 +253,14 @@ fun OrderItem(onGroceryClick: () -> Unit, order: Order) {
             }
 
             Button(
-                onClick = onGroceryClick,
+                onClick = {
+                    if ((currentDriverId == order.driverId && order.status == "in preparazione") || order.status == "in attesa") {
+                        onGroceryClick()
+                    }
+                },
                 shape = RoundedCornerShape(25),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = BlueDark
+                    containerColor = buttonColor
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
