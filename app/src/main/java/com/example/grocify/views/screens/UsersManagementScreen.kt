@@ -174,7 +174,7 @@ fun UserCard(user: User, viewModel: UsersManagementViewModel){
         Row(
             Modifier
                 .fillMaxWidth()
-                .border(5.dp, borderColor, RoundedCornerShape(20.dp)),
+                .border(3.dp, borderColor, RoundedCornerShape(20.dp)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
