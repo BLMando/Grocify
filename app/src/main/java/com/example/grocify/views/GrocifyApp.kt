@@ -1,6 +1,7 @@
 package com.example.grocify.views
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -120,7 +121,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onTrackOrderClick = {
                         navController.navigate(Screen.TrackOrderScreen.createRoute(
                             orderId = it
-                        )) },
+                    )) },
                 )
             }
 
@@ -224,13 +225,19 @@ fun GrocifyNavHost(navController: NavHostController) {
             { backStackEntry ->
                 val flagCart = backStackEntry.arguments?.getString("flagCart")
                 val orderId = backStackEntry.arguments?.getString("orderId")
+                val onTrackOrderClick: (String, String?) -> Unit = { _, fromScreen ->
+                    navController.navigate(
+                        Screen.TrackOrderScreen.createRoute(
+                            orderId = orderId!!,
+                            fromScreen = fromScreen
+                        )
+                    )
+                }
                 OrderSuccessScreen(
                     flagCart = flagCart!!,
                     orderId = orderId!!,
                     onHomeClick = onCatalogClick,
-                    onTrackOrderClick = { navController.navigate(Screen.TrackOrderScreen.createRoute(
-                        orderId = orderId
-                    )) }
+                    onTrackOrderClick = onTrackOrderClick
                 )
             }
 
@@ -239,9 +246,15 @@ fun GrocifyNavHost(navController: NavHostController) {
                 arguments = Screen.TrackOrderScreen.navArguments
             ){ backStackEntry ->
                 val orderId = backStackEntry.arguments?.getString("orderId")
+                val fromScreen = backStackEntry.arguments?.getString("fromScreen") ?: ""
                 TrackOrderScreen(
                     orderId = orderId!!,
-                    onBackClick = onCatalogClick,
+                    onBackClick = {
+                        if(fromScreen.isEmpty())
+                            navController.popBackStack()
+                        else
+                            onCatalogClick()
+                    },
                     onQRScanned = { navController.navigate(Screen.OrderFinishedScreen.route)}
                 )
             }

@@ -90,15 +90,16 @@ fun TrackOrderScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getCurrentOrder(orderId)
-        viewModel.getDriverName(orderId)
     }
 
     /**
      * Effect to handle route after qr code is scanned by the driver
      */
     LaunchedEffect(key1 = uiState.value.order.status) {
-        if(uiState.value.order.status == "concluso")
+        if(uiState.value.order.status == "concluso"){
+            viewModel.getDriverName(orderId)
             onQRScanned()
+        }
     }
 
     Scaffold(

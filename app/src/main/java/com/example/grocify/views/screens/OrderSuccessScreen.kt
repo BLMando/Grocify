@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.R
 import com.example.grocify.viewmodels.OrderSuccessViewModel
+import com.example.grocify.views.Screen
 
 @Composable
 fun OrderSuccessScreen(
@@ -35,7 +36,7 @@ fun OrderSuccessScreen(
     flagCart: String,
     orderId: String,
     onHomeClick: () -> Unit,
-    onTrackOrderClick: (orderId: String) -> Unit,
+    onTrackOrderClick: (orderId: String, fromScreen: String?) -> Unit,
 ){
     viewModel.deleteOrder(flagCart)
     Column (
@@ -106,7 +107,7 @@ fun OrderSuccessScreen(
                 }
                 if(flagCart == "online")
                     OutlinedButton(
-                        onClick = { onTrackOrderClick(orderId) },
+                        onClick = { onTrackOrderClick(orderId, "OrderSuccessScreen") },
                         contentPadding = PaddingValues(
                             start = 20.dp,
                             end = 20.dp,

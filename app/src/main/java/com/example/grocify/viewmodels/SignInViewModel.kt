@@ -214,7 +214,7 @@ class SignInViewModel(application: Application, private val mOneTapClient: SignI
     /**
      * This method checks if the user is signed in or not.
      */
-    fun getSignedInUser(): Boolean = auth.currentUser != null
+    fun isUserSignedIn(): Boolean = auth.currentUser != null
 
     /**
      * This method retrieves the user role from the Firestore database.

@@ -58,14 +58,19 @@ sealed class Screen(
     }
 
     data object TrackOrderScreen: Screen(
-        route = "track_order/{orderId}",
+        route = "track_order/{orderId}/{fromScreen}",
         navArguments = listOf(
             navArgument("orderId") {
                 type = NavType.StringType
+            },
+            navArgument("fromScreen") {
+                type = NavType.StringType
+                defaultValue = null
+                nullable = true
             }
         )
     ){
-        fun createRoute(orderId:String) = "track_order/${orderId}"
+        fun createRoute(orderId:String, fromScreen: String? = null) = "track_order/${orderId}/${fromScreen}"
     }
 
     data object OrderFinishedScreen: Screen("order_finished")

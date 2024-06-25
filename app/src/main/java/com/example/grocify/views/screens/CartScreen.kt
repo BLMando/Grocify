@@ -140,13 +140,11 @@ fun CartScreen(
                             if (onlineUiState.productsList != emptyList<Product>()) {
                                 items(onlineUiState.productsList.size) { index ->
                                     val product = onlineUiState.productsList[index]
-                                    product.let {
-                                        CartItems(
-                                            product = it,
-                                            viewModel = viewModel,
-                                            flagCart = "online"
-                                        )
-                                    }
+                                    CartItems(
+                                        product = product,
+                                        viewModel = viewModel,
+                                        flagCart = "online"
+                                    )
                                 }
                             }
                         }
