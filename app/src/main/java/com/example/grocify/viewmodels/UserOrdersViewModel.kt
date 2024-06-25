@@ -48,6 +48,15 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
         }
     }
 
+    fun resetState(){
+        _uiState.update { currentState ->
+            currentState.copy(
+                isTextValid = true,
+                textError = ""
+            )
+        }
+    }
+
     /**
      * Function to get all orders from the database.
      */
@@ -78,7 +87,7 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
      * @param text The text of the review.
      * @param rating The rating of the review.
      */
-    fun addOrderReview(orderId: String, userId: String, text: String, rating: Float){
+    fun addOrderReview(orderId: String, userId: String, text: String, rating: Float): Boolean{
 
         val textStatus = isNotEmpty(text)
 
@@ -118,6 +127,7 @@ class UserOrdersViewModel (application: Application): AndroidViewModel(applicati
                     }
             }
         }
+        return !textStatus
     }
 
     /**

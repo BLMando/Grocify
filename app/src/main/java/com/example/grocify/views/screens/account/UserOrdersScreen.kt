@@ -398,9 +398,7 @@ fun OrderDialog(
             dismissButton = {
                 Button(
                     onClick = {
-                        viewModel.addOrderReview(order.orderId,order.userId,text,rating)
-                        if (!uiState.isTextValid)
-                            viewModel.setReviewIconClicked(false)
+                        viewModel.setReviewIconClicked(viewModel.addOrderReview(order.orderId,order.userId,text,rating))
                     },
                     Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 10.dp),
@@ -417,7 +415,7 @@ fun OrderDialog(
             },
             confirmButton = {
                 OutlinedButton(
-                    onClick = { viewModel.setReviewIconClicked(false) },
+                    onClick = { viewModel.setReviewIconClicked(false); viewModel.resetState() },
                     Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(vertical = 10.dp),
                     shape = RoundedCornerShape(25)
