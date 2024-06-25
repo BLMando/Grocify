@@ -97,8 +97,11 @@ fun TrackOrderScreen(
      */
     LaunchedEffect(key1 = uiState.value.order.status) {
         if(uiState.value.order.status == "concluso"){
-            viewModel.getDriverName(orderId)
             onQRScanned()
+        }
+
+        if(uiState.value.order.status == "consegnato"){
+            viewModel.getDriverName(orderId)
         }
     }
 
