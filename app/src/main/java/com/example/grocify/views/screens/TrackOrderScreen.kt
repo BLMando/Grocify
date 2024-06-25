@@ -90,7 +90,7 @@ fun TrackOrderScreen(
 
     LaunchedEffect(key1 = Unit) {
         viewModel.getCurrentOrder(orderId)
-        viewModel.getUserName(orderId)
+        viewModel.getDriverName(orderId)
     }
 
     /**
@@ -266,11 +266,11 @@ fun QRCodeInfo(state: TrackOrderUiState, orderId: String) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ){
                     Text(
-                        text = "Nome:",
+                        text = "Il tuo driver:",
                         style = TextStyle(fontSize = 18.sp)
                     )
                     Text(
-                        text = "${state.name} ${state.surname}",
+                        text = state.driverName,
                         style = TextStyle(fontSize = 18.sp)
                     )
                 }
