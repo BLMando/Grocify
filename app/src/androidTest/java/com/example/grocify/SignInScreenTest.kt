@@ -16,14 +16,28 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+
+/**
+ * Class to test the [SignInScreen].
+ */
 @RunWith(AndroidJUnit4::class)
 class SignInTestScreen {
 
+    /**
+     * Rule to use Compose test functions.
+     */
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
+    /**
+     * Test function to test the [SignInScreen].
+     * It checks if the UI elements are displayed correctly and if the password is masked correctly.
+     */
     @Test
     fun testSignInScreen() {
+        /**
+         * Set the content view to the [SignInScreen] with the provided parameters.
+         */
         composeTestRule.setContent {
             SignInScreen(
                 context = LocalContext.current as Activity,
@@ -32,27 +46,27 @@ class SignInTestScreen {
             )
         }
 
-        // Attende che la UI sia stabile
+        // Wait for the layout to be inflated
         composeTestRule.waitForIdle()
 
-        // Simula l'inserimento di un'email e una password e controllo se la password viene mostrata oscurata
+        // Simulates email and password typing in the respective input fields
         composeTestRule.onNodeWithTag("EmailInputField").performTextInput("test@example.com")
-
         composeTestRule.onNodeWithTag("PasswordInputField").performTextInput("password")
+        // Simulates password masking
         composeTestRule.onNodeWithTag("PasswordInputField", useUnmergedTree = true).assertTextEquals("••••••••")
 
-        // Simula in click sull'icona di "Mostra/Nascondi password" e controlla se la password viene mostrata in chiaro
+        // Simulates toggling the password visibility and if password is masked or not
         composeTestRule.onNodeWithContentDescription("Toggle password visibility").performClick()
         composeTestRule.onNodeWithTag("PasswordInputField", useUnmergedTree = true).assertTextEquals("password")
 
 
-        // Simula in click sul pulsante "Accedi"
+        // Simulates a click on the "Sign In" button
         composeTestRule.onNodeWithTag("SignInButton").performClick()
 
-        // Simula in click sul pulsante "Non hai un account? Regitrati!"
+        // Simulates a click on the "Non hai un account? Registrati!" button
         composeTestRule.onNodeWithTag("GoSignUpButton").performClick()
 
-        // Simula in click sul pulsante "Continua con Google"
+       // Simulates a click on the "Continua con Google" button
         composeTestRule.onNodeWithTag("GoogleSignInButton").performClick()
     }
 }

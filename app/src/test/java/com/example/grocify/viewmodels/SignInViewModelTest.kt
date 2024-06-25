@@ -30,87 +30,134 @@ import org.mockito.MockitoAnnotations
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 
-// Indica che la classe di test utilizza Robolectric per eseguire i test, simulando l'ambiente Android.
+/**
+ * Test for [SignInViewModel] class.
+ * Uses Robolectric for testing, simulating android environment.
+ */
 @RunWith(RobolectricTestRunner::class)
 class SignInViewModelTest {
 
-    // Utilizza InstantTaskExecutorRule per eseguire operazioni LiveData in modo sincrono nel thread dei test.
+    /**
+     * Using InstantTaskExecutor to perform LiveData.
+     * This rule ensures that all operations on LiveData are executed synchronously.
+     */
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    // Crea un mock per FirebaseAuth, necessario per simulare l'autenticazione Firebase.
+
+    /**
+     * Mock for [FirebaseAuth] class.
+     * Is necessary to simulate Firebase authentication.
+     */
     @Mock
     private lateinit var firebaseAuth: FirebaseAuth
 
+    /**
+     * Mock for [Task] class returned by [FirebaseAuth.signInWithEmailAndPassword].
+     * Is necessary to simulate Firebase authentication result.
+     */
     @Mock
     private lateinit var authResultTask: Task<AuthResult>
 
+    /**
+     * Mock for [Application] class.
+     * Is necessary to initialize Firebase and other dependencies.
+     */
     @Mock
     private lateinit var application: Application
 
+    /**
+     * Mock for [SignInClient] class.
+     * Is necessary to simulate Google Sign In.
+     */
     @Mock
     private lateinit var signInClient: SignInClient
 
+    /**
+     * Instance of [SignInViewModel] to be tested.
+     */
     private lateinit var signInViewModel: SignInViewModel
 
+    /**
+     * Test dispatcher for running tests asynchronously.
+     * Necessary for testing coroutines.
+     */
     private val testDispatcher = StandardTestDispatcher()
 
+    /**
+     * Set up the test environment before each test case.
+     * Initializes mocks, sets up the test dispatcher, and initializes Firebase.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Before
     fun setUp() {
-        // Setup: prepara l'ambiente di test
-        MockitoAnnotations.openMocks(this) // Apre i mock per l'annotazione per inizializzare i mock dichiarati nella classe.
-        Dispatchers.setMain(testDispatcher) // Imposta il dispatcher principale per i test di coroutine, necessario per eseguire operazioni asincrone in un ambiente controllato.
+        MockitoAnnotations.openMocks(this)
 
-        val context: Context = RuntimeEnvironment.getApplication() // Ottiene il contesto dell'applicazione per inizializzare Firebase con Robolectric.
-        FirebaseApp.initializeApp(context) // Inizializza Firebase con il contesto dell'applicazione ottenuto da Robolectric.
+        Dispatchers.setMain(testDispatcher)
 
-        signInViewModel = SignInViewModel(application, signInClient) // Inizializza signInViewModel utilizzando i mock di Application e SignInClient.
+        val context: Context = RuntimeEnvironment.getApplication()
+        FirebaseApp.initializeApp(context)
+
+        signInViewModel = SignInViewModel(application, signInClient)
     }
 
+    /**
+     * Tear down the test environment after each test case.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     @After
     fun tearDown() {
-        // Teardown: pulisce l'ambiente di test dopo il suo utilizzo
-        Dispatchers.resetMain() // Ripristina il dispatcher principale dopo i test di coroutine per evitare effetti collaterali su altri test.
+        Dispatchers.resetMain()
     }
 
+    /**
+     * Test case for [SignInViewModel.signInWithCredentials] method.
+     * Checks if the method updates the state correctly for an invalid password.
+     * Uses [runTest] to run the test case asynchronously.
+     */
     @Test
     fun `signInWithCredentials updates state for invalid password`() = runTest {
-        // Test: verifica che il metodo signInWithCredentials gestisca correttamente una password non valida
-        signInViewModel.signInWithCredentials("test@example.com", "12345") // Simula una chiamata a signInWithCredentials con una password non valida
+        signInViewModel.signInWithCredentials("test@example.com", "12345")
 
-        val state = signInViewModel.signInState.value // Ottiene lo stato risultante nel ViewModel
-        assertEquals("Inserisci una password valida (almeno sei caratteri)", state.passwordError) // Verifica che l'errore sulla password sia corretto
-        assertFalse(state.isPasswordValid) // Verifica che la password non sia valida
+        val state = signInViewModel.signInState.value
+        assertEquals("Inserisci una password valida (almeno sei caratteri)", state.passwordError)
+        assertFalse(state.isPasswordValid)
     }
 
+
+    /**
+     * Test case for [SignInViewModel.signInWithCredentials] method.
+     * Checks if the method updates the state correctly for an invalid email.
+     * Uses [runTest] to run the test case asynchronously.
+     */
     @Test
     fun `signInWithCredentials updates state for invalid email`() = runTest {
-        // Test: verifica che il metodo signInWithCredentials gestisca correttamente un'email non valida
-        signInViewModel.signInWithCredentials("invalidemail", "password123") // Simula una chiamata a signInWithCredentials con un'email non valida
+        signInViewModel.signInWithCredentials("invalidemail", "password123")
 
-        val state = signInViewModel.signInState.value // Ottiene lo stato risultante nel ViewModel
-        assertEquals("Inserisci un email valida", state.emailError) // Verifica che l'errore sull'email sia corretto
-        assertFalse(state.isEmailValid) // Verifica che l'email non sia valida
+        val state = signInViewModel.signInState.value
+        assertEquals("Inserisci un email valida", state.emailError)
+        assertFalse(state.isEmailValid)
     }
 
+    /**
+     * Test case for [SignInViewModel.signInWithCredentials] method.
+     * Checks if the method updates the state correctly for a successful sign-in attempt.
+     * Uses [runTest] to run the test case asynchronously.
+     * Uses [UnconfinedTestDispatcher] to avoid conflicts with the main thread dispatcher.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `signInWithCredentials updates state for successful sign-in`() = runTest(UnconfinedTestDispatcher()) {
-        // Test: verifica che il metodo signInWithCredentials gestisca correttamente un login con successo
-        `when`(authResultTask.isSuccessful).thenReturn(true) // Configura il mock per restituire un risultato positivo
-        `when`(firebaseAuth.signInWithEmailAndPassword(anyString(), anyString())).thenReturn(authResultTask) // Configura il mock per il metodo di autenticazione di Firebase
+        `when`(authResultTask.isSuccessful).thenReturn(true)
+        `when`(firebaseAuth.signInWithEmailAndPassword(anyString(), anyString())).thenReturn(authResultTask)
+        signInViewModel.signInWithCredentials("test@example.com", "password123")
 
-        signInViewModel.signInWithCredentials("test@example.com", "password123") // Esegue signInWithCredentials con credenziali valide
-
-        // Attendi il completamento dell'operazione asincrona
         authResultTask.addOnCompleteListener {
-            val state = signInViewModel.signInState.value // Ottiene lo stato risultante nel ViewModel dopo il completamento dell'operazione
+            val state = signInViewModel.signInState.value
 
-            assertTrue(state.isPasswordValid) // Verifica che la password sia valida
-            assertTrue(state.isEmailValid) // Verifica che l'email sia valida
-            assertTrue(state.isSuccessful) // Verifica che il login sia stato eseguito con successo
+            assertTrue(state.isPasswordValid)
+            assertTrue(state.isEmailValid)
+            assertTrue(state.isSuccessful)
         }
     }
 }
