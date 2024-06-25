@@ -36,7 +36,7 @@ class TrackOrderViewModel(application: Application): AndroidViewModel(applicatio
                 .whereEqualTo("orderId", orderId)
                 .get()
                 .addOnSuccessListener { documents ->
-                    val driverId = documents.documents[0].data?.get("userId") as String
+                    val driverId = documents.documents[0].data?.get("driverId") as String
                     db.collection("users")
                         .whereEqualTo("uid", driverId)
                         .get()

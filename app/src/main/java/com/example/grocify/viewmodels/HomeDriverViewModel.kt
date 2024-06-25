@@ -60,7 +60,7 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
         val currentDate = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-        val ordersList:MutableList<Order> = mutableListOf()
+        val ordersList: MutableList<Order> = mutableListOf()
 
         viewModelScope.launch {
 
