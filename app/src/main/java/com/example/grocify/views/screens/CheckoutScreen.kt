@@ -95,7 +95,7 @@ fun CheckoutScreen(
                 windowInsets = TopAppBarDefaults.windowInsets,
                 modifier = Modifier.shadow(10.dp, RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)),
                 title = { Text(
-                    text = "Opzioni di pagamento",
+                    text = "Riepilogo ordine",
                     style = TextStyle(
                         fontSize = 30.sp,
                         fontWeight = FontWeight(500),
@@ -142,7 +142,7 @@ fun CheckoutScreen(
 
             val shipping = "1.50"
             CheckoutBox(
-                "Riepilogo ordine",
+                null,
                 if (flagCart == "online") (String.format("%.2f", (anyToDouble(totalPrice)!! - anyToDouble(shipping)!!))).replace(',', '.') + "€" else null,
                 if (flagCart == "online") shipping + "€" else null,
                 (String.format("%.2f", anyToDouble(totalPrice))).replace(',', '.') + "€",

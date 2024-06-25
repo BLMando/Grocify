@@ -298,8 +298,8 @@ fun ReviewsContent(uiState: HomeAdminUiState, viewModel: HomeAdminViewModel) {
 fun StatisticsContent(uiState: HomeAdminUiState){
 
     val charts = hashMapOf(
-        "I 10 prodotti più venduti" to uiState.top10Products,
-        "Le 10 categorie più vendute" to uiState.top10Categories,
+        "I prodotti più venduti" to uiState.top10Products,
+        "Le categorie più vendute" to uiState.top10Categories,
         "Media ordini mensili" to uiState.averageMonthlyOrders,
         "Spesa media mensile degli utenti" to uiState.averageMonthlyUsersExpense
     )

@@ -160,7 +160,7 @@ fun UserAddressScreen(
 
 
                     Text(
-                        text = "Indizzi disponibili",
+                        text = "Indirizzi disponibili",
                         modifier = Modifier.padding(top = 20.dp, start = 20.dp),
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,

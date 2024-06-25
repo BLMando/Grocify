@@ -71,7 +71,7 @@ fun CartItems(
         Row(
             Modifier
                 .fillMaxWidth()
-                .border(5.dp, if(product.threshold == 0) Color.Transparent else BlueDark, RoundedCornerShape(20.dp)),
+                .border(3.dp, if(product.threshold == 0) Color.Transparent else BlueDark, RoundedCornerShape(20.dp)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {

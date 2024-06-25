@@ -135,7 +135,7 @@ fun UserPaymentsScreen(
             ) {
                 if (uiState.value.result.isEmpty() && uiState.value.paymentMethods.isNotEmpty()) {
                     Text(
-                        text = "Metodi di pagamento attuale",
+                        text = "Metodo di pagamento corrente",
                         modifier = Modifier.padding(top = 20.dp, start = 20.dp),
                         style = TextStyle(
                             fontWeight = FontWeight.Bold,
