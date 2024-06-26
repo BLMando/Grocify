@@ -64,6 +64,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.states.UserAddressesUiState
 import com.example.grocify.model.Address
 import com.example.grocify.views.theme.BlueLight
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -488,6 +491,14 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
                                 Icon(Icons.Filled.Error, "error", tint = MaterialTheme.colorScheme.error)
                         }
                     )
+
+                    if(!uiState.isValidAddressFormat)
+                        Text(
+                            uiState.error,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Red,
+                            textAlign = TextAlign.Start
+                        )
                 }
             },
             confirmButton = {
@@ -509,7 +520,10 @@ fun AddressDialog(uiState: UserAddressesUiState, viewModel: UserAddressesViewMod
             dismissButton = {
                 if(uiState.addressToUpdate == null)
                     Button(
-                        onClick = { viewModel.addNewAddress(addressName,address,city,civic)  },
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                viewModel.addNewAddress(addressName,address,city,civic)
+                            } },
                         Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(vertical = 10.dp),
                         shape = RoundedCornerShape(25)

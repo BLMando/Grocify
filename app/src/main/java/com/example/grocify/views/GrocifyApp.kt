@@ -285,10 +285,21 @@ fun GrocifyNavHost(navController: NavHostController) {
                         )
                     )
                 }
+
+                val mapRedirect: (String, String) -> Unit = { orderId , destination ->
+                    navController.navigate(
+                        Screen.MapScreen.createRoute(
+                            orderId = orderId,
+                            destination = destination,
+                        )
+                    )
+                }
                 HomeDriverScreen(
                     context = activity,
                     onLogOutClick = { navController.navigate(Screen.SignInScreen.route) },
-                    onGroceryClick = onGroceryClick
+                    onGroceryClick = onGroceryClick,
+                    mapRedirect = mapRedirect,
+                    onQRScanned = { navController.navigate(Screen.HomeDriverScreen.route) }
                 )
             }
 

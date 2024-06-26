@@ -151,7 +151,6 @@ fun OrderDetailsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     items(uiState.value.products.size) { index ->
-                        //Log.v("OrderDetail", uiState.value.products[index].toString())
                         CartItems(
                             product = uiState.value.products[index],
                             viewModel = viewModel,
@@ -233,9 +232,10 @@ fun OrderDetailsScreen(
                     },
                     containerColor = Color.White
                 )
-
         }
     )
 }
+
+
 
 

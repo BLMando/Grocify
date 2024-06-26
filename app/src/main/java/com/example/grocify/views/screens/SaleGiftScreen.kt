@@ -153,7 +153,7 @@ fun SaleGiftScreen(
                         if (uiState.value.selectedProducts != emptyList<Product>())
                             size = uiState.value.selectedProducts.size.toString()
                         Text(
-                            text = "Selezionati " + size + "/3",
+                            text = "Selezionati $size/3",
                             Modifier.padding(end = 18.dp),
                             style = TextStyle(
                                 fontSize = 15.sp
@@ -169,13 +169,11 @@ fun SaleGiftScreen(
                         if (uiState.value.products != emptyList<ProductType>()) {
                             items(uiState.value.products.size) { index ->
                                 val product = uiState.value.products[index]
-                                product.let {
-                                    ShowProducts(
-                                        product = it,
-                                        isSaleContent,
-                                        viewModel
-                                    )
-                                }
+                                ShowProducts(
+                                    product = product,
+                                    isSaleContent,
+                                    viewModel
+                                )
                             }
                         }
                     }
@@ -214,11 +212,11 @@ fun SaleGiftScreen(
 
                             TextField(
                                 value = discount,
-                                onValueChange = {
-                                                    if(it.all { it.isDigit() })
-                                                        if (it.length <= 2)
-                                                            discount = it
-                                                },
+                                onValueChange = { it ->
+                                    if(it.all { it.isDigit() })
+                                        if (it.length <= 2)
+                                            discount = it
+                                    },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 singleLine = true,
                                 modifier = Modifier.height(50.dp),
@@ -264,7 +262,7 @@ fun SaleGiftScreen(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShowProducts(
     product: ProductType,
@@ -385,14 +383,14 @@ fun ShowProducts(
                 .height(100.dp)
                 .fillMaxWidth()
                 .background(Color.White, shape = RoundedCornerShape(20.dp)),
-            contentAlignment = Alignment.BottomStart
+            contentAlignment = Alignment.Center
         ) {
             SubcomposeAsyncImage(
                 model = product.image,
                 contentDescription = product.name,
-                contentScale = ContentScale.Crop,
-
-                ) {
+                contentScale = ContentScale.FillBounds,
+                alignment = Alignment.Center
+            ) {
                 val state = painter.state
                 if (state is AsyncImagePainter.State.Loading || state is AsyncImagePainter.State.Error) {
                     CircularProgressIndicator(
@@ -425,7 +423,6 @@ fun ShowProducts(
                         )
                     }
                 }
-
             }
         }
     }

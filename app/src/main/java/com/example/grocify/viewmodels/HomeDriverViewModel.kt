@@ -22,7 +22,7 @@ import java.util.concurrent.CancellationException
  * ViewModel class for HomeDriverScreen
  * @param application - Application context
  */
-class HomeDriverViewModel(application: Application,private val mOneTapClient: SignInClient):AndroidViewModel(application) {
+class HomeDriverViewModel(application: Application,private val mOneTapClient: SignInClient):AndroidViewModel(application), MapDialog {
 
     private val _uiState = MutableStateFlow(HomeDriverUiState())
     val uiState:StateFlow<HomeDriverUiState> = _uiState.asStateFlow()
@@ -114,6 +114,63 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     }
 
     /**
+     * Function to check for running orders for the current driver in the current
+     * date and update the UI state accordingly using a snapshot listener.
+     * This function checks for orders with status "in consegna" or "consegnato" and if
+     * the driver close the app when the order was "in consegna" or "consegnato" it can proceed to finish the order
+     */
+    fun checkForRunningOrders(){
+        viewModelScope.launch {
+            val currentDate = LocalDate.now()
+            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+            val runningOrderQuery = db.collection("orders")
+                .whereEqualTo("date", currentDate.format(formatter))
+                .whereIn("status", listOf("in consegna", "consegnato"))
+                .whereEqualTo("driverId", getCurrentDriverId())
+
+            runningOrderQuery.addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val runningOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
+                    if(runningOrders.isNotEmpty())
+                        _uiState.update { currentState ->
+                            currentState.copy(runningOrderState = Pair(runningOrders.first().status,runningOrders.first().orderId))
+                        }
+                }
+            }
+        }
+    }
+
+    /**
+     * Function to set the dialog state of the MapDialog
+     * @param state - Boolean value to set the dialog state
+     */
+    override fun setDialogState(state: Boolean) {
+        _uiState.update { it.copy(openDialog = state) }
+    }
+
+    /**
+     * Function to set the order status to "concluso" after driver scanned the QR code
+     * @param orderId - ID of the order to be concluded
+     */
+    override fun setOrderConclude(orderId: String) {
+        viewModelScope.launch {
+            db.collection("orders")
+                .whereEqualTo("orderId", orderId)
+                .get()
+                .addOnSuccessListener { document ->
+                    val order = document.documents[0].reference
+                    order.update("status", "concluso")
+                }
+        }
+    }
+
+
+    /**
      * Function to sign out the user
      * and clear the auth state
      */
@@ -128,6 +185,5 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
             }
         }
     }
-
 
 }

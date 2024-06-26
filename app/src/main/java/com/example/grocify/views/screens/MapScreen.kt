@@ -57,6 +57,7 @@ import com.example.grocify.R
 import com.example.grocify.databinding.MapLayoutBinding
 import com.example.grocify.views.theme.BlueMedium
 import com.example.grocify.viewmodels.MapViewModel
+import com.example.grocify.views.components.MapDialog
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 import com.tomtom.sdk.location.GeoPoint
@@ -208,12 +209,13 @@ fun MapScreen(
         }
     }
 
-    Dialog(
-        uiState.value.openDialog,
-        orderId!!,
-        viewModel,
-        scanner,
-        onQRScanned
+    MapDialog(
+        state =  uiState.value.openDialog,
+        orderId = orderId!!,
+        viewModel = viewModel,
+        scanner = scanner,
+        onQRScanned = onQRScanned,
+        fromScreen = "map_screen"
     )
 
     LocationDialog(uiState.value.locationAcquired)

@@ -2,8 +2,11 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.grocify.BuildConfig
+import com.example.grocify.data.remote.RetrofitObject
 import com.example.grocify.states.UserAddressesUiState
 import com.example.grocify.model.Address
 import com.example.grocify.model.UserDetails
@@ -13,11 +16,17 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.tomtom.sdk.location.GeoPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 
 /**
  * ViewModel class for UserAddressesScreen handling user's addresses.
@@ -31,6 +40,8 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
+    private val apiKey = BuildConfig.TOMTOM_API_KEY
+
     /**
      * Function to add a new address to the user's addresses list
      * and update the user's details in Firestore.
@@ -39,12 +50,13 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
      * @param city The city of the address
      * @param civic The civic number of the address
      */
-    fun addNewAddress(addressName:String, address: String, city:String, civic: String){
+    suspend fun addNewAddress(addressName:String, address: String, city:String, civic: String){
 
         val addressNameStatus = isNotEmpty(addressName)
         val addressStatus = isNotEmpty(address)
         val civicStatus = isNotEmpty(civic)
         val cityStatus = isNotEmpty(city)
+        var isValidAddress = true
 
         if(!addressNameStatus){
             _uiState.update {
@@ -65,7 +77,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
         if(!addressStatus){
             _uiState.update {
                 it.copy(
-                    addressError = "Inserisci un indirizzo",
+                    addressError = "Inserisci un indirizzo valido",
                     isAddressValid = false
                 )
             }
@@ -110,7 +122,21 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
             }
         }
 
-        if(addressNameStatus && addressStatus && civicStatus && cityStatus) {
+        if(addressStatus && civicStatus && cityStatus){
+            isValidAddress = checkValidAddress("$city, $address $civic")
+            if(!isValidAddress)
+                _uiState.update {
+                    it.copy(
+                        isValidAddressFormat = false,
+                        error = "L'indirizzo $city, $address $civic non è valido",
+                        isCivicValid = false,
+                        isCityValid = false,
+                        isAddressValid = false
+                    )
+                }
+        }
+
+        if(addressNameStatus && addressStatus && civicStatus && cityStatus && isValidAddress) {
 
             val userDetailsRef = db.collection("users_details")
 
@@ -154,6 +180,24 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
                     }
             }
         }
+    }
+
+    private suspend fun checkValidAddress(address: String): Boolean  = withContext(Dispatchers.Main) {
+        Log.d("MapViewModel", "checkValidAddress: $address")
+        val deferred = viewModelScope.async(Dispatchers.IO) {
+            try {
+                val response = RetrofitObject.geocodingService.getUserLocation(address, apiKey)
+                Log.d("MapViewModel", "Response: ${response.body()!!.results}")
+                response.body()!!.results[0].matchConfidence.score.toInt() == 1 && response.body()!!.results.isNotEmpty()
+            } catch (e: IOException) {
+                Log.d("MapViewModel", "No internet connection")
+                null
+            } catch (e: HttpException) {
+                Log.d("MapViewModel", "Unexpected response")
+                null
+            }
+        }
+        deferred.await() == true
     }
 
     /**

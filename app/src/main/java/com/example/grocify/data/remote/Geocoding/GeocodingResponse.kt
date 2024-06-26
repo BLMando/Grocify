@@ -31,18 +31,18 @@ data class Summary(
 )
 
 data class Address(
-    val country: String,
-    val countryCode: String,
-    val countryCodeISO3: String,
-    val countrySecondarySubdivision: String,
-    val countrySubdivision: String,
-    val countrySubdivisionCode: String,
-    val countrySubdivisionName: String,
-    val freeformAddress: String,
-    val localName: String,
-    val municipality: String,
-    val postalCode: String,
-    val streetName: String,
+    val country: String = "",
+    val countryCode: String = "",
+    val countryCodeISO3: String = "",
+    val countrySecondarySubdivision: String = "",
+    val countrySubdivision: String = "",
+    val countrySubdivisionCode: String = "",
+    val countrySubdivisionName: String = "",
+    val freeformAddress: String = "",
+    val localName: String = "",
+    val municipality: String = "",
+    val postalCode: String = "",
+    val streetName: String = "",
     val streetNumber: String = ""
 )
 

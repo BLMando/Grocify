@@ -15,7 +15,9 @@ data class HomeUserUiState(
 
 data class HomeDriverUiState(
     val currentUserName: String? = "",
-    val orders: List<Order> = emptyList()
+    val orders: List<Order> = emptyList(),
+    val runningOrderState: Pair<String, String>? = null,
+    val openDialog: Boolean = false,
 )
 
 data class HomeAdminUiState(

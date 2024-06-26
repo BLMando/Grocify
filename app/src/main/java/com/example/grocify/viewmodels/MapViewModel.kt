@@ -77,7 +77,7 @@ import java.util.Locale
  * ViewModel class for MapScreen handling the map and the navigation.
  * @param application The application context.
  */
-class MapViewModel(application: Application): AndroidViewModel(application){
+class MapViewModel(application: Application): AndroidViewModel(application), MapDialog{
 
     private val _uiState = MutableStateFlow(MapUiState())
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
@@ -461,7 +461,7 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     ) == PackageManager.PERMISSION_GRANTED
 
 
-    fun setOrderConclude(orderId: String) {
+    override fun setOrderConclude(orderId: String) {
         setOrderStatus(
             orderId = orderId,
             "concluso"
@@ -484,8 +484,8 @@ class MapViewModel(application: Application): AndroidViewModel(application){
     }
 
 
-    fun setDialogState(openDialog: Boolean) {
-        _uiState.update { it.copy(openDialog = openDialog) }
+    override fun setDialogState(state: Boolean) {
+        _uiState.update { it.copy(openDialog = state) }
     }
 
 

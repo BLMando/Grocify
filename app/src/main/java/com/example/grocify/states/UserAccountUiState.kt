@@ -44,7 +44,9 @@ data class UserAddressesUiState(
     val addressError: String = "",
     val isAddressValid: Boolean = true,
     val civicError: String = "",
-    val isCivicValid: Boolean = true
+    val isCivicValid: Boolean = true,
+    val error: String = "",
+    val isValidAddressFormat:  Boolean = true
 )
 
 data class UserOrdersUiState(

@@ -49,15 +49,20 @@ import com.example.grocify.R
 import com.example.grocify.model.Order
 import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.HomeDriverViewModel
+import com.example.grocify.viewmodels.MapViewModel
+import com.example.grocify.views.components.MapDialog
 import com.example.grocify.views.theme.BlueLight
 import com.google.android.gms.auth.api.identity.Identity
+import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeDriverScreen(
     context: Activity,
     onLogOutClick: () -> Unit,
-    onGroceryClick: (String, String) -> Unit
+    onGroceryClick: (String, String) -> Unit,
+    mapRedirect: (destination: String, orderId: String) -> Unit,
+    onQRScanned: () -> Unit,
 ) {
     /**
      * Instantiate the HomeDriverViewModel passing parameters through the factory method
@@ -75,6 +80,7 @@ fun HomeDriverScreen(
     LaunchedEffect(key1 = Unit) {
         viewModel.getSignedInDriverName()
         viewModel.getOrders()
+        viewModel.checkForRunningOrders()
     }
 
 
@@ -136,18 +142,36 @@ fun HomeDriverScreen(
                         fontSize = 20.sp
                     )
                 )
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    items(uiState.value.orders.size) {
-                        Spacer(modifier = Modifier.size(20.dp))
-                        OrderItem(
-                            { onGroceryClick(uiState.value.orders[it].orderId, uiState.value.orders[it].destination) },
-                            uiState.value.orders[it], viewModel.getCurrentDriverId()
+                // if there are no orders in status "in consegna" or "consegnato" show
+                // the lazycolumn with the orders in status "in preparazione" or "in attesa"
+                if(uiState.value.runningOrderState == null)
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        items(uiState.value.orders.size) {
+                            Spacer(modifier = Modifier.size(20.dp))
+                            OrderItem(
+                                { onGroceryClick(uiState.value.orders[it].orderId, uiState.value.orders[it].destination) },
+                                uiState.value.orders[it], viewModel.getCurrentDriverId()
+                            )
+                            Spacer(modifier = Modifier.size(10.dp))
+                        }
+                    }
+                else{
+                    // else redirect to map screen if there is a running order in status "in consegna" or "consegnato"
+                    if(uiState.value.runningOrderState!!.first == "in consegna"){
+                        mapRedirect(uiState.value.runningOrderState!!.second,uiState.value.runningOrderState!!.first)
+                    }else if(uiState.value.runningOrderState!!.first == "consegnato"){
+                        // else show the map dialog to allow the driver to scan the QR code
+                        MapDialog(
+                            state = uiState.value.runningOrderState!!.first.isNotEmpty(),
+                            orderId = uiState.value.runningOrderState!!.second,
+                            viewModel = viewModel,
+                            scanner = GmsBarcodeScanning.getClient(context),
+                            onQRScanned = onQRScanned,
+                            fromScreen = "home_driver"
                         )
-                        Spacer(modifier = Modifier.size(10.dp))
                     }
                 }
             }
@@ -158,7 +182,7 @@ fun HomeDriverScreen(
 @Composable
 fun OrderItem(onGroceryClick: () -> Unit, order: Order, currentDriverId: String?) {
 
-    var buttonColor = if(order.status == "in attesa") BlueDark else BlueLight
+    val buttonColor = if(order.status == "in attesa") BlueDark else BlueLight
 
     Card(
         colors = CardDefaults.cardColors(

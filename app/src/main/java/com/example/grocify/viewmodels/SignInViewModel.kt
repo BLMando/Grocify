@@ -14,6 +14,7 @@ import com.example.grocify.model.User
 import com.example.grocify.utils.verifyEmail
 import com.example.grocify.utils.verifyPassword
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.GetSignInIntentRequest
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth

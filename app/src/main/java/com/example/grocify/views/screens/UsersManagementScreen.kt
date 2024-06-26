@@ -127,12 +127,10 @@ fun UsersManagementScreen(
                         if (uiState.value.users != emptyList<User>()) {
                             items(uiState.value.users.size) { index ->
                                 val user = uiState.value.users[index]
-                                user.let {
-                                    UserCard(
-                                        user = it,
-                                        viewModel
-                                    )
-                                }
+                                UserCard(
+                                    user = user,
+                                    viewModel
+                                )
                             }
                         }
                     }
@@ -190,8 +188,8 @@ fun UserCard(user: User, viewModel: UsersManagementViewModel){
                     contentDescription = user.email,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .width(50.dp)
-                        .height(50.dp)
+                        .width(60.dp)
+                        .height(60.dp)
                         .clip(RoundedCornerShape(20.dp))
                 ) {
                     val state = painter.state
@@ -208,21 +206,20 @@ fun UserCard(user: User, viewModel: UsersManagementViewModel){
             }
             Column(
                 horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
             ) {
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-
-
                     Text(
                          "${user.email}",
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                         ),
-                        modifier = Modifier.padding(start = 15.dp)
+                        modifier = Modifier.padding(start = 15.dp,top = 20.dp)
                     )
                     Box(
                         modifier = Modifier
@@ -252,7 +249,6 @@ fun UserCard(user: User, viewModel: UsersManagementViewModel){
                                 onClick = {
                                     borderColor = if (user.role == "driver") BlueLight else BlueDark
                                     viewModel.updateUserRole(user)
-
                                     expanded = false
                                 }
                             )
@@ -262,7 +258,7 @@ fun UserCard(user: User, viewModel: UsersManagementViewModel){
 
                 Text(
                     text = "${user.name} ${user.surname}",
-                    modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)
+                    modifier = Modifier.padding(start = 15.dp, bottom = 20.dp)
                 )
             }
         }
