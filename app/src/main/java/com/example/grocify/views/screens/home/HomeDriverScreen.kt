@@ -1,6 +1,7 @@
 package com.example.grocify.views.screens.home
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,11 +31,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion.Blue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -47,11 +54,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
 import com.example.grocify.model.Order
+import com.example.grocify.states.HomeDriverUiState
 import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.HomeDriverViewModel
-import com.example.grocify.viewmodels.MapViewModel
 import com.example.grocify.views.components.MapDialog
 import com.example.grocify.views.theme.BlueLight
+import com.example.grocify.views.theme.BlueMedium
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
 
@@ -61,7 +69,7 @@ fun HomeDriverScreen(
     context: Activity,
     onLogOutClick: () -> Unit,
     onGroceryClick: (String, String) -> Unit,
-    mapRedirect: (destination: String, orderId: String) -> Unit,
+    mapRedirect: (String, String) -> Unit,
     onQRScanned: () -> Unit,
 ) {
     /**
@@ -80,7 +88,6 @@ fun HomeDriverScreen(
     LaunchedEffect(key1 = Unit) {
         viewModel.getSignedInDriverName()
         viewModel.getOrders()
-        viewModel.checkForRunningOrders()
     }
 
 
@@ -144,34 +151,35 @@ fun HomeDriverScreen(
                 )
                 // if there are no orders in status "in consegna" or "consegnato" show
                 // the lazycolumn with the orders in status "in preparazione" or "in attesa"
-                if(uiState.value.runningOrderState == null)
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        items(uiState.value.orders.size) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Log.v("HomeDriver", uiState.value.orders.toString())
+                    items(uiState.value.orders.size) {
+                        if(uiState.value.orders[it].orderId.isNotEmpty()) {
                             Spacer(modifier = Modifier.size(20.dp))
                             OrderItem(
-                                { onGroceryClick(uiState.value.orders[it].orderId, uiState.value.orders[it].destination) },
-                                uiState.value.orders[it], viewModel.getCurrentDriverId()
+                                {
+                                    onGroceryClick(
+                                        uiState.value.orders[it].orderId,
+                                        uiState.value.orders[it].destination
+                                    )
+                                },
+                                uiState.value.orders[it],
+                                viewModel,
+                                uiState.value,
+                                {
+                                    mapRedirect(
+                                        uiState.value.orders[it].orderId,
+                                        uiState.value.orders[it].destination
+                                    )
+                                },
+                                { onQRScanned() },
+                                context
                             )
                             Spacer(modifier = Modifier.size(10.dp))
                         }
-                    }
-                else{
-                    // else redirect to map screen if there is a running order in status "in consegna" or "consegnato"
-                    if(uiState.value.runningOrderState!!.first == "in consegna"){
-                        mapRedirect(uiState.value.runningOrderState!!.second,uiState.value.runningOrderState!!.first)
-                    }else if(uiState.value.runningOrderState!!.first == "consegnato"){
-                        // else show the map dialog to allow the driver to scan the QR code
-                        MapDialog(
-                            state = uiState.value.runningOrderState!!.first.isNotEmpty(),
-                            orderId = uiState.value.runningOrderState!!.second,
-                            viewModel = viewModel,
-                            scanner = GmsBarcodeScanning.getClient(context),
-                            onQRScanned = onQRScanned,
-                            fromScreen = "home_driver"
-                        )
                     }
                 }
             }
@@ -180,9 +188,36 @@ fun HomeDriverScreen(
 }
 
 @Composable
-fun OrderItem(onGroceryClick: () -> Unit, order: Order, currentDriverId: String?) {
+fun OrderItem(
+    onGroceryClick: () -> Unit,
+    order: Order,
+    viewModel: HomeDriverViewModel,
+    state: HomeDriverUiState,
+    mapRedirect: () -> Unit,
+    onQRScanned: () -> Unit,
+    context: Activity
+) {
 
-    val buttonColor = if(order.status == "in attesa") BlueDark else BlueLight
+    val currentDriverId = viewModel.getCurrentDriverId()
+
+    val buttonColor = when(order.status){
+        "in attesa" -> BlueDark
+        "in preparazione" -> BlueMedium
+        "in consegna" -> BlueLight
+        "consegnato" -> Blue
+        else -> {BlueDark}
+    }
+
+    var dialogState by rememberSaveable { mutableStateOf(false) }
+
+    MapDialog(
+        state = dialogState,
+        orderId = order.orderId,
+        viewModel = viewModel,
+        scanner = GmsBarcodeScanning.getClient(context),
+        onQRScanned = onQRScanned,
+        fromScreen = "home_driver"
+    )
 
     Card(
         colors = CardDefaults.cardColors(
@@ -281,6 +316,14 @@ fun OrderItem(onGroceryClick: () -> Unit, order: Order, currentDriverId: String?
                     if ((currentDriverId == order.driverId && order.status == "in preparazione") || order.status == "in attesa") {
                         onGroceryClick()
                     }
+                    if (currentDriverId == order.driverId && order.status == "in consegna") {
+                        mapRedirect()
+                    }
+
+                    if (currentDriverId == order.driverId && order.status == "consegnato") {
+                        dialogState = true
+                    }
+
                 },
                 shape = RoundedCornerShape(25),
                 colors = ButtonDefaults.outlinedButtonColors(

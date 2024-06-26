@@ -43,24 +43,24 @@ fun MapDialog(
      *  Dialog to show when the user arrives at the destination.
      *  Checks the fromScreen parameter to determine which view model to use.
      */
-    if (fromScreen == "map") {
+    if (fromScreen == "map_screen") {
         val mapViewModel = viewModel as? MapViewModel
         mapViewModel?.let {
             if (state)
-                AlertDialogComponent(it, orderId, scanner, onQRScanned)
+                AlertDialogComponent(it, orderId, scanner, onQRScanned, "map_screen")
         }
     } else {
         val homeDriverViewModel = viewModel as? HomeDriverViewModel
         homeDriverViewModel?.let {
             if (state)
-                AlertDialogComponent(it, orderId, scanner, onQRScanned)
+                AlertDialogComponent(it, orderId, scanner, onQRScanned, "home_driver")
         }
     }
 
 }
 
 @Composable
-fun <T> AlertDialogComponent(viewModel: T, orderId: String, scanner: GmsBarcodeScanner, onQRScanned: () -> Unit)
+fun <T> AlertDialogComponent(viewModel: T, orderId: String, scanner: GmsBarcodeScanner, onQRScanned: () -> Unit, fromScreen: String)
         where T : AndroidViewModel, T : MapDialog {
     AlertDialog(
         onDismissRequest = { viewModel.setDialogState(false) },
@@ -135,7 +135,7 @@ fun <T> AlertDialogComponent(viewModel: T, orderId: String, scanner: GmsBarcodeS
             }
         },
         properties = DialogProperties(
-            dismissOnClickOutside = false
+            dismissOnClickOutside = if(fromScreen == "home_driver") true else false
         )
     )
 }

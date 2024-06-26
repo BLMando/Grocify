@@ -68,9 +68,9 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
                 .whereEqualTo("date", currentDate.format(formatter) )
                 .whereEqualTo("status", "in attesa")
 
-            val preparationOrdersQuery = db.collection("orders")
+            val runningOrdersQuery = db.collection("orders")
                 .whereEqualTo("date", currentDate.format(formatter) )
-                .whereEqualTo("status", "in preparazione")
+                .whereIn("status", listOf("in preparazione","in consegna", "consegnato"))
                 .whereEqualTo("driverId", getCurrentDriverId())
 
             pendingOrdersQuery.addSnapshotListener { snapshot, e ->
@@ -84,7 +84,7 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
                 }
             }
 
-            preparationOrdersQuery.addSnapshotListener { snapshot, e ->
+            runningOrdersQuery.addSnapshotListener { snapshot, e ->
                 if (e != null) {
                     return@addSnapshotListener
                 }
@@ -99,10 +99,11 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     }
 
     /**
-     * Function to update the orders list in the UI state.
-     * This function is synchronized to ensure thread safety.
-     * @param newOrders - List of new orders
-     * @param ordersList - Current list of orders
+
+    Function to update the orders list in the UI state.
+    This function is synchronized to ensure thread safety.
+    @param newOrders - List of new orders
+    @param ordersList - Current list of orders
      */
     @Synchronized
     private fun updateOrdersList(newOrders: List<Order>, ordersList: MutableList<Order>) {
@@ -113,37 +114,7 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
         }
     }
 
-    /**
-     * Function to check for running orders for the current driver in the current
-     * date and update the UI state accordingly using a snapshot listener.
-     * This function checks for orders with status "in consegna" or "consegnato" and if
-     * the driver close the app when the order was "in consegna" or "consegnato" it can proceed to finish the order
-     */
-    fun checkForRunningOrders(){
-        viewModelScope.launch {
-            val currentDate = LocalDate.now()
-            val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
-            val runningOrderQuery = db.collection("orders")
-                .whereEqualTo("date", currentDate.format(formatter))
-                .whereIn("status", listOf("in consegna", "consegnato"))
-                .whereEqualTo("driverId", getCurrentDriverId())
-
-            runningOrderQuery.addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null) {
-                    val runningOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
-                    if(runningOrders.isNotEmpty())
-                        _uiState.update { currentState ->
-                            currentState.copy(runningOrderState = Pair(runningOrders.first().status,runningOrders.first().orderId))
-                        }
-                }
-            }
-        }
-    }
 
     /**
      * Function to set the dialog state of the MapDialog

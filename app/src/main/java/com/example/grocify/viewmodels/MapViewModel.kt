@@ -227,7 +227,6 @@ class MapViewModel(application: Application): AndroidViewModel(application), Map
             try {
                 val response = RetrofitObject.geocodingService.getUserLocation(userLocation, apiKey)
                 if (response.isSuccessful && response.body()!!.results.isNotEmpty()) {
-                    Log.v("MapViewModel", response.body().toString())
                     val lat = response.body()!!.results[0].position.lat
                     val lon = response.body()!!.results[0].position.lon
                     GeoPoint(lat, lon)

@@ -183,12 +183,10 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
     }
 
     private suspend fun checkValidAddress(address: String): Boolean  = withContext(Dispatchers.Main) {
-        Log.d("MapViewModel", "checkValidAddress: $address")
         val deferred = viewModelScope.async(Dispatchers.IO) {
             try {
                 val response = RetrofitObject.geocodingService.getUserLocation(address, apiKey)
-                Log.d("MapViewModel", "Response: ${response.body()!!.results}")
-                response.body()!!.results[0].matchConfidence.score.toInt() == 1 && response.body()!!.results.isNotEmpty()
+                response.body()!!.results.isNotEmpty() && response.body()!!.results[0].matchConfidence.score.toInt() == 1
             } catch (e: IOException) {
                 Log.d("MapViewModel", "No internet connection")
                 null
