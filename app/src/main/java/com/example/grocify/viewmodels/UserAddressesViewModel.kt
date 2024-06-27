@@ -122,6 +122,7 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
             }
         }
 
+        // Check if all address fields are valid then proceed to check if the complete address is valid
         if(addressStatus && civicStatus && cityStatus){
             isValidAddress = checkValidAddress("$city, $address $civic")
             if(!isValidAddress)
@@ -182,6 +183,12 @@ class UserAddressesViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
+    /**
+     * Function to check if the given address is valid by making a
+     * geocoding request to the TomTom API.
+     * @param address The address to be validated
+     * @return True if the address is valid, false otherwise
+     */
     private suspend fun checkValidAddress(address: String): Boolean  = withContext(Dispatchers.Main) {
         val deferred = viewModelScope.async(Dispatchers.IO) {
             try {
