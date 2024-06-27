@@ -72,7 +72,7 @@ import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.views.theme.BlueLight
 import com.example.grocify.views.theme.BlueMedium
 import com.example.grocify.views.theme.ExtraLightGray
-import com.example.grocify.utils.formatDiscount
+import com.example.grocify.utils.formatNumber
 import com.example.grocify.viewmodels.SaleGiftViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -241,7 +241,7 @@ fun SaleGiftScreen(
                 Button(
                     onClick = {
                         if(isSaleContent){
-                            viewModel.updateDiscountProducts(formatDiscount(discount))
+                            viewModel.updateDiscountProducts(formatNumber(discount,2))
                             discount = ""
                         }
                         else{

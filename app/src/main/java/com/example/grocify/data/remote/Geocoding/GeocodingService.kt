@@ -5,6 +5,12 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+/**
+ * Interface to the Geocoding API.
+ * getUserLocation does an API call to get the location of a given address.
+ * The others query parameters are used to configure the API call.
+ * @return a Response object containing the GeocodingResponse object.
+ */
 interface GeocodingService {
     @GET("geocode/{address}.json")
     suspend fun getUserLocation(

@@ -1,7 +1,5 @@
 package com.example.grocify
 
-
-
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -13,6 +11,7 @@ import com.example.grocify.views.GrocifyApp
 import com.example.grocify.views.theme.GrocifyTheme
 
 
+
 class MainActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -20,6 +19,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
         installSplashScreen()
 
         setContent {

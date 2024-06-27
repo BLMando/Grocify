@@ -52,7 +52,7 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     }
 
     /**
-     * Function to get the pending orders and preparation orders for the current driver
+     * Function to get the pending orders and the orders in subsequent states for the current driver
      * in the current date and update the UI state accordingly using a snapshot listener.
      * @see Order
      */
@@ -99,7 +99,6 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
     }
 
     /**
-
     Function to update the orders list in the UI state.
     This function is synchronized to ensure thread safety.
     @param newOrders - List of new orders

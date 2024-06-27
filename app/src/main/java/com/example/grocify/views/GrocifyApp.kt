@@ -33,12 +33,19 @@ import com.example.grocify.views.screens.account.UserPaymentsScreen
 import com.example.grocify.views.screens.account.UserProfileScreen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 
+/**
+ * Main app composable that configures navigation graph
+ */
 @Composable
 fun GrocifyApp() {
     val navController = rememberNavController()
     GrocifyNavHost(navController = navController)
 }
 
+/**
+ * Is the NavHost composable that configures the
+ * different screens and navigation within the app
+ */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun GrocifyNavHost(navController: NavHostController) {

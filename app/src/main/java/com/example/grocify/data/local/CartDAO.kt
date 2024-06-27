@@ -5,6 +5,10 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.example.grocify.model.Cart
 
+
+/**
+ * Data Access Object for the Cart table.
+ */
 @Dao
 interface CartDAO {
     @Insert

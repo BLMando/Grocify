@@ -33,7 +33,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -54,7 +53,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.grocify.R
 import com.example.grocify.model.Order
-import com.example.grocify.states.HomeDriverUiState
 import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.viewmodels.HomeDriverViewModel
 import com.example.grocify.views.components.MapDialog
@@ -168,7 +166,6 @@ fun HomeDriverScreen(
                                 },
                                 uiState.value.orders[it],
                                 viewModel,
-                                uiState.value,
                                 {
                                     mapRedirect(
                                         uiState.value.orders[it].orderId,
@@ -192,7 +189,6 @@ fun OrderItem(
     onGroceryClick: () -> Unit,
     order: Order,
     viewModel: HomeDriverViewModel,
-    state: HomeDriverUiState,
     mapRedirect: () -> Unit,
     onQRScanned: () -> Unit,
     context: Activity
@@ -206,6 +202,14 @@ fun OrderItem(
         "in consegna" -> BlueLight
         "consegnato" -> Blue
         else -> {BlueDark}
+    }
+
+    val buttonText = when(order.status){
+        "in attesa" -> "Vedi spesa"
+        "in preparazione" -> "Continua spesa"
+        "in consegna" -> "Riprendi la consegna"
+        "consegnato" -> "Scannerizza il QR"
+        else -> ""
     }
 
     var dialogState by rememberSaveable { mutableStateOf(false) }
@@ -313,6 +317,9 @@ fun OrderItem(
 
             Button(
                 onClick = {
+                    /**
+                     * Set up actions to do with different orders status
+                     */
                     if ((currentDriverId == order.driverId && order.status == "in preparazione") || order.status == "in attesa") {
                         onGroceryClick()
                     }
@@ -339,7 +346,7 @@ fun OrderItem(
                     tint =  Color.White,
                 )
                 Text(
-                    "Vedi spesa",
+                    text = buttonText,
                     color = Color.White,
                     fontSize = 15.sp,
                     modifier = Modifier.padding(start = 10.dp)

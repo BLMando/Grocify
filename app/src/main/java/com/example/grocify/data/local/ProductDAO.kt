@@ -7,6 +7,9 @@ import androidx.wear.compose.material.FractionalThreshold
 import com.example.grocify.model.Product
 
 
+/**
+ * Data Access Object for the Products table.
+ */
 @Dao
 interface ProductDAO {
     @Insert

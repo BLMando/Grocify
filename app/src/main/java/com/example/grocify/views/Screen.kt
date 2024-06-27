@@ -4,6 +4,13 @@ import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
+/**
+ * Class for defining all the screens in the app.
+ * @param route The route for the screen.
+ * @param navArguments The arguments for the screen.
+ * @property object A new instance of the Screen class.
+ * @property createRoute A function that creates the route for the screen.
+ */
 sealed class Screen(
     val route:String,
     val navArguments: List<NamedNavArgument> = emptyList()

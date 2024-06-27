@@ -66,9 +66,9 @@ import com.example.grocify.views.theme.BlueDark
 import com.example.grocify.views.theme.BlueLight
 import com.example.grocify.utils.calculateCardNumberSelection
 import com.example.grocify.utils.calculateExpiryDateSelection
-import com.example.grocify.utils.formatCVC
 import com.example.grocify.utils.formatCreditCardNumber
 import com.example.grocify.utils.formatExpiryDate
+import com.example.grocify.utils.formatNumber
 import com.example.grocify.viewmodels.UserPaymentMethodsViewModel
 
 
@@ -486,7 +486,7 @@ fun PaymentDialog(uiState: UserPaymentMethodsUiState, viewModel: UserPaymentMeth
                         label = { Text(text = "CVC", color = Color.Black) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         onValueChange = { newValue ->
-                            val formattedValue = formatCVC(newValue.text)
+                            val formattedValue = formatNumber(newValue.text,3)
                             cvc = TextFieldValue(formattedValue, newValue.selection)
                             cvcChange = true
                         },

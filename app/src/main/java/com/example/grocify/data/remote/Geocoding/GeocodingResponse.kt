@@ -3,6 +3,9 @@ package com.example.grocify.data.remote.Geocoding
 import com.squareup.moshi.JsonClass
 
 
+/**
+ * Defined a parsable data class for the response from the Geocoding API.
+ */
 @JsonClass(generateAdapter = true)
 data class GeocodingResponse(
     val results: List<Result>,
