@@ -6,5 +6,5 @@ package com.example.grocify.viewmodels
  */
 interface MapDialog {
     fun setDialogState(state: Boolean)
-    fun setOrderConclude(orderId: String)
+    suspend fun setOrderConclude(orderId: String)
 }

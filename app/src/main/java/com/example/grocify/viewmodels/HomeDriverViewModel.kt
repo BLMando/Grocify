@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.CancellationException
@@ -90,8 +91,8 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
                 }
 
                 if (snapshot != null) {
-                    val preparationOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
-                    updateOrdersList(preparationOrders,ordersList)
+                    val runningOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
+                    updateOrdersList(runningOrders,ordersList)
                 }
             }
 
@@ -127,16 +128,14 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
      * Function to set the order status to "concluso" after driver scanned the QR code
      * @param orderId - ID of the order to be concluded
      */
-    override fun setOrderConclude(orderId: String) {
-        viewModelScope.launch {
-            db.collection("orders")
-                .whereEqualTo("orderId", orderId)
-                .get()
-                .addOnSuccessListener { document ->
-                    val order = document.documents[0].reference
-                    order.update("status", "concluso")
-                }
-        }
+    override suspend fun setOrderConclude(orderId: String) {
+        val document = db.collection("orders")
+            .whereEqualTo("orderId", orderId)
+            .get()
+            .await()  // Await the completion of the get operation
+
+        val order = document.documents[0].reference
+        order.update("status", "concluso").await()  // Await the update operation
     }
 
 
@@ -155,5 +154,4 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
             }
         }
     }
-
 }

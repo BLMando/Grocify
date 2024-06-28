@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -27,6 +28,7 @@ import com.example.grocify.viewmodels.MapDialog
 import com.example.grocify.viewmodels.MapViewModel
 import com.example.grocify.views.theme.BlueMedium
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
+import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -62,6 +64,7 @@ fun MapDialog(
 @Composable
 fun <T> AlertDialogComponent(viewModel: T, orderId: String, scanner: GmsBarcodeScanner, onQRScanned: () -> Unit, fromScreen: String)
         where T : AndroidViewModel, T : MapDialog {
+    val scope = rememberCoroutineScope()
     AlertDialog(
         onDismissRequest = { viewModel.setDialogState(false) },
         title = {
@@ -117,10 +120,15 @@ fun <T> AlertDialogComponent(viewModel: T, orderId: String, scanner: GmsBarcodeS
         confirmButton = {
             Button(
                 onClick = { scanner.startScan().addOnSuccessListener {QRcode ->
-                    if(orderId == QRcode.rawValue.toString()){
-                        viewModel.setOrderConclude(orderId)
-                        viewModel.setDialogState(false)
-                        onQRScanned()
+                    scope.launch {
+                        if(orderId == QRcode.rawValue.toString()) {
+                            viewModel.setOrderConclude(orderId)
+                            viewModel.setDialogState(false)
+                            if (fromScreen == "home_driver") {
+                                (viewModel as HomeDriverViewModel).getOrders()
+                            }
+                            onQRScanned()
+                        }
                     }
                 }},
                 Modifier.fillMaxWidth()

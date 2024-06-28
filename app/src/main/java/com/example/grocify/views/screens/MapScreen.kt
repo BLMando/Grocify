@@ -51,6 +51,7 @@ import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.grocify.BuildConfig
 import com.example.grocify.R
@@ -64,6 +65,7 @@ import com.tomtom.sdk.location.GeoPoint
 import com.tomtom.sdk.map.display.MapOptions
 import com.tomtom.sdk.map.display.camera.CameraOptions
 import com.tomtom.sdk.map.display.ui.MapFragment
+import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -215,7 +217,7 @@ fun MapScreen(
         viewModel = viewModel,
         scanner = scanner,
         onQRScanned = onQRScanned,
-        fromScreen = "map_screen"
+        fromScreen = "map_screen",
     )
 
     LocationDialog(uiState.value.locationAcquired)
@@ -332,9 +334,11 @@ fun Dialog(
                 Button(
                     onClick = { scanner.startScan().addOnSuccessListener {QRcode ->
                         if(orderId == QRcode.rawValue.toString()){
-                            viewModel.setOrderConclude(orderId)
-                            viewModel.setDialogState(false)
-                            onQRScanned()
+                            viewModel.viewModelScope.launch {
+                                viewModel.setOrderConclude(orderId)
+                                viewModel.setDialogState(false)
+                                onQRScanned()
+                            }
                         }
                     }},
                     Modifier.fillMaxWidth()

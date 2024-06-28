@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
@@ -459,12 +460,18 @@ class MapViewModel(application: Application): AndroidViewModel(application), Map
         Manifest.permission.ACCESS_COARSE_LOCATION
     ) == PackageManager.PERMISSION_GRANTED
 
+    /**
+     * Function to set the order status to "concluso" after driver scanned the QR code
+     * @param orderId - ID of the order to be concluded
+     */
+    override suspend fun setOrderConclude(orderId: String) {
+        val document = db.collection("orders")
+            .whereEqualTo("orderId", orderId)
+            .get()
+            .await()  // Await the completion of the get operation
 
-    override fun setOrderConclude(orderId: String) {
-        setOrderStatus(
-            orderId = orderId,
-            "concluso"
-        )
+        val order = document.documents[0].reference
+        order.update("status", "concluso").await()  // Await the update operation
     }
 
     /**

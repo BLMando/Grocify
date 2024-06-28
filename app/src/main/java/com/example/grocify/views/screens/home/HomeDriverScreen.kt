@@ -220,7 +220,7 @@ fun OrderItem(
         viewModel = viewModel,
         scanner = GmsBarcodeScanning.getClient(context),
         onQRScanned = onQRScanned,
-        fromScreen = "home_driver"
+        fromScreen = "home_driver",
     )
 
     Card(
