@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel class for CategoryItemsViewModel
+ * @param application - Application context
+ */
 class CategoryItemsViewModel(application: Application):AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CategoryItemsUiState())
@@ -29,7 +33,9 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
-
+    /**
+     * Function to get the category name.
+     */
     private fun getCategoryName(categoryId: String?) {
         db.collection("categories")
             .whereEqualTo(FieldPath.documentId(),categoryId)
@@ -43,21 +49,21 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
             }
     }
 
+    /**
+     * Function to load the products for the category selected by the user.
+     */
     fun getProducts(categoryId: String?){
-        //estraggo la categoria
+
         viewModelScope.launch {
             getCategoryName(categoryId)
         }
 
         viewModelScope.launch {
-            //filtro per la categoria
             db.collection("prodotti")
                 .whereEqualTo("categoria", categoryId)
                 .get()
                 .addOnSuccessListener { products ->
-                    //se sono presenti prodotti per quella categoria
                     if(!products.isEmpty){
-                        //ciclo i prodotti e li salvo in una lista
                         for (product in products) {
                             val name     = product.get("nome").toString().replaceFirstChar { it.uppercase() }
                             val priceKg  = product.get("prezzo_al_kg")?.toString() ?: ""
@@ -83,7 +89,7 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                         }
 
                     }
-                    else{//altrimenti segnalo che non sono presenti prodotti nella lista
+                    else{
                         _uiState.update {
                             it.copy(
                                 isSuccessful = false
@@ -95,6 +101,10 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
+    /**
+     * Function to add a product to the products list contained in the room db, if the product wasn't already present.
+     * If the product is already present it increments the units by one.
+     */
     fun addToCart(product: ProductType) {
         viewModelScope.launch {
 
@@ -131,6 +141,9 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
+    /**
+     * Function to initialize the cart in the room db.
+     */
     fun initializeProductsList(flagCart: String) {
         viewModelScope.launch {
             val cartDb = cartDao.getCart(flagCart, auth.currentUser?.uid.toString())
@@ -145,6 +158,9 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
         }
     }
 
+    /**
+     * Function to reset the ui state variables to avoid problems when page reloads.
+     */
     fun resetFields(){
         viewModelScope.launch {
             _uiState.update { currentState ->

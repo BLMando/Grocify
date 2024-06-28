@@ -15,12 +15,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+/**
+ * ViewModel class for SaleGiftViewModel
+ * @param application - Application context
+ */
 class SaleGiftViewModel(application: Application):AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(SaleGiftUiState())
     val uiState: StateFlow<SaleGiftUiState> = _uiState.asStateFlow()
 
     private val db = Firebase.firestore
+
+    /**
+     * Function to load all the products.
+     */
     fun getProducts(){
         viewModelScope.launch {
             //filtro per la categoria
@@ -60,6 +68,9 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to load the three free products.
+     */
     fun initializeSelectedProducts(){
             viewModelScope.launch {
                 db.collection("prodotti")
@@ -106,10 +117,16 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
             }
     }
 
+    /**
+     * Function to get the selected products list.
+     */
     fun getSelectedProducts(): MutableList<ProductType>{
         return _uiState.value.selectedProducts
     }
 
+    /**
+     * Function to add a product to the selected products list.
+     */
     fun addSelectedProduct(product: ProductType){
         _uiState.update { currentState ->
             val updatedList = currentState.selectedProducts + product
@@ -117,6 +134,9 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to remove a product from the selected products list.
+     */
     fun removeSelectedProduct(product: ProductType){
         _uiState.update { currentState ->
             val updatedList = currentState.selectedProducts - product
@@ -124,6 +144,9 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to update the three free products.
+     */
     fun updateThresholdProducts() {
         viewModelScope.launch {
 
@@ -153,6 +176,9 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to set a discount for every product selected.
+     */
     fun updateDiscountProducts(discount: String) {
         if(discount != ""){
             viewModelScope.launch {
@@ -181,6 +207,9 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to remove the discount from every product selected.
+     */
     fun removeDiscountedProduct(product: ProductType) {
         viewModelScope.launch {
 
@@ -199,6 +228,9 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
         }
     }
 
+    /**
+     * Function to reset the ui state variables to avoid problems when page reloads.
+     */
     fun resetFields(){
         viewModelScope.launch {
             _uiState.update { currentState ->

@@ -16,7 +16,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
+/**
+ * ViewModel class for CartViewModel
+ * @param application - Application context
+ */
 class CartViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(CartUiState())
@@ -28,6 +31,9 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
 
+    /**
+     * Function to get the number of units of a specific product, given an id and a threshold.
+     */
     fun getUnitsByIdAndThreshold(id: String?, threshold: Int): String {
 
         val index = _uiState.value.productsList.indexOf(_uiState.value.productsList.find { it.id == id && it.threshold == threshold })
@@ -35,7 +41,11 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         return _uiState.value.productsList[index].units.toString()
     }
 
-
+    /**
+     * Function to add a product to the store list if the barcode scanned is the one of a product.
+     * If the product is already in the list, it increments the units of the product by one unit.
+     * Also this function saves every change both in the room db and in the ui state variable productsList.
+     */
     fun addRow(productId: String) {
         viewModelScope.launch {
             //scorro tutti i prodotti
@@ -87,6 +97,10 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Function to load the products list contained in the room db in the corresponding ui state variable.
+     * It does the same thing for the total price.
+     */
     fun initializeProductsList(flagCart: String) {
         viewModelScope.launch {
 
@@ -117,6 +131,10 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Function to remove a product from the products list contained in the room db and also the corresponding ui state variable.
+     * It also updates the total price both in the room db and in the ui state variable.
+     */
     fun removeFromCart(product: Product, flagCart: String) {
         viewModelScope.launch {
             _uiState.update { currentState ->
@@ -142,6 +160,9 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Function to update the units of a product and the total price in the room db anf the ui state variables.
+     */
     fun addValueToProductUnits(product: Product, value: Int, flagCart: String) {
         viewModelScope.launch {
             _uiState.update { currentState ->
@@ -161,6 +182,9 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Function to put a banner at the top when an order is being delivered.
+     */
     fun checkOrdersStatus(){
         db.collection("orders")
             .whereEqualTo("userId", auth.currentUser!!.uid)

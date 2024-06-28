@@ -19,7 +19,10 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-
+/**
+ * ViewModel class for GiftProductViewModel
+ * @param application - Application context
+ */
 class GiftProductViewModel(application: Application): AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(GiftProductUiState())
@@ -29,6 +32,10 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
+
+    /**
+     * Function to get the three products for the three different thresholds.
+     */
     fun getThresholdProducts() {
         viewModelScope.launch {
             db.collection("prodotti")
@@ -72,6 +79,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to calculate the money that the user has spent on orders during the current month.
+     */
     fun calculateMoneySpentDuringCurrentMonth(){
         viewModelScope.launch {
             db.collection("orders")
@@ -96,6 +106,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to check if one of the three free products was already redeemed by the user during the current month.
+     */
     fun checkIfAlreadyRedeemed(){
         viewModelScope.launch {
             db.collection("orders")
@@ -133,6 +146,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to check if one of the three free products is present in one of the two carts.
+     */
     fun checkIfInCart(){
         viewModelScope.launch {
             val thresholds: List<Int> = listOf(50, 100, 200)
@@ -155,6 +171,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to reset the ui state variables to avoid problems when page reloads.
+     */
     fun resetFields(){
         viewModelScope.launch {
             _uiState.update { currentState ->
@@ -163,6 +182,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to add one of the three free products to the products list in the room db.
+     */
     fun addToCart(product: ProductType, flagCart: String) {
         viewModelScope.launch {
             val name      = product.name
@@ -188,6 +210,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         }
     }
 
+    /**
+     * Function to get the status of one of the three free products, false if the product has been redeemed, true if it has.
+     */
     fun getFlagThreshold(threshold: Int): Boolean {
         var flagRedeemed = false
         when(threshold){
@@ -198,6 +223,9 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         return flagRedeemed
     }
 
+    /**
+     * Function to put a banner at the top when an order is being delivered.
+     */
     fun checkOrdersStatus(){
         db.collection("orders")
             .whereEqualTo("userId", auth.currentUser!!.uid)
