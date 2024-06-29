@@ -1,4 +1,4 @@
-package com.example.grocify.viewmodels;
+package com.example.grocify.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -31,13 +31,11 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
      */
     fun getProducts(){
         viewModelScope.launch {
-            //filtro per la categoria
             db.collection("prodotti")
                 .get()
                 .addOnSuccessListener { products ->
-                    //se sono presenti prodotti per quella categoria
                     if(!products.isEmpty){
-                        //ciclo i prodotti e li salvo in una lista
+
                         for (product in products) {
                             val name      = product.get("nome")?.toString() ?: ""
                             val priceKg   = product.get("prezzo_al_kg")?.toString() ?: ""
@@ -160,7 +158,7 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
             removeSogliaTasks.await()
 
             for(product in _uiState.value.selectedProducts) {
-                val sogliaMap = hashMapOf<String, String>(
+                val sogliaMap = hashMapOf(
                     "soglia" to when(_uiState.value.selectedProducts.indexOf(product)) {
                         0 -> "50"
                         1 -> "100"
@@ -182,18 +180,18 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
     fun updateDiscountProducts(discount: String) {
         if(discount != ""){
             viewModelScope.launch {
-                //ciclo i prodotti per cui si vuole applicare lo sconto
+
                 for(product in _uiState.value.selectedProducts) {
-                    val discountMap = hashMapOf<String, String>(
+                    val discountMap = hashMapOf(
                         "sconto" to discount
                     )
-                    //aggiungo un campo al prodotto contenente lo sconto
+
                     db.collection("prodotti")
                         .document(product.id)
                         .update(discountMap as Map<String, String>)
 
                     _uiState.update { currentState ->
-                        //aggiorno la lista di prodotti con il nuovo sconto
+
                         val updatedList = currentState.products
                         updatedList[updatedList.indexOf(product)].discount = discount.toDouble()
                         currentState.copy(products = updatedList)
@@ -213,7 +211,7 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
     fun removeDiscountedProduct(product: ProductType) {
         viewModelScope.launch {
 
-            val removeScontoTasks = db.collection("prodotti")
+            db.collection("prodotti")
                 .get()
                 .addOnSuccessListener { querySnapshot ->
                     for (document in querySnapshot.documents) {
@@ -234,7 +232,7 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
     fun resetFields(){
         viewModelScope.launch {
             _uiState.update { currentState ->
-                currentState.copy(products = mutableListOf<ProductType>(), selectedProducts = mutableListOf<ProductType>())
+                currentState.copy(products = mutableListOf(), selectedProducts = mutableListOf())
             }
         }
     }

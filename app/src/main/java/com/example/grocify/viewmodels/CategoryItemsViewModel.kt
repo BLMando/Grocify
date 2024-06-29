@@ -164,7 +164,7 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
     fun resetFields(){
         viewModelScope.launch {
             _uiState.update { currentState ->
-                currentState.copy(products = mutableListOf<ProductType>())
+                currentState.copy(products = mutableListOf())
             }
         }
     }
