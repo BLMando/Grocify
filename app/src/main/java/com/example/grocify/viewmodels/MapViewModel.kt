@@ -13,8 +13,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.grocify.BuildConfig
 import com.example.grocify.R
 import com.example.grocify.data.remote.RetrofitObject
-import com.example.grocify.states.MapUiState
 import com.example.grocify.databinding.MapLayoutBinding
+import com.example.grocify.states.MapUiState
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.tomtom.sdk.common.measures.UnitSystem
@@ -252,8 +252,10 @@ class MapViewModel(application: Application): AndroidViewModel(application), Map
     private val routePlanningCallback = object : RoutePlanningCallback {
         override fun onSuccess(result: RoutePlanningResponse) {
             route = result.routes.first()
-            drawRoute(route!!)
-            _uiState.update { it.copy(route = route) }
+            route?.let {
+                drawRoute(it)
+                _uiState.update { currentState -> currentState.copy(route = route) }
+            }
             tomTomMap.zoomToRoutes(ZOOM_TO_ROUTE_PADDING)
         }
 
@@ -371,7 +373,7 @@ class MapViewModel(application: Application): AndroidViewModel(application), Map
             tomTomMap.enableLocationMarker(LocationMarkerOptions(LocationMarkerOptions.Type.Chevron))
             setMapMatchedLocationProvider()
             // use for simulation purposes only
-            setSimulationLocationProviderToNavigation(route!!)
+            route?.let { setSimulationLocationProviderToNavigation(it) }
             tomTomMap.setPadding(Padding(0, 0, 0, getApplication<Application>().resources.getDimensionPixelOffset(R.dimen.map_padding_bottom)))
         }
 
@@ -386,8 +388,10 @@ class MapViewModel(application: Application): AndroidViewModel(application), Map
     private fun setSimulationLocationProviderToNavigation(route: Route) {
         val routeGeoLocations = route.geometry.map { GeoLocation(it) }
         val simulationStrategy = InterpolationStrategy(routeGeoLocations)
+        val oldLocationProvider = tomTomNavigation.locationProvider
         locationProvider = SimulationLocationProvider.create(strategy = simulationStrategy)
         tomTomNavigation.locationProvider = locationProvider
+        oldLocationProvider.close()
         locationProvider.enable()
     }
 
