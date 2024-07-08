@@ -69,7 +69,8 @@ fun CheckoutScreen(
     onCatalogClick: () -> Unit,
     onGiftClick: () -> Unit,
     onVirtualCartClick: () -> Unit,
-    onConfirmClick: (flagCart:String, orderId:String) -> Unit,
+    onConfirmClick: (flagCart: String, orderId: String) -> Unit,
+    onPhysicalCartClick: () -> Unit,
 ) {
 
     val uiState = viewModel.uiState.collectAsState()
@@ -116,7 +117,7 @@ fun CheckoutScreen(
                 ref = if(flagCart == "online") "virtualCart" else "physicalCart",
                 onCatalogClick = onCatalogClick,
                 onGiftClick = onGiftClick,
-                onPhysicalCartClick = {},
+                onPhysicalCartClick = if (flagCart == "online") onPhysicalCartClick else { {} },
                 onVirtualCartClick = onVirtualCartClick
             )
         }

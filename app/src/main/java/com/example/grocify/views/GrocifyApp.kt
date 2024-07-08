@@ -1,7 +1,6 @@
 package com.example.grocify.views
 
 import android.app.Activity
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
@@ -220,6 +219,7 @@ fun GrocifyNavHost(navController: NavHostController) {
                     onPaymentMethodClick = {navController.navigate(Screen.UserPayment.route)},
                     onCatalogClick = onCatalogClick,
                     onGiftClick = onGiftClick,
+                    onPhysicalCartClick = onPhysicalCartClick,
                     onVirtualCartClick = onVirtualCartClick,
                     onConfirmClick = onConfirmClick
                 )
