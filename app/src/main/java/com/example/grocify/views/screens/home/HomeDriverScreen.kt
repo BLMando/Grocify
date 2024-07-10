@@ -140,7 +140,7 @@ fun HomeDriverScreen(
                 Modifier.padding(innerPadding)
             ) {
                 Text(
-                    text = "Gli ordini di oggi",
+                    text = "Gli ordini in corso",
                     modifier = Modifier.padding(top = 20.dp, start = 20.dp),
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
@@ -254,7 +254,7 @@ fun OrderItem(
                     fontSize = 20.sp
                 )
                 Text(
-                    text = "Ora: ${order.time}",
+                    text = "${order.date} - ${order.time}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )

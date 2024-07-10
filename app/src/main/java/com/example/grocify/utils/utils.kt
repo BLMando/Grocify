@@ -2,6 +2,9 @@ package com.example.grocify.utils
 
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 /**
  * Format the expiry date as follows: mm/yyyy.
@@ -191,4 +194,27 @@ fun anyToDouble(value: Any?): Double? {
         else -> null
     }
 }
+
+/**
+ * Function to parse date string into LocalDate object
+ * @param dateString the date string to be parsed
+ * @return the parsed LocalDate object
+ */
+fun parseDate(dateString: String): LocalDate {
+    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    return LocalDate.parse(dateString, dateFormatter)
+}
+
+/**
+ * Function to parse time string into LocalTime object
+ * @param timeString the time string to be parsed
+ * @return the parsed LocalTime object
+ */
+fun parseTime(timeString: String): LocalTime {
+    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    return LocalTime.parse(timeString, timeFormatter)
+}
+
+
+
 

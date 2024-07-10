@@ -1,10 +1,13 @@
 package com.example.grocify.viewmodels
 
 import android.app.Application
+
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.grocify.states.HomeDriverUiState
 import com.example.grocify.model.Order
+import com.example.grocify.utils.parseDate
+import com.example.grocify.utils.parseTime
 import com.google.android.gms.auth.api.identity.SignInClient
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
@@ -15,8 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.util.SortedMap
+import java.util.TreeMap
 import java.util.concurrent.CancellationException
 
 /**
@@ -58,8 +61,9 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
      * @see Order
      */
     fun getOrders(){
-
-        val ordersList: MutableList<Order> = mutableListOf()
+        // Sorted map to store orders based on status and date/time
+        // TreeMap ensures that sorting based on the key is automatically maintained."
+        val ordersMap: SortedMap<String, Order> = TreeMap()
 
         viewModelScope.launch {
 
@@ -77,7 +81,7 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
 
                 if (snapshot != null) {
                     val pendingOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
-                    updateOrdersList(pendingOrders,ordersList)
+                    updateOrdersList(pendingOrders,ordersMap)
                 }
             }
 
@@ -88,28 +92,46 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
 
                 if (snapshot != null) {
                     val runningOrders = snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
-                    updateOrdersList(runningOrders,ordersList)
+                    updateOrdersList(runningOrders, ordersMap)
                 }
             }
-
         }
     }
-
     /**
     Function to update the orders list in the UI state.
     This function is synchronized to ensure thread safety.
     @param newOrders - List of new orders
-    @param ordersList - Current list of orders
+    @param ordersMap - Current list of orders
      */
     @Synchronized
-    private fun updateOrdersList(newOrders: List<Order>, ordersList: MutableList<Order>) {
-        ordersList.addAll(newOrders)
+    private fun updateOrdersList(newOrders: List<Order>, ordersMap: MutableMap<String, Order>) {
+
+        val orderStates = listOf("consegnato", "in consegna", "in preparazione", "in attesa")
+
+        newOrders.forEach { newOrder ->
+            if (ordersMap.containsKey(newOrder.orderId)) {
+                ordersMap[newOrder.orderId] = newOrder
+            } else {
+                ordersMap[newOrder.orderId] = newOrder
+            }
+        }
+
+        /**
+         * Sort the orders based on the following criteria:
+         * 1. Order status (consegnato > in consegna > in preparazione > in attesa)
+         * 2. Order date
+         * 3. Order time
+         */
+        val sortedOrders = ordersMap.values.sortedWith(
+            compareBy<Order> { orderStates.indexOf(it.status) }
+                .thenBy { parseDate(it.date) }
+                .thenBy { parseTime(it.time) }
+        )
 
         _uiState.update { currentState ->
-            currentState.copy(orders = ordersList.toList())
+            currentState.copy(orders = sortedOrders)
         }
     }
-
 
 
     /**
@@ -128,10 +150,10 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
         val document = db.collection("orders")
             .whereEqualTo("orderId", orderId)
             .get()
-            .await()  // Await the completion of the get operation
+            .await()
 
         val order = document.documents[0].reference
-        order.update("status", "concluso").await()  // Await the update operation
+        order.update("status", "concluso").await()
     }
 
 
