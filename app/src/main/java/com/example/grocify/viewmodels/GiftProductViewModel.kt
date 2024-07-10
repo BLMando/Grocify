@@ -46,7 +46,6 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
                             val threshold = product.get("soglia")?.toString() ?: ""
                             if (threshold != "") {
                                 val name = product.get("nome").toString().replaceFirstChar { it.uppercase() }
-                                val priceKg = product.get("prezzo_al_kg")?.toString() ?: ""
                                 val price = product.get("prezzo_unitario")?.toString() ?: ""
                                 val quantity = product.get("quantita")?.toString() ?: ""
                                 val image = product.get("immagine")?.toString() ?: ""
@@ -55,7 +54,6 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
                                 val item = ProductType(
                                     product.id,
                                     name,
-                                    priceKg.toDouble(),
                                     price.toDouble(),
                                     quantity,
                                     image,
@@ -189,12 +187,11 @@ class GiftProductViewModel(application: Application): AndroidViewModel(applicati
         viewModelScope.launch {
             val name      = product.name
             val price     = product.price
-            val priceKg   = product.priceKg
             val quantity  = product.quantity
             val image     = product.image
             val threshold = product.threshold
 
-            val productToAdd = Product(product.id, flagCart, auth.currentUser?.uid.toString(), name, priceKg, price, quantity, image, 1, 0.00, threshold)
+            val productToAdd = Product(product.id, flagCart, auth.currentUser?.uid.toString(), name, price, quantity, image, 1, 0.00, threshold)
 
             productDao.insertProduct(productToAdd)
 

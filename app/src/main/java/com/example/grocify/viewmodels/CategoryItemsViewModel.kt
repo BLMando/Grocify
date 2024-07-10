@@ -66,7 +66,6 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                     if(!products.isEmpty){
                         for (product in products) {
                             val name     = product.get("nome").toString().replaceFirstChar { it.uppercase() }
-                            val priceKg  = product.get("prezzo_al_kg")?.toString() ?: ""
                             val price    = product.get("prezzo_unitario")?.toString() ?: ""
                             val quantity = product.get("quantita")?.toString() ?: ""
                             val image    = product.get("immagine")?.toString() ?: ""
@@ -75,7 +74,6 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                             val item = ProductType(
                                 product.id,
                                 name,
-                                priceKg.toDouble(),
                                 price.toDouble(),
                                 quantity,
                                 image,
@@ -116,7 +114,6 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
             }
             else {
                 val name      = product.name
-                val priceKg   = product.priceKg
                 val quantity  = product.quantity
                 val image     = product.image
                 val discount  = product.discount
@@ -126,7 +123,6 @@ class CategoryItemsViewModel(application: Application):AndroidViewModel(applicat
                     type = "online",
                     userId = auth.currentUser?.uid.toString(),
                     name = name,
-                    priceKg = priceKg,
                     price = price,
                     quantity = quantity,
                     image = image,

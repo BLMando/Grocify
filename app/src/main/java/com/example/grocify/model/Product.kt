@@ -8,7 +8,6 @@ data class Product(
     val type: String = "",
     val userId: String = "",
     val name: String = "",
-    val priceKg:Double= 0.0,
     val price: Double = 0.0,
     val quantity: String = "",
     val image: String = "",
@@ -20,7 +19,6 @@ data class Product(
 data class ProductType(
     val id: String,
     val name: String,
-    val priceKg: Double,
     val price: Double,
     val quantity: String,
     val image: String,
