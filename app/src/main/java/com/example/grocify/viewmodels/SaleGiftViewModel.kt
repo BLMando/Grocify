@@ -38,7 +38,6 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
 
                         for (product in products) {
                             val name      = product.get("nome")?.toString() ?: ""
-                            val priceKg   = product.get("prezzo_al_kg")?.toString() ?: ""
                             val price     = product.get("prezzo_unitario")?.toString() ?: ""
                             val quantity  = product.get("quantita")?.toString() ?: ""
                             val image     = product.get("immagine")?.toString() ?: ""
@@ -48,7 +47,6 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
                             val item = ProductType(
                                 product.id,
                                 name,
-                                priceKg.toDouble(),
                                 price.toDouble(),
                                 quantity,
                                 image,
@@ -79,7 +77,6 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
                                 val threshold = product.get("soglia")?.toString() ?: ""
                                 if (threshold != "") {
                                     val name     = product.get("nome")?.toString() ?: ""
-                                    val priceKg  = product.get("prezzo_al_kg")?.toString() ?: ""
                                     val price    = product.get("prezzo_unitario")?.toString() ?: ""
                                     val quantity = product.get("quantita")?.toString() ?: ""
                                     val image    = product.get("immagine")?.toString() ?: ""
@@ -88,7 +85,6 @@ class SaleGiftViewModel(application: Application):AndroidViewModel(application) 
                                     val item = ProductType(
                                         product.id,
                                         name,
-                                        priceKg.toDouble(),
                                         price.toDouble(),
                                         quantity,
                                         image,

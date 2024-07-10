@@ -56,7 +56,6 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
                         if (product.id == productId) {
                             val name     = product.get("nome")?.toString() ?: ""
                             val price    = product.get("prezzo_unitario")?.toString() ?: ""
-                            val priceKg  = product.get("prezzo_al_kg")?.toString() ?: ""
                             val quantity = product.get("quantita")?.toString() ?: ""
                             val image    = product.get("immagine")?.toString() ?: ""
                             val discount = product.get("sconto")?.toString() ?: "0.00"
@@ -66,7 +65,6 @@ class CartViewModel(application: Application): AndroidViewModel(application) {
                                 type = "store",
                                 userId = auth.currentUser?.uid.toString(),
                                 name = name,
-                                priceKg = priceKg.toDouble(),
                                 price = price.toDouble(),
                                 quantity = quantity,
                                 image = image,

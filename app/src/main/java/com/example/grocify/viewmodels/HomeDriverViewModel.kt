@@ -58,19 +58,15 @@ class HomeDriverViewModel(application: Application,private val mOneTapClient: Si
      * @see Order
      */
     fun getOrders(){
-        val currentDate = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
         val ordersList: MutableList<Order> = mutableListOf()
 
         viewModelScope.launch {
 
             val pendingOrdersQuery = db.collection("orders")
-                .whereEqualTo("date", currentDate.format(formatter) )
                 .whereEqualTo("status", "in attesa")
 
             val runningOrdersQuery = db.collection("orders")
-                .whereEqualTo("date", currentDate.format(formatter) )
                 .whereIn("status", listOf("in preparazione","in consegna", "consegnato"))
                 .whereEqualTo("driverId", getCurrentDriverId())
 
