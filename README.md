@@ -41,6 +41,6 @@ Qui i prodotti omaggio sono evidenziati poiché hanno il bordo di un colore dive
 I colori dei bordi delle card sono diversi tra i tre prodotti omaggio, si va dal più chiaro al più scuro, a simboleggiare i prodotti per ogni quota 50 100 200 euro.
 Ad esempio il prodotto avente il bordo della card con il colore più chiaro sarà quello disponibile a tutti gli utenti una volta raggiunti i 50 euro di spesa nel mese corrente.
 
-Per testare le funzionalità relative alla scansione del barcode dei prodotti, fare riferimento al file "Barcode prodotti.png" il quale contiene tutti i prodotti e i relativi barcode attualmente presenti in catalogo.
+Per testare le funzionalità relative alla scansione del barcode dei prodotti fare riferimento alla seguente immagine che contiene tutti i prodotti e i relativi barcode attualmente presenti in catalogo.
 
 ![Barcode prodotti](https://github.com/BLMando/Grocify/blob/master/Barcode%20prodotti.png)
