@@ -24,6 +24,7 @@ Requisiti:
 23. Gestione degli sconti
 
 
+
 Consigli per il corretto utilizzo dell'applicazione:
 
 Per testare le funzionalità del driver correttamente, dovete utilizzare un indirizzo di spedizione coincidente esattamente con la vostra posizione quando effettuate un ordine. 
@@ -36,5 +37,10 @@ Nel caso si cambi idea per fermare la vibrazione e far scomparire il bottone bas
 
 Nella pagina Omaggi sono presenti i 3 prodotti omaggio disponibili per il cliente una volta raggiunti dallo steso delle determinate soglie di spesa per ogni mese.
 Qui i prodotti omaggio sono evidenziati poiché hanno il bordo di un colore diverso rispetto agli altri.
+
 I colori dei bordi delle card sono diversi tra i tre prodotti omaggio, si va dal più chiaro al più scuro, a simboleggiare i prodotti per ogni quota 50 100 200 euro.
 Ad esempio il prodotto avente il bordo della card con il colore più chiaro sarà quello disponibile a tutti gli utenti una volta raggiunti i 50 euro di spesa nel mese corrente.
+
+Per testare le funzionalità relative alla scansione del barcode dei prodotti, fare riferimento al file "Barcode prodotti.png" il quale contiene tutti i prodotti e i relativi barcode attualmente presenti in catalogo.
+
+![Barcode prodotti]([https://github.com/Matteo04x/Progetto-Architetture-Mandorlini-Spiga/blob/main/Images/Archiitettura.png?raw=true](https://github.com/BLMando/Grocify/blob/master/Barcode%20prodotti.png)
