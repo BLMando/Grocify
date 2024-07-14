@@ -43,4 +43,4 @@ Ad esempio il prodotto avente il bordo della card con il colore più chiaro sar�
 
 Per testare le funzionalità relative alla scansione del barcode dei prodotti, fare riferimento al file "Barcode prodotti.png" il quale contiene tutti i prodotti e i relativi barcode attualmente presenti in catalogo.
 
-![Barcode prodotti]([https://github.com/BLMando/Grocify/blob/master/Barcode%20prodotti.png])
+![Barcode prodotti](https://github.com/BLMando/Grocify/blob/master/Barcode%20prodotti.png)
